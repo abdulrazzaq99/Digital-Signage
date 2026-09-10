@@ -33,7 +33,7 @@ export function Avatar({ name, src, size = "md", className }: { name: string; sr
   const s = { sm: "h-7 w-7 text-[10px]", md: "h-9 w-9 text-xs", lg: "h-12 w-12 text-sm" }[size];
   const initials = name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase();
   if (src) return <img src={src} alt={name} className={cn("rounded-full object-cover", s, className)} />;
-  return <div className={cn("flex items-center justify-center rounded-full bg-slate-900 font-semibold text-white", s, className)}>{initials}</div>;
+  return <div className={cn("flex items-center justify-center rounded-full font-semibold text-white", !/\bbg-/.test(className ?? "") && "bg-slate-900", s, className)}>{initials}</div>;
 }
 
 export function CompanyLogo({ seed, size = "md", className }: { seed: string; size?: "sm" | "md" | "lg"; className?: string }) {
@@ -137,6 +137,32 @@ export function SuccessIcon({ className }: { className?: string }) {
   return (
     <div className={cn("flex h-12 w-12 items-center justify-center rounded-full bg-green-50 text-green-600", className)}>
       <Check className="h-5 w-5" />
+    </div>
+  );
+}
+
+export function Drawer({ open, onClose, children, width = "max-w-[420px]" }: { open: boolean; onClose: () => void; children: ReactNode; width?: string }) {
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50">
+      <div className="absolute inset-0 bg-slate-900/30 animate-fade-in" onClick={onClose} />
+      <div className={cn("absolute inset-y-0 right-0 flex w-full flex-col bg-white shadow-2xl animate-pop-in", width)} role="dialog" aria-modal>{children}</div>
+    </div>
+  );
+}
+
+export function BackLink({ href, label, current }: { href: string; label: string; current: string }) {
+  return (
+    <div className="flex items-center gap-2 text-xs">
+      <Link href={href} className="inline-flex items-center gap-1 font-medium text-blue-600 hover:underline"><ChevronLeft className="h-3.5 w-3.5" /> {label}</Link>
+      <ChevronRight className="h-3 w-3 text-slate-300" />
+      <span className="text-slate-400">{current}</span>
     </div>
   );
 }
