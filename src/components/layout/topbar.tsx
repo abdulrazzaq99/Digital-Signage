@@ -24,7 +24,7 @@ export function Topbar({ onToggle, collapsed }: { onToggle: () => void; collapse
   const pathname = usePathname();
   const t = titles.find((x) => x.match(pathname)) ?? titles[0];
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-slate-200 bg-white px-5">
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-slate-200 bg-white px-4 sm:gap-4 sm:px-5">
       <button onClick={onToggle} className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50" aria-label="Toggle sidebar">
         <Menu className="h-4 w-4" />
       </button>
@@ -41,7 +41,7 @@ export function Topbar({ onToggle, collapsed }: { onToggle: () => void; collapse
         <button className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50" aria-label="Share">
           <Share2 className="h-4 w-4" />
         </button>
-        {collapsed && <Avatar name="Super Admin" size="sm" />}
+        {collapsed && <Avatar name="Super Admin" size="sm" className="hidden lg:flex" />}
       </div>
     </header>
   );

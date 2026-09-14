@@ -47,7 +47,7 @@ export function Pagination({ page = 1, pages = 16, summary, className }: { page?
   return (
     <div className={cn("flex flex-wrap items-center justify-between gap-3", className)}>
       <div className="text-xs text-slate-400">{summary}</div>
-      <div className="flex items-center gap-1">
+      <div className="flex flex-wrap items-center gap-1">
         <button className={cn(btn, "border-slate-200 bg-white text-slate-400 hover:bg-slate-50")}><ChevronLeft className="h-3.5 w-3.5" /></button>
         {nums.map((n) => (
           <button key={n} className={cn(btn, n === page ? "border-blue-600 bg-blue-600 text-white" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50")}>{n}</button>
@@ -73,9 +73,9 @@ export function Stepper({ steps, current, className, compact }: { steps: string[
               <span className={cn("flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-semibold", done ? "bg-green-500 text-white" : active ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-400")}>
                 {done ? <Check className="h-3 w-3" /> : n}
               </span>
-              <span className={cn("text-xs font-medium whitespace-nowrap", done ? "text-green-600" : active ? "text-slate-900" : "text-slate-400", compact && "text-[11px]")}>{s}</span>
+              <span className={cn("text-xs font-medium whitespace-nowrap", done ? "text-green-600" : active ? "text-slate-900" : "text-slate-400", compact && "text-[11px]", !active && "hidden sm:inline")}>{s}</span>
             </div>
-            {i < steps.length - 1 && <div className={cn("mx-3 h-px flex-1", done ? "bg-green-300" : "bg-slate-200")} />}
+            {i < steps.length - 1 && <div className={cn("mx-2 h-px flex-1 sm:mx-3", done ? "bg-green-300" : "bg-slate-200")} />}
           </div>
         );
       })}

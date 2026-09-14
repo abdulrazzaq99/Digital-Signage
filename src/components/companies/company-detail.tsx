@@ -91,7 +91,7 @@ export function CompanyDetail({ company }: { company: Company }) {
         <Card className="self-start">
           <CardHeader title="License" subtitle="Screen allocation and access control" action={!editLicense && <Button variant="secondary" size="sm" onClick={() => setEditLicense(true)}>Edit License</Button>} />
           <div className="space-y-4 px-5 py-4">
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {[["License Status", <Badge key="a" tone="green" dot>{company.license}</Badge>], ["Screen Limit", <span key="b" className="text-lg font-bold text-slate-900">{company.screenLimit}</span>], ["Paired Screens", <span key="c" className="text-lg font-bold text-slate-900">{company.screensUsed}</span>], ["Available Slots", <span key="d" className="text-lg font-bold text-green-600">{company.available}</span>]].map(([k, v]) => (
                 <div key={String(k)} className="rounded-lg border border-slate-100 bg-slate-50/60 px-2 py-3 text-center"><div className="text-[10px] leading-3 text-slate-400">{k}</div><div className="mt-2 flex justify-center">{v}</div></div>
               ))}

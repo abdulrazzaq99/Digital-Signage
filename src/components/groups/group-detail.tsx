@@ -25,7 +25,7 @@ export function GroupDetail() {
           <div className="flex items-center gap-2.5"><h1 className="text-xl font-bold tracking-tight text-slate-900">{g.name}</h1><Badge tone="amber" dot>Needs Attention</Badge></div>
           <p className="mt-1 flex items-center gap-2 text-xs text-slate-400">{g.company} <span>·</span> {g.screens.length} Screens <span>·</span> <span className="font-medium text-green-600">● {online} Online</span> <span>·</span> <span className="font-medium text-red-600">● {offline} Offline</span></p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button variant="secondary"><Pencil className="h-3.5 w-3.5" /> Edit Group</Button>
           <Button onClick={() => setPublish(true)}><Send className="h-3.5 w-3.5" /> Publish Content</Button>
           <DropdownMenu items={[{ label: "Delete Group", icon: <Trash2 className="h-3.5 w-3.5" />, tone: "danger", onSelect: () => setDel(true) }]} />
@@ -44,7 +44,7 @@ export function GroupDetail() {
       <div className="grid gap-5 xl:grid-cols-[1fr_300px]">
         <Card>
           <CardHeader title="Screens in this Group" subtitle="Monitor and manage screens assigned to this group." action={<Button variant="secondary" size="sm"><Plus className="h-3.5 w-3.5" /> Add Screens</Button>} />
-          <div className="flex items-center justify-between gap-3 px-5 py-3"><div className="flex gap-2"><SearchInput placeholder="Search screens..." className="w-52" /><FilterSelect label="All Statuses" /><FilterSelect label="All Orientations" /></div><span className="text-xs text-slate-400">{g.screens.length} screens</span></div>
+          <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3"><div className="flex flex-wrap gap-2"><SearchInput placeholder="Search screens..." className="w-full sm:w-52" /><FilterSelect label="All Statuses" /><FilterSelect label="All Orientations" /></div><span className="text-xs text-slate-400">{g.screens.length} screens</span></div>
           <Table>
             <THead><tr><TH>Screen</TH><TH>Status</TH><TH>Orientation</TH><TH>Content</TH><TH>Last Connection</TH><TH>Sync</TH><TH> </TH></tr></THead>
             <tbody>

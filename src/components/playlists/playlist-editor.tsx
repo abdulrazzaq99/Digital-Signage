@@ -29,7 +29,7 @@ export function PlaylistEditor({ playlist }: { playlist?: Playlist }) {
       <BackLink href="/playlists" label="Playlists" current={editing ? "Edit Playlist" : "Create Playlist"} />
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div><h1 className="text-xl font-bold tracking-tight text-slate-900">{editing ? `Edit "${playlist.name}"` : "Create Playlist"}</h1><p className="mt-1 text-sm text-slate-400">{editing ? "Update playlist items, reorder content and adjust durations." : "Build a playlist using content from your media library."}</p></div>
-        <div className="flex gap-2"><Button variant="secondary" onClick={() => router.push("/playlists")}>Cancel</Button><Button disabled={!name || !items.length} onClick={() => router.push("/playlists")}><Save className="h-3.5 w-3.5" /> {editing ? "Save Changes" : "Save Playlist"}</Button></div>
+        <div className="flex flex-wrap gap-2"><Button variant="secondary" onClick={() => router.push("/playlists")}>Cancel</Button><Button disabled={!name || !items.length} onClick={() => router.push("/playlists")}><Save className="h-3.5 w-3.5" /> {editing ? "Save Changes" : "Save Playlist"}</Button></div>
       </div>
       <Card className="px-5 py-4"><SectionLabel>Playlist Name <span className="text-red-500">*</span></SectionLabel><Input className="mt-2 bg-slate-50" placeholder="e.g. Weekend Promotion" value={name} onChange={(e) => setName(e.target.value)} /></Card>
 
@@ -39,7 +39,8 @@ export function PlaylistEditor({ playlist }: { playlist?: Playlist }) {
           {items.length === 0 ? (
             <div className="flex flex-col items-center px-6 py-14 text-center"><span className="flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 text-slate-400"><ListVideo className="h-5 w-5" /></span><div className="mt-4 text-sm font-semibold text-slate-900">Your playlist is empty</div><p className="mt-1 max-w-xs text-xs text-slate-400">Add media from your library to start building your playlist.</p><Button className="mt-4" onClick={() => setAdd(true)}><Plus className="h-3.5 w-3.5" /> Add Media</Button></div>
           ) : (
-            <div className="p-4">
+            <div className="overflow-x-auto p-4">
+              <div className="min-w-[540px]">
               <div className="grid grid-cols-[24px_1fr_80px_90px_32px] items-center gap-3 px-2 pb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400"><span>#</span><span>Media</span><span /><span className="text-right">Duration</span><span /></div>
               <ul className="space-y-1.5">
                 {items.map((it, i) => (
@@ -54,6 +55,7 @@ export function PlaylistEditor({ playlist }: { playlist?: Playlist }) {
               </ul>
               <div className="mt-3 flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-xs"><span className="font-semibold text-slate-700">{items.length} Item{items.length > 1 ? "s" : ""}</span><span className="text-slate-500">Total Duration: <span className="font-semibold text-slate-800">{fmtDuration(total)}</span></span></div>
               <button onClick={() => setAdd(true)} className="mt-3 flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-slate-300 text-xs font-medium text-slate-500 hover:border-blue-300 hover:text-blue-600"><Plus className="h-3.5 w-3.5" /> Add More Media</button>
+              </div>
             </div>
           )}
         </Card>

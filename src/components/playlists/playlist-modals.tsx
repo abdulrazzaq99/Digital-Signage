@@ -54,8 +54,8 @@ export function AddMediaModal({ open, onClose, onAdd }: { open: boolean; onClose
   return (
     <Modal open={open} onClose={close} width="max-w-[680px]">
       <ModalHeader title="Add Media" subtitle="Select media from your library to add to this playlist." onClose={close} />
-      <div className="flex items-center gap-3 px-6 pt-4"><SearchInput placeholder="Search media..." className="flex-1" /><PillTabs options={[{ value: "All", label: "All" }, { value: "Images", label: "Images" }, { value: "Videos", label: "Videos" }, { value: "PDFs", label: "PDFs" }]} value={filter} onChange={setFilter} /></div>
-      <div className="grid max-h-[340px] grid-cols-3 gap-3 overflow-y-auto px-6 py-4">
+      <div className="flex flex-wrap items-center gap-3 px-6 pt-4"><SearchInput placeholder="Search media..." className="min-w-[180px] flex-1" /><PillTabs options={[{ value: "All", label: "All" }, { value: "Images", label: "Images" }, { value: "Videos", label: "Videos" }, { value: "PDFs", label: "PDFs" }]} value={filter} onChange={setFilter} /></div>
+      <div className="grid max-h-[340px] grid-cols-2 gap-3 overflow-y-auto px-6 py-4 sm:grid-cols-3">
         {rows.map((m) => {
           const on = sel.includes(m.id);
           return (

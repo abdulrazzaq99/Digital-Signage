@@ -31,7 +31,7 @@ export function LicenseDetail({ company }: { company: Company }) {
             <p className="mt-0.5 text-xs text-slate-400">Customer since {company.since}</p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button variant="secondary" onClick={() => setEdit(true)}><Pencil className="h-3.5 w-3.5" /> Edit Limit</Button>
           <Button variant="warning-outline" onClick={() => setSuspend(true)} disabled={company.license !== "Active"}><PauseCircle className="h-3.5 w-3.5" /> Suspend</Button>
           <Button variant="secondary" onClick={() => setDisable(true)} disabled={company.license === "Disabled"} className="text-slate-400"><Ban className="h-3.5 w-3.5" /> Disable</Button>

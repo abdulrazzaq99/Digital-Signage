@@ -21,7 +21,7 @@ export function CanvasDetail({ canvas }: { canvas: Canvas }) {
             <p className="mt-0.5 text-xs text-slate-400">{canvas.screens} screens · Created {canvas.created}</p>
           </div>
         </div>
-        <div className="flex gap-2"><Button href={`/screens/canvas/${canvas.id}/reconfigure`} variant="secondary">Reconfigure</Button><Button variant="danger-outline">Deactivate</Button></div>
+        <div className="flex flex-wrap gap-2"><Button href={`/screens/canvas/${canvas.id}/reconfigure`} variant="secondary">Reconfigure</Button><Button variant="danger-outline">Deactivate</Button></div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

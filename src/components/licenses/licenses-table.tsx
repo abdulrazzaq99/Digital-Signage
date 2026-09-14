@@ -66,7 +66,7 @@ export function LicensesTable() {
                   <TD>
                     <Link href={`/licenses/${c.id}`} className="flex items-center gap-3">
                       <CompanyLogo seed={c.seed} size="sm" />
-                      <span><span className="block text-sm font-semibold text-slate-900">{c.name}</span><span className="block text-[11px] text-slate-400">{c.code}</span></span>
+                      <span><span className="block whitespace-nowrap text-sm font-semibold text-slate-900">{c.name}</span><span className="block text-[11px] text-slate-400">{c.code}</span></span>
                     </Link>
                   </TD>
                   <TD><span className="text-sm font-bold text-slate-900">{c.screenLimit}</span> <span className="text-[10px] text-slate-400">screens</span></TD>

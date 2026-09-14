@@ -48,18 +48,18 @@ export function AddScreenModal({ open, onClose }: { open: boolean; onClose: () =
           <ModalHeader title="Configure Screen" subtitle="Set up basic information for this screen." className="pt-1" />
           <div className="space-y-4 px-6 py-5">
             <div><Label required>Screen Name</Label><Input placeholder="e.g. Lobby Display 01" /></div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid gap-3 sm:grid-cols-2">
               <div><Label>Company / Tenant</Label><Select defaultValue="acme-retail">{companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</Select></div>
               <div><Label required>Location</Label><Input placeholder="e.g. Main Lobby" /></div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid gap-3 sm:grid-cols-2">
               <div><Label>Screen Group</Label><Select defaultValue="lobby"><option value="lobby">Lobby</option><option value="restaurant">Restaurant</option><option value="reception">Reception</option><option value="fitness">Fitness</option><option value="">None</option></Select></div>
               <div><Label>Orientation</Label><Segmented options={[{ value: "Landscape", label: "Landscape" }, { value: "Portrait", label: "Portrait" }]} value={orientation} onChange={setOrientation} /></div>
             </div>
             <div><Label>Tags</Label><Input placeholder="Lobby, Main Display, ... (comma separated)" /></div>
             <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
               <SectionLabel>Detected Device</SectionLabel>
-              <dl className="mt-2 grid grid-cols-2 gap-x-6 gap-y-1 text-[11px]">
+              <dl className="mt-2 grid gap-x-6 gap-y-1 text-[11px] sm:grid-cols-2">
                 <div className="flex justify-between"><dt className="text-slate-400">Device ID</dt><dd className="font-semibold text-slate-800">ANDROID-NEW01</dd></div>
                 <div className="flex justify-between"><dt className="text-slate-400">Model</dt><dd className="font-semibold text-slate-800">Android Box Pro</dd></div>
                 <div className="flex justify-between"><dt className="text-slate-400">Player Version</dt><dd className="font-semibold text-slate-800">1.6.3</dd></div>

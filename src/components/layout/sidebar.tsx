@@ -1,7 +1,7 @@
 "use client";
 import { cn } from "@/lib/utils";
 import {
-  Activity, Bell, Building2, ChevronDown, FileBadge, Image as ImageIcon, LayoutDashboard, LayoutTemplate, ListVideo, Monitor, Settings, Tag, Ticket,
+  Activity, Bell, Building2, ChevronDown, FileBadge, Image as ImageIcon, LayoutDashboard, LayoutTemplate, ListVideo, Monitor, Settings, Tag, Ticket, X,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -34,18 +34,25 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(href + "/");
 }
 
-export function Sidebar({ collapsed }: { collapsed: boolean }) {
+export function Sidebar({ collapsed, mobileOpen, onClose }: { collapsed: boolean; mobileOpen?: boolean; onClose?: () => void }) {
+  const isCollapsed = collapsed;
   const pathname = usePathname();
   const [openScreens, setOpenScreens] = useState(pathname.startsWith("/screens"));
   const screensOpen = openScreens || pathname.startsWith("/screens");
 
   return (
-    <aside className={cn("fixed inset-y-0 left-0 z-40 flex flex-col border-r border-slate-200 bg-white transition-[width] duration-200", collapsed ? "w-16" : "w-[232px]")}>
-      <div className={cn("flex h-16 items-center gap-2.5 border-b border-slate-100", collapsed ? "justify-center px-0" : "px-5")}>
+    <aside className={cn(
+      "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-slate-200 bg-white transition-[width,transform] duration-200",
+      "w-[232px] lg:translate-x-0",
+      mobileOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full",
+      isCollapsed ? "lg:w-16" : "lg:w-[232px]",
+    )}>
+      <div className={cn("flex h-16 items-center gap-2.5 border-b border-slate-100 px-5", collapsed && "lg:justify-center lg:px-0")}>
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white">
           <LayoutDashboard className="h-4 w-4" />
         </div>
-        {!collapsed && <span className="text-sm font-bold text-slate-900">DSP Admin</span>}
+        <span className={cn("text-sm font-bold text-slate-900", collapsed && "lg:hidden")}>DSP Admin</span>
+        {onClose && <button onClick={onClose} className="ml-auto flex h-7 w-7 items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 lg:hidden" aria-label="Close menu"><X className="h-4 w-4" /></button>}
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-3">
@@ -53,7 +60,7 @@ export function Sidebar({ collapsed }: { collapsed: boolean }) {
           {nav.map((item) => {
             const active = isActive(pathname, item.href);
             const hasChildren = !!item.children;
-            const expanded = hasChildren && screensOpen && !collapsed;
+            const expanded = hasChildren && screensOpen;
             return (
               <li key={item.href}>
                 <div className="flex items-center">
@@ -61,19 +68,19 @@ export function Sidebar({ collapsed }: { collapsed: boolean }) {
                     href={item.href}
                     title={collapsed ? item.label : undefined}
                     className={cn(
-                      "flex flex-1 items-center gap-2.5 rounded-lg text-[13px] font-medium transition-colors",
-                      collapsed ? "h-9 justify-center" : "h-9 px-3",
+                      "flex h-9 flex-1 items-center gap-2.5 rounded-lg px-3 text-[13px] font-medium transition-colors",
+                      collapsed && "lg:justify-center lg:px-0",
                       active ? "bg-blue-600 text-white shadow-sm" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
                     )}
                     onClick={() => hasChildren && setOpenScreens(true)}
                   >
                     <span className={cn(active ? "text-white" : "text-slate-400")}>{item.icon}</span>
-                    {!collapsed && <span className="flex-1 truncate">{item.label}</span>}
-                    {!collapsed && hasChildren && (
+                    <span className={cn("flex-1 truncate", collapsed && "lg:hidden")}>{item.label}</span>
+                    {hasChildren && (
                       <button
                         type="button"
                         onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpenScreens((v) => !v); }}
-                        className={cn("rounded p-0.5", active ? "text-white/80" : "text-slate-400")}
+                        className={cn("rounded p-0.5", active ? "text-white/80" : "text-slate-400", collapsed && "lg:hidden")}
                         aria-label="Toggle"
                       >
                         <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", expanded && "rotate-180")} />
@@ -82,7 +89,7 @@ export function Sidebar({ collapsed }: { collapsed: boolean }) {
                   </Link>
                 </div>
                 {expanded && (
-                  <ul className="mt-1 space-y-0.5 pl-4">
+                  <ul className={cn("mt-1 space-y-0.5 pl-4", collapsed && "lg:hidden")}>
                     {item.children!.map((c) => {
                       const sub = c.href === "/screens" ? pathname === "/screens" || (pathname.startsWith("/screens/") && !pathname.startsWith("/screens/groups") && !pathname.startsWith("/screens/canvas")) : isActive(pathname, c.href);
                       return (
@@ -102,10 +109,10 @@ export function Sidebar({ collapsed }: { collapsed: boolean }) {
         </ul>
       </nav>
 
-      <div className={cn("flex items-center gap-2.5 border-t border-slate-100 py-3", collapsed ? "justify-center" : "px-4")}>
-        <Avatar name="Alex Rivera" src="https://picsum.photos/seed/alexr/80/80" size={collapsed ? "sm" : "md"} />
-        {!collapsed && (
-          <div className="min-w-0">
+      <div className={cn("flex items-center gap-2.5 border-t border-slate-100 px-4 py-3", collapsed && "lg:justify-center lg:px-0")}>
+        <Avatar name="Alex Rivera" src="https://picsum.photos/seed/alexr/80/80" size="md" />
+        {(
+          <div className={cn("min-w-0", collapsed && "lg:hidden")}>
             <div className="truncate text-xs font-semibold text-slate-900">Alex Rivera</div>
             <div className="truncate text-[10px] text-blue-600">Super Admin</div>
           </div>

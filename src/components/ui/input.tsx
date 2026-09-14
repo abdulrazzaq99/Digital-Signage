@@ -88,7 +88,7 @@ export function Segmented<T extends string>({ options, value, onChange, classNam
 
 export function PillTabs<T extends string>({ options, value, onChange, className }: { options: { value: T; label: string }[]; value: T; onChange: (v: T) => void; className?: string }) {
   return (
-    <div className={cn("flex items-center gap-1.5", className)}>
+    <div className={cn("flex flex-wrap items-center gap-1.5", className)}>
       {options.map((o) => (
         <button
           key={o.value}
@@ -122,8 +122,8 @@ export function Toggle({ checked, onChange, className }: { checked: boolean; onC
 
 export function UnderlineTabs<T extends string>({ options, value, onChange, className }: { options: { value: T; label: string; icon?: ReactNode; count?: number }[]; value: T; onChange: (v: T) => void; className?: string }) {
   return (
-    <div className={cn("border-b border-slate-200", className)}>
-      <div className="-mb-px flex gap-6">
+    <div className={cn("border-b border-slate-200 overflow-x-auto overflow-y-hidden", className)}>
+      <div className="-mb-px flex gap-6 whitespace-nowrap">
         {options.map((o) => (
           <button key={o.value} type="button" onClick={() => onChange(o.value)} className={cn("flex items-center gap-2 border-b-2 pb-3 text-sm font-medium transition-colors", value === o.value ? "border-blue-600 text-blue-600" : "border-transparent text-slate-500 hover:text-slate-800")}>
             {o.icon}{o.label}

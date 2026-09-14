@@ -28,7 +28,7 @@ export function OfferForm({ offer, mode }: { offer?: Offer; mode: "create" | "ed
         <BackLink href={backHref} label="Back to Edit" current="Customer Preview" />
         <div className="flex items-center gap-3"><Badge tone="blue" className="uppercase"><Eye className="h-2.5 w-2.5" /> Customer View Preview</Badge><span className="text-xs text-slate-400">This is exactly what customers will see in the Marketplace.</span></div>
         <OfferCustomerCard offer={{ ...base, seed: base.seed || "fashion" }} values={{ title: f.title, description: f.description, contact: f.contact.split("\n").filter(Boolean), claim: f.claim, category: f.category, start: f.start, end: f.end }} />
-        <div className="flex justify-between"><Button variant="secondary" onClick={() => setPreview(false)}><ArrowLeft className="h-3.5 w-3.5" /> Back to Edit</Button><div className="flex gap-2"><Button variant="secondary"><Save className="h-3.5 w-3.5" /> Save Draft</Button><Button variant="success" onClick={() => router.push("/offers")}><Send className="h-3.5 w-3.5" /> Save &amp; Publish {mode === "create" ? "" : "Changes"}</Button></div></div>
+        <div className="flex flex-wrap items-center justify-between gap-2"><Button variant="secondary" onClick={() => setPreview(false)}><ArrowLeft className="h-3.5 w-3.5" /> Back to Edit</Button><div className="flex gap-2"><Button variant="secondary"><Save className="h-3.5 w-3.5" /> Save Draft</Button><Button variant="success" onClick={() => router.push("/offers")}><Send className="h-3.5 w-3.5" /> Save &amp; Publish {mode === "create" ? "" : "Changes"}</Button></div></div>
       </OffersShell>
     );
   }
@@ -50,7 +50,7 @@ export function OfferForm({ offer, mode }: { offer?: Offer; mode: "create" | "ed
           <Alert tone="blue" icon={<Info className="h-3.5 w-3.5 shrink-0" />}><span className="font-semibold">Publishing tip</span><br />Save as draft first to review the customer-facing appearance. Once you&apos;re satisfied, publish to make the offer live in the Marketplace.</Alert>
         </div>
       </div>
-      <div className="flex justify-between"><Button variant="secondary" onClick={() => router.push(backHref)}>Cancel</Button><div className="flex gap-2"><Button variant="secondary"><Save className="h-3.5 w-3.5" /> Save Draft</Button><Button disabled={!f.title || !f.description} onClick={() => setPreview(true)}><Eye className="h-3.5 w-3.5" /> Preview {offer ? "Changes" : "Offer"}</Button></div></div>
+      <div className="flex flex-wrap items-center justify-between gap-2"><Button variant="secondary" onClick={() => router.push(backHref)}>Cancel</Button><div className="flex gap-2"><Button variant="secondary"><Save className="h-3.5 w-3.5" /> Save Draft</Button><Button disabled={!f.title || !f.description} onClick={() => setPreview(true)}><Eye className="h-3.5 w-3.5" /> Preview {offer ? "Changes" : "Offer"}</Button></div></div>
     </OffersShell>
   );
 }

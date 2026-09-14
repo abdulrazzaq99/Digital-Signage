@@ -30,7 +30,7 @@ export function MediaLibrary() {
 
   return (
     <div className="space-y-5">
-      <PageHeader title="Media Library" subtitle="Upload and manage content used across your screens." action={<div className="text-right"><Button onClick={() => setUpload(true)}><Upload className="h-4 w-4" /> Upload Media</Button><div className="mt-1 text-[10px] text-slate-400">JPG, PNG, MP4 and PDF</div></div>} />
+      <PageHeader title="Media Library" subtitle="Upload and manage content used across your screens." action={<div className="sm:text-right"><Button onClick={() => setUpload(true)}><Upload className="h-4 w-4" /> Upload Media</Button><div className="mt-1 text-[10px] text-slate-400">JPG, PNG, MP4 and PDF</div></div>} />
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard value="7" label="Media Files" sub="Total uploads" />
         <StatCard value="0.2 GB" label="Storage Used" sub="Across all files" />

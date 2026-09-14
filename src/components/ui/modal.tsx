@@ -14,7 +14,7 @@ export function Modal({ open, onClose, children, className, width = "max-w-lg" }
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] animate-fade-in" onClick={onClose} />
-      <div className={cn("relative w-full rounded-2xl bg-white shadow-2xl animate-pop-in", width, className)} role="dialog" aria-modal>
+      <div className={cn("relative max-h-[92vh] w-full overflow-y-auto rounded-2xl bg-white shadow-2xl animate-pop-in", width, className)} role="dialog" aria-modal>
         {children}
       </div>
     </div>

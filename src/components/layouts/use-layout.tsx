@@ -88,7 +88,7 @@ export function UseLayout({ layout }: { layout: ZoneLayout }) {
       )}
 
       {phase === "configure" && (
-        <div className="flex justify-between"><Button variant="secondary" onClick={() => router.push("/layouts?tab=zones")}><ArrowLeft className="h-3.5 w-3.5" /> Back</Button><div className="flex gap-2"><Button variant="secondary"><Save className="h-3.5 w-3.5" /> Save Draft</Button><Button disabled={!allSet} onClick={() => setPhase("preview")}>Preview Layout <ArrowRight className="h-3.5 w-3.5" /></Button></div></div>
+        <div className="flex flex-wrap items-center justify-between gap-2"><Button variant="secondary" onClick={() => router.push("/layouts?tab=zones")}><ArrowLeft className="h-3.5 w-3.5" /> Back</Button><div className="flex gap-2"><Button variant="secondary"><Save className="h-3.5 w-3.5" /> Save Draft</Button><Button disabled={!allSet} onClick={() => setPhase("preview")}>Preview Layout <ArrowRight className="h-3.5 w-3.5" /></Button></div></div>
       )}
 
       <SelectContentModal zone={picker} onClose={() => setPicker(null)} onPick={(c) => { if (picker !== null) setZoneContent((z) => ({ ...z, [picker]: c })); setPicker(null); }} />
@@ -102,8 +102,8 @@ function SelectContentModal({ zone, onClose, onPick }: { zone: number | null; on
   return (
     <Modal open={zone !== null} onClose={onClose} width="max-w-[640px]">
       <ModalHeader title="Select Content" subtitle={`Assigning to Zone ${(zone ?? 0) + 1}`} onClose={onClose} />
-      <div className="flex items-center justify-between px-6 pt-3"><div className="-mb-px flex gap-5 border-b border-slate-200">{(["media", "playlists"] as const).map((t) => <button key={t} onClick={() => setTab(t)} className={cn("border-b-2 pb-2 text-xs font-medium capitalize", tab === t ? "border-blue-600 text-blue-600" : "border-transparent text-slate-500")}>{t}</button>)}</div><SearchInput placeholder="Search..." className="w-44" /></div>
-      <div className="grid max-h-[320px] grid-cols-3 gap-3 overflow-y-auto px-6 py-4">{rows.map((c) => <button key={c.name} onClick={() => onPick(c)} className="overflow-hidden rounded-lg border border-slate-200 text-left hover:border-blue-300"><div className="relative aspect-video bg-slate-900"><img src={img(c.seed, 480, 270)} alt="" className="h-full w-full object-cover" /><Badge tone={tab === "playlists" ? "purple" : "blue"} className="absolute left-2 top-2">{tab === "playlists" ? "PLAYLIST" : "MEDIA"}</Badge></div><div className="px-3 py-2"><div className="truncate text-xs font-semibold text-slate-900">{c.name}</div><div className="text-[10px] text-slate-400">{c.sub}</div></div></button>)}</div>
+      <div className="flex flex-wrap items-center justify-between gap-3 px-6 pt-3"><div className="-mb-px flex gap-5 border-b border-slate-200">{(["media", "playlists"] as const).map((t) => <button key={t} onClick={() => setTab(t)} className={cn("border-b-2 pb-2 text-xs font-medium capitalize", tab === t ? "border-blue-600 text-blue-600" : "border-transparent text-slate-500")}>{t}</button>)}</div><SearchInput placeholder="Search..." className="w-44" /></div>
+      <div className="grid max-h-[320px] grid-cols-2 gap-3 overflow-y-auto px-6 py-4 sm:grid-cols-3">{rows.map((c) => <button key={c.name} onClick={() => onPick(c)} className="overflow-hidden rounded-lg border border-slate-200 text-left hover:border-blue-300"><div className="relative aspect-video bg-slate-900"><img src={img(c.seed, 480, 270)} alt="" className="h-full w-full object-cover" /><Badge tone={tab === "playlists" ? "purple" : "blue"} className="absolute left-2 top-2">{tab === "playlists" ? "PLAYLIST" : "MEDIA"}</Badge></div><div className="px-3 py-2"><div className="truncate text-xs font-semibold text-slate-900">{c.name}</div><div className="text-[10px] text-slate-400">{c.sub}</div></div></button>)}</div>
     </Modal>
   );
 }

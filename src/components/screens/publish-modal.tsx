@@ -82,7 +82,7 @@ export function PublishModal({ open, onClose, defaultScreen }: { open: boolean; 
       {phase === "content" && (
         <div className="animate-fade-in">
           <div className="px-6 pt-5"><PillTabs options={[{ value: "All", label: "All" }, { value: "Playlists", label: "Playlists" }, { value: "Media", label: "Media" }]} value={contentFilter} onChange={setContentFilter} /></div>
-          <div className="grid max-h-[300px] grid-cols-2 gap-3 overflow-y-auto px-6 py-4">
+          <div className="grid max-h-[300px] grid-cols-1 gap-3 overflow-y-auto px-6 py-4 sm:grid-cols-2">
             {contentRows.map((c) => (
               <button key={c.id} onClick={() => setContent(c.id)} className={cn("overflow-hidden rounded-lg border text-left transition-colors", content === c.id ? "border-blue-400 ring-2 ring-blue-500/20" : "border-slate-200 hover:border-slate-300")}>
                 <div className="relative aspect-[16/9] bg-slate-900">

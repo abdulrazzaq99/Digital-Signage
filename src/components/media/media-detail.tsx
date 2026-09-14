@@ -18,7 +18,7 @@ export function MediaDetail({ item }: { item: MediaItem }) {
       <BackLink href="/media" label="Media Library" current={item.name} />
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div><h1 className="text-xl font-bold tracking-tight text-slate-900">{item.name}</h1><p className="mt-1 text-xs text-slate-400">Uploaded {item.uploaded} · {item.company}</p></div>
-        <div className="flex gap-2"><Button variant="secondary" onClick={() => setRename(true)}><Pencil className="h-3.5 w-3.5" /> Rename</Button><Button variant="danger-outline" onClick={() => setDel(true)}><Trash2 className="h-3.5 w-3.5" /> Delete</Button></div>
+        <div className="flex flex-wrap gap-2"><Button variant="secondary" onClick={() => setRename(true)}><Pencil className="h-3.5 w-3.5" /> Rename</Button><Button variant="danger-outline" onClick={() => setDel(true)}><Trash2 className="h-3.5 w-3.5" /> Delete</Button></div>
       </div>
       <div className="grid gap-5 xl:grid-cols-[1fr_320px]">
         <button onClick={() => setPreview(true)} className="relative overflow-hidden rounded-xl bg-slate-900 text-left">

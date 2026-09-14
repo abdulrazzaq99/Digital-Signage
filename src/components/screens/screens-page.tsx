@@ -47,8 +47,8 @@ export function ScreensPage() {
         <StatCard value="6" label="Syncing" tone="blue" />
       </div>
 
-      <div className="border-b border-slate-200">
-        <div className="-mb-px flex gap-6">
+      <div className="overflow-x-auto overflow-y-hidden border-b border-slate-200">
+        <div className="-mb-px flex gap-6 whitespace-nowrap">
           {tabs.map((t) => (
             <button key={t.value} onClick={() => setTab(t.value)} className={cn("flex items-center gap-2 border-b-2 pb-3 text-sm font-medium transition-colors", tab === t.value ? "border-blue-600 text-blue-600" : "border-transparent text-slate-500 hover:text-slate-800")}>
               {t.label}<span className={cn("rounded-md px-1.5 py-0.5 text-[10px] font-semibold", tab === t.value ? "bg-blue-50 text-blue-600" : "bg-slate-100 text-slate-500")}>{t.count}</span>
@@ -85,7 +85,7 @@ export function ScreensPage() {
                   <TD>
                     <Link href={`/screens/${s.id}`} className="flex items-center gap-3">
                       <img src={img(s.seed, 96, 64)} alt="" className="h-8 w-12 rounded object-cover" />
-                      <span><span className="block text-sm font-semibold text-slate-900">{s.name}</span><span className="block text-[11px] text-slate-400">{s.location}</span></span>
+                      <span><span className="block whitespace-nowrap text-sm font-semibold text-slate-900">{s.name}</span><span className="block text-[11px] text-slate-400">{s.location}</span></span>
                     </Link>
                   </TD>
                   <TD className="text-xs">{s.personal ? <Badge tone="blue"><User className="h-2.5 w-2.5" /> Personal</Badge> : s.company}</TD>

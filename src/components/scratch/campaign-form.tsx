@@ -41,14 +41,14 @@ export function CampaignForm({ campaign }: { campaign?: Campaign }) {
           <div className="space-y-4">
             <div><Label required>Campaign Title</Label><Input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={100} /><div className="mt-1 text-[10px] text-slate-400">{title.length}/100</div></div>
             <div><Label>Description</Label><Textarea rows={3} placeholder="Describe the campaign — who can participate, what the prizes are, how it works..." value={desc} onChange={(e) => setDesc(e.target.value)} /></div>
-            <div className="grid grid-cols-2 gap-4"><div><Label required>Start Date</Label><Input type="date" value={start} onChange={(e) => setStart(e.target.value)} /></div><div><Label required>End Date</Label><Input type="date" value={end} onChange={(e) => setEnd(e.target.value)} /></div></div>
-            <div className="grid grid-cols-2 gap-4"><button type="button" onClick={() => setActivate(false)} className={cn("h-10 rounded-lg border text-xs font-medium", !activate ? "border-blue-300 bg-blue-50 text-blue-600" : "border-slate-200 text-slate-600")}>Save as Draft</button><button type="button" onClick={() => setActivate(true)} className={cn("h-10 rounded-lg border text-xs font-medium", activate ? "border-green-300 bg-green-50 text-green-700" : "border-slate-200 text-slate-600")}>Activate on Save</button></div>
+            <div className="grid gap-4 sm:grid-cols-2"><div><Label required>Start Date</Label><Input type="date" value={start} onChange={(e) => setStart(e.target.value)} /></div><div><Label required>End Date</Label><Input type="date" value={end} onChange={(e) => setEnd(e.target.value)} /></div></div>
+            <div className="grid gap-4 sm:grid-cols-2"><button type="button" onClick={() => setActivate(false)} className={cn("h-10 rounded-lg border text-xs font-medium", !activate ? "border-blue-300 bg-blue-50 text-blue-600" : "border-slate-200 text-slate-600")}>Save as Draft</button><button type="button" onClick={() => setActivate(true)} className={cn("h-10 rounded-lg border text-xs font-medium", activate ? "border-green-300 bg-green-50 text-green-700" : "border-slate-200 text-slate-600")}>Activate on Save</button></div>
           </div>
-          <div>
+          <div className="max-w-md xl:max-w-none">
             <Label>Campaign Artwork</Label>
             <img src={img(`art-${art}`, 600, 400)} alt="" className="aspect-[3/2] w-full rounded-xl object-cover" />
             <Label className="mt-4">Choose Artwork</Label>
-            <div className="grid grid-cols-4 gap-2">{artworks.map((a, i) => <button key={a} onClick={() => setArt(i)} className={cn("overflow-hidden rounded-lg border-2 text-left", art === i ? "border-blue-600" : "border-transparent")}><img src={img(`art-${i}`, 120, 80)} alt="" className="aspect-[3/2] w-full object-cover" /><span className="block truncate px-1 py-0.5 text-[9px] text-slate-500">{a}</span></button>)}</div>
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">{artworks.map((a, i) => <button key={a} onClick={() => setArt(i)} className={cn("overflow-hidden rounded-lg border-2 text-left", art === i ? "border-blue-600" : "border-transparent")}><img src={img(`art-${i}`, 120, 80)} alt="" className="aspect-[3/2] w-full object-cover" /><span className="block truncate px-1 py-0.5 text-[9px] text-slate-500">{a}</span></button>)}</div>
           </div>
         </div>
       )}
@@ -82,7 +82,7 @@ export function CampaignForm({ campaign }: { campaign?: Campaign }) {
         </div>
       )}
 
-      <div className="flex justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <Button variant="secondary" onClick={() => (step === 1 ? router.push(back) : setStep(step - 1))}>{step === 1 ? "Cancel" : <><ArrowLeft className="h-3.5 w-3.5" /> Back</>}</Button>
         {step < 4 ? <Button disabled={(step === 1 && (!title || !start || !end)) || (step === 3 && !prizes.length)} onClick={() => setStep(step + 1)}>Next: {STEPS[step]} <ArrowRight className="h-3.5 w-3.5" /></Button> : <Button variant="success" onClick={() => router.push(editing ? back : "/scratch-win")}><Check className="h-3.5 w-3.5" /> {editing ? "Save Changes" : activate ? "Create & Activate" : "Save Campaign"}</Button>}
       </div>

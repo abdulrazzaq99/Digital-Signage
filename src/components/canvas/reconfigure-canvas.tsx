@@ -48,7 +48,7 @@ export function ReconfigureCanvas({ canvas }: { canvas: Canvas }) {
               </tbody>
             </Table>
           </Card>
-          <div className="flex justify-between"><Button variant="secondary" onClick={() => router.push(`/screens/canvas/${canvas.id}`)}>Cancel</Button><Button onClick={() => setStep(2)}>Continue <ChevronRight className="h-3.5 w-3.5" /></Button></div>
+          <div className="flex flex-wrap items-center justify-between gap-2"><Button variant="secondary" onClick={() => router.push(`/screens/canvas/${canvas.id}`)}>Cancel</Button><Button onClick={() => setStep(2)}>Continue <ChevronRight className="h-3.5 w-3.5" /></Button></div>
         </div>
       )}
 
@@ -82,7 +82,7 @@ export function ReconfigureCanvas({ canvas }: { canvas: Canvas }) {
               </tbody>
             </Table>
           </Card>
-          <div className="flex justify-between"><Button variant="secondary" onClick={() => setStep(1)}><ArrowLeft className="h-3.5 w-3.5" /> Back</Button><Button onClick={() => setStep(3)}>Continue <ChevronRight className="h-3.5 w-3.5" /></Button></div>
+          <div className="flex flex-wrap items-center justify-between gap-2"><Button variant="secondary" onClick={() => setStep(1)}><ArrowLeft className="h-3.5 w-3.5" /> Back</Button><Button onClick={() => setStep(3)}>Continue <ChevronRight className="h-3.5 w-3.5" /></Button></div>
         </div>
       )}
 
@@ -110,7 +110,7 @@ export function ReconfigureCanvas({ canvas }: { canvas: Canvas }) {
               </div>
             </div>
           </Card>
-          <div className="flex justify-between"><Button variant="secondary" onClick={() => setStep(2)}><ArrowLeft className="h-3.5 w-3.5" /> Back</Button><Button onClick={() => setStep(4)}>Continue <ChevronRight className="h-3.5 w-3.5" /></Button></div>
+          <div className="flex flex-wrap items-center justify-between gap-2"><Button variant="secondary" onClick={() => setStep(2)}><ArrowLeft className="h-3.5 w-3.5" /> Back</Button><Button onClick={() => setStep(4)}>Continue <ChevronRight className="h-3.5 w-3.5" /></Button></div>
         </div>
       )}
 
@@ -121,7 +121,7 @@ export function ReconfigureCanvas({ canvas }: { canvas: Canvas }) {
             <div className="flex items-center gap-3 px-5 py-4 text-xs"><span className="flex h-6 w-6 items-center justify-center rounded-md bg-blue-50 text-blue-600"><RefreshCw className="h-3 w-3" /></span><span className="font-semibold text-slate-900">Content changed —</span><span className="text-slate-600">{canvas.content} → New Campaign 2026</span></div>
           </Card>
           <Alert tone="amber" icon={<AlertTriangle className="h-3.5 w-3.5 shrink-0" />}>Current canvas remains active until the updated configuration is ready. Applying will start a synchronization process across all member screens.</Alert>
-          <div className="flex justify-between"><Button variant="secondary" onClick={() => setStep(3)}><ArrowLeft className="h-3.5 w-3.5" /> Back</Button><div className="flex gap-2"><Button variant="secondary" href={`/screens/canvas/${canvas.id}`}>Cancel</Button><Button variant="success" onClick={() => router.push(`/screens/canvas/${canvas.id}`)}><Check className="h-3.5 w-3.5" /> Apply Changes</Button></div></div>
+          <div className="flex flex-wrap items-center justify-between gap-2"><Button variant="secondary" onClick={() => setStep(3)}><ArrowLeft className="h-3.5 w-3.5" /> Back</Button><div className="flex gap-2"><Button variant="secondary" href={`/screens/canvas/${canvas.id}`}>Cancel</Button><Button variant="success" onClick={() => router.push(`/screens/canvas/${canvas.id}`)}><Check className="h-3.5 w-3.5" /> Apply Changes</Button></div></div>
         </div>
       )}
     </div>

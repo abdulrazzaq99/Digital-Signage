@@ -64,7 +64,7 @@ export function CreateCanvas() {
               </tbody>
             </Table>
           </Card>
-          <div className="flex justify-between"><Button href="/screens/canvas" variant="secondary">Cancel</Button><Button disabled={sel.length < 2} onClick={() => { setOrder(sel); setStep(2); }}>Continue <ChevronRight className="h-3.5 w-3.5" /></Button></div>
+          <div className="flex flex-wrap items-center justify-between gap-2"><Button href="/screens/canvas" variant="secondary">Cancel</Button><Button disabled={sel.length < 2} onClick={() => { setOrder(sel); setStep(2); }}>Continue <ChevronRight className="h-3.5 w-3.5" /></Button></div>
         </div>
       )}
 
@@ -84,7 +84,7 @@ export function CreateCanvas() {
               <Alert tone="blue" icon={<Info className="h-3.5 w-3.5 shrink-0" />}>The leftmost screen will display the leftmost portion of the master canvas. Arrange to match the physical installation.</Alert>
             </div>
           </Card>
-          <div className="flex justify-between"><Button variant="secondary" onClick={() => setStep(1)}><ArrowLeft className="h-3.5 w-3.5" /> Back</Button><Button onClick={() => setStep(3)}>Continue to Preview <ArrowRight className="h-3.5 w-3.5" /></Button></div>
+          <div className="flex flex-wrap items-center justify-between gap-2"><Button variant="secondary" onClick={() => setStep(1)}><ArrowLeft className="h-3.5 w-3.5" /> Back</Button><Button onClick={() => setStep(3)}>Continue to Preview <ArrowRight className="h-3.5 w-3.5" /></Button></div>
         </div>
       )}
 
@@ -102,7 +102,7 @@ export function CreateCanvas() {
             </div>
           </Card>
           <Card className="flex items-center justify-between px-5 py-4"><span className="text-sm font-semibold text-slate-900">Screen Readiness</span><span className={`text-xs font-semibold ${readyCount === selected.length ? "text-green-600" : "text-amber-600"}`}>{readyCount} of {selected.length} screens ready</span></Card>
-          <div className="flex justify-between"><Button variant="secondary" onClick={() => setStep(2)}><ArrowLeft className="h-3.5 w-3.5" /> Back</Button><Button onClick={() => setStep(4)}>Continue to Activate <ArrowRight className="h-3.5 w-3.5" /></Button></div>
+          <div className="flex flex-wrap items-center justify-between gap-2"><Button variant="secondary" onClick={() => setStep(2)}><ArrowLeft className="h-3.5 w-3.5" /> Back</Button><Button onClick={() => setStep(4)}>Continue to Activate <ArrowRight className="h-3.5 w-3.5" /></Button></div>
         </div>
       )}
 
@@ -118,7 +118,7 @@ export function CreateCanvas() {
             <CardHeader title="Screen Order" />
             <ol className="divide-y divide-slate-100">{selected.map((s, i) => <li key={s.id} className="flex items-center gap-3 px-5 py-2.5 text-xs"><span className={`flex h-5 w-5 items-center justify-center rounded text-[10px] font-semibold text-white ${swatches[i % 5]}`}>{i + 1}</span><span className="font-semibold text-slate-900">{s.name}</span><span className="text-slate-400">{s.location}</span></li>)}</ol>
           </Card>
-          <div className="flex justify-between"><Button variant="secondary" onClick={() => setStep(3)}><ArrowLeft className="h-3.5 w-3.5" /> Back</Button><Button variant="success" onClick={() => setActivated(true)}><Play className="h-3.5 w-3.5" /> Activate Canvas</Button></div>
+          <div className="flex flex-wrap items-center justify-between gap-2"><Button variant="secondary" onClick={() => setStep(3)}><ArrowLeft className="h-3.5 w-3.5" /> Back</Button><Button variant="success" onClick={() => setActivated(true)}><Play className="h-3.5 w-3.5" /> Activate Canvas</Button></div>
         </div>
       )}
 
