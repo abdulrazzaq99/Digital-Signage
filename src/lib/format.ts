@@ -65,6 +65,9 @@ const FRIENDLY: Record<string, string> = {
   NETWORK: "Can't reach the API. Is the backend running?",
 };
 
+/** Friendly copy for a bare API code (e.g. an eligibility `reason`), falling back to a readable label. */
+export const friendlyCode = (code: string | null | undefined) => (code ? FRIENDLY[code] ?? label(code) : "");
+
 export function errorMessage(e: unknown): string {
   if (e instanceof ApiError) return FRIENDLY[e.code] ?? e.message;
   return e instanceof Error ? e.message : "Something went wrong.";
