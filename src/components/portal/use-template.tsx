@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { BackLinkButton } from "./portal-stepper";
 import { PublishTarget } from "./publish-target";
+import { ApiError } from "@/lib/api/client";
 import { PortalTemplateArt } from "./template-art";
 
 export function UseTemplate({ template }: { template: PortalTemplate }) {
@@ -15,7 +16,7 @@ export function UseTemplate({ template }: { template: PortalTemplate }) {
   const [phase, setPhase] = useState<"edit" | "output" | "publish">("edit");
   const valid = template.fields.every((f) => !f.required || values[f.key]?.trim());
 
-  if (phase === "publish") return <PublishTarget subject={template.name} onBack={() => setPhase("output")} onDone={() => router.push("/portal/layouts?tab=templates")} />;
+  if (phase === "publish") return <PublishTarget subject={template.name} onPublish={() => Promise.reject(new ApiError(501, "NOT_IMPLEMENTED", "Publishing from this flow is wired in a later step."))} onBack={() => setPhase("output")} onDone={() => router.push("/portal/layouts?tab=templates")} />;
 
   if (phase === "output") return (
     <div className="space-y-4 animate-fade-in">

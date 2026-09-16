@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { BackLinkButton } from "./portal-stepper";
 import { PublishTarget } from "./publish-target";
+import { ApiError } from "@/lib/api/client";
 
 type Content = { name: string; kind: "PLAYLIST" | "MEDIA"; seed: string };
 const zoneNames: Record<string, string[]> = { "full-screen": ["Main Zone"], "main-sidebar": ["Main Zone", "Sidebar"], "main-bottom-bar": ["Main Zone", "Bottom Bar"], "split-screen": ["Left Zone", "Right Zone"], "main-two-side": ["Main Zone", "Side Top", "Side Bottom"] };
@@ -23,7 +24,7 @@ export function PortalUseLayout({ layout }: { layout: ZoneLayout }) {
   const missing = names.filter((_, i) => !assigned[i]);
   const cell = (i: number, cls: string) => <div key={i} className={cn("flex flex-col items-center justify-center rounded-sm border text-center", assigned[i] ? "border-blue-400/40 bg-slate-800" : "border-blue-400/30 bg-blue-950/60", cls)}><span className="text-[8px] font-semibold uppercase tracking-wider text-blue-300">{names[i]}</span><span className="mt-0.5 max-w-[90%] truncate text-[7px] text-slate-400">{assigned[i] ? assigned[i].name : "Required"}</span></div>;
 
-  if (phase === "publish") return <PublishTarget subject={layout.name} onBack={() => setPhase("configure")} onDone={() => router.push("/portal/layouts")} />;
+  if (phase === "publish") return <PublishTarget subject={layout.name} onPublish={() => Promise.reject(new ApiError(501, "NOT_IMPLEMENTED", "Publishing from this flow is wired in a later step."))} onBack={() => setPhase("configure")} onDone={() => router.push("/portal/layouts")} />;
 
   return (
     <div className="space-y-4">

@@ -2,6 +2,7 @@ import createClient from "openapi-fetch";
 import { API_BASE, API_URL } from "./config";
 import type { paths } from "./schema";
 import { session } from "./session";
+import type { Page } from "./types";
 
 /** Error thrown for any non-2xx API response, carrying the API's machine-readable code. */
 export class ApiError extends Error {
@@ -63,7 +64,14 @@ export async function requestData<R extends FetchLike>(fn: () => Promise<R>): Pr
   return env?.data as Unwrapped<R>;
 }
 
+type Items<R extends FetchLike> = NonNullable<R["data"]> extends { data: (infer I)[] } ? I : never;
+
+/** `request` for list endpoints: the envelope typed as a `Page` (meta is absent on unpaginated lists). */
+export async function requestPage<R extends FetchLike>(fn: () => Promise<R>): Promise<Page<Items<R>>> {
+  return (await request(fn)) as unknown as Page<Items<R>>;
+}
+
 /** Super Admin calls target a tenant with this header; customer calls send nothing. */
 export const companyHeader = (companyId?: string | null): Record<string, string> => (companyId ? { "X-Company-Id": companyId } : {});
-/** Fresh key per user action; the API replays the stored response on retries. */
-export const idempotencyHeader = (): Record<string, string> => ({ "Idempotency-Key": crypto.randomUUID() });
+/** Fresh key per user action; the API replays the stored response on retries. Passed as `params.header` because the spec declares it required. */
+export const idempotencyKey = () => ({ "idempotency-key": crypto.randomUUID() });
