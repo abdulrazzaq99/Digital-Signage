@@ -1,10 +1,12 @@
 "use client";
 import { cn } from "@/lib/utils";
-import { ChevronDown, LayoutDashboard, X } from "lucide-react";
+import { ChevronDown, LayoutDashboard, LogOut, X } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { Avatar } from "@/components/ui/misc";
+import { useAuth } from "@/components/auth/auth-provider";
+import { roleLabel } from "@/lib/format";
 
 import type { ShellConfig } from "./nav-config";
 
@@ -16,6 +18,8 @@ function isActive(pathname: string, href: string, basePath: string) {
 export function Sidebar({ config, collapsed, mobileOpen, onClose }: { config: ShellConfig; collapsed: boolean; mobileOpen?: boolean; onClose?: () => void }) {
   const isCollapsed = collapsed;
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, logout } = useAuth();
   const parentWithChildren = config.nav.find((n) => n.children)?.href;
   const [openScreens, setOpenScreens] = useState(!!parentWithChildren && pathname.startsWith(parentWithChildren));
   const screensOpen = openScreens || (!!parentWithChildren && pathname.startsWith(parentWithChildren));
@@ -91,13 +95,20 @@ export function Sidebar({ config, collapsed, mobileOpen, onClose }: { config: Sh
       </nav>
 
       <div className={cn("flex items-center gap-2.5 border-t border-slate-100 px-4 py-3", collapsed && "lg:justify-center lg:px-0")}>
-        <Avatar name={config.user.name} src={`https://picsum.photos/seed/${config.user.avatarSeed}/80/80`} size="md" />
-        {(
-          <div className={cn("min-w-0", collapsed && "lg:hidden")}>
-            <div className="truncate text-xs font-semibold text-slate-900">{config.user.name}</div>
-            <div className="truncate text-[10px] text-blue-600">{config.user.role}</div>
-          </div>
-        )}
+        <Avatar name={user?.name ?? ""} size="md" />
+        <div className={cn("min-w-0 flex-1", collapsed && "lg:hidden")}>
+          <div className="truncate text-xs font-semibold text-slate-900">{user?.name}</div>
+          <div className="truncate text-[10px] text-blue-600">{roleLabel(user)}</div>
+        </div>
+        <button
+          type="button"
+          onClick={async () => { await logout(); router.replace("/login"); }}
+          title="Sign out"
+          aria-label="Sign out"
+          className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-700", collapsed && "lg:hidden")}
+        >
+          <LogOut className="h-3.5 w-3.5" />
+        </button>
       </div>
     </aside>
   );

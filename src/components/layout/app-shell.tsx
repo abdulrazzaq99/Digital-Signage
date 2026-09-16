@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Sidebar } from "./sidebar";
 import { Topbar } from "./topbar";
 import { adminShell, portalShell } from "./nav-config";
+import { RequireSession } from "@/components/auth/require-session";
 
 export function AppShell({ variant, children }: { variant: "admin" | "portal"; children: ReactNode }) {
   const config = variant === "portal" ? portalShell : adminShell;
@@ -18,6 +19,7 @@ export function AppShell({ variant, children }: { variant: "admin" | "portal"; c
     else setCollapsed((v) => !v);
   };
   return (
+    <RequireSession area={variant}>
     <div className="min-h-screen bg-slate-50">
       {mobileOpen && <div className="fixed inset-0 z-40 bg-slate-900/40 lg:hidden animate-fade-in" onClick={() => setMobileOpen(false)} />}
       <Sidebar config={config} collapsed={collapsed} mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
@@ -26,5 +28,6 @@ export function AppShell({ variant, children }: { variant: "admin" | "portal"; c
         <main className="flex-1 p-4 sm:p-6">{children}</main>
       </div>
     </div>
+    </RequireSession>
   );
 }

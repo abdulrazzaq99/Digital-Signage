@@ -7,7 +7,6 @@ export interface NavItem { label: string; href: string; icon: ReactNode; childre
 export interface ShellConfig {
   brand: { name: string; subtitle?: string };
   nav: NavItem[];
-  user: { name: string; role: string; avatarSeed: string };
   basePath: "/" | "/portal";
   titles: { match: (p: string) => boolean; title: string; subtitle: string }[];
 }
@@ -15,7 +14,6 @@ export interface ShellConfig {
 export const adminShell: ShellConfig = {
   brand: { name: "DSP Admin" },
   basePath: "/",
-  user: { name: "Alex Rivera", role: "Super Admin", avatarSeed: "alexr" },
   nav: [
     { label: "Overview", href: "/", icon: <LayoutDashboard className="h-4 w-4" /> },
     { label: "Companies", href: "/companies", icon: <Building2 className="h-4 w-4" /> },
@@ -55,7 +53,6 @@ export const adminShell: ShellConfig = {
 export const portalShell: ShellConfig = {
   brand: { name: "SignageHub", subtitle: "Customer Portal" },
   basePath: "/portal",
-  user: { name: "Sarah Mitchell", role: "Acme Corp", avatarSeed: "sarahm" },
   nav: [
     { label: "Overview", href: "/portal", icon: <LayoutDashboard className="h-4 w-4" /> },
     { label: "Screens", href: "/portal/screens", icon: <Monitor className="h-4 w-4" /> },

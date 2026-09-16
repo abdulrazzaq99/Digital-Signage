@@ -2,11 +2,13 @@
 import { Menu, Search, Share2 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { Avatar } from "@/components/ui/misc";
+import { useAuth } from "@/components/auth/auth-provider";
 
 import type { ShellConfig } from "./nav-config";
 
 export function Topbar({ config, onToggle, collapsed }: { config: ShellConfig; onToggle: () => void; collapsed: boolean }) {
   const pathname = usePathname();
+  const { user } = useAuth();
   const t = config.titles.find((x) => x.match(pathname)) ?? config.titles[0];
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-slate-200 bg-white px-4 sm:gap-4 sm:px-5">
@@ -26,7 +28,7 @@ export function Topbar({ config, onToggle, collapsed }: { config: ShellConfig; o
         <button className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50" aria-label="Share">
           <Share2 className="h-4 w-4" />
         </button>
-        {collapsed && <Avatar name={config.user.name} size="sm" className="hidden lg:flex" />}
+        {collapsed && <Avatar name={user?.name ?? ""} size="sm" className="hidden lg:flex" />}
       </div>
     </header>
   );

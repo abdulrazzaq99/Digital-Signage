@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Digital Signage Platform — Web Dashboards
 
-## Getting Started
+Next.js app containing the Super Admin panel (`/`) and the Customer Portal (`/portal`). Both talk to the Platform API in the sibling repo `Digital-Signage-API`.
 
-First, run the development server:
+## Running with the API
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. Start the backend stack (Postgres, Redis, MinIO, API, worker) from the API repo:
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+   ```bash
+   cd ../Digital-Signage-API
+   docker compose -f docker/docker-compose.yml up --build
+   ```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+   The API listens on `http://localhost:4000` (`/docs` for the interactive reference) and seeds demo data on first start.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+2. Point the dashboards at it and start the dev server:
 
-## Learn More
+   ```bash
+   cp .env.local.example .env.local   # NEXT_PUBLIC_API_URL=http://localhost:4000
+   npm install
+   npm run dev
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+3. Open [http://localhost:3000/login](http://localhost:3000/login) and use a demo account:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+   | Dashboard | Email | Password |
+   |---|---|---|
+   | Super Admin | `admin@dsp.local` | `Admin123!` |
+   | Customer Portal (Acme Corp) | `sarah.mitchell@acmecorp.com` | `Customer123!` |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Scripts
 
-## Deploy on Vercel
+| Command | Purpose |
+|---|---|
+| `npm run dev` | Development server |
+| `npm run build` / `npm start` | Production build and server |
+| `npm run lint` | ESLint |
+| `npm test` | Vitest unit tests (API client, session, formatting) |
+| `npm run api:types` | Regenerate `src/lib/api/schema.d.ts` from `../Digital-Signage-API/docs/openapi.json`; run after any API schema change |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## How the frontend talks to the API
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `src/lib/api/client.ts` — typed `openapi-fetch` client. Attaches the bearer token, refreshes it once on expiry, unwraps the `{ data, meta }` envelope, and throws `ApiError` with the API's error code.
+- `src/lib/api/session.ts` — access token in memory, rotating refresh token in `localStorage`.
+- `src/lib/api/hooks/*` — TanStack Query hooks, one file per backend module.
+- `src/components/auth/*` — `AuthProvider` (session, `/auth/me`, Socket.IO connection) and `RequireSession` (route guard by role).
+- Real-time events from the `/app` Socket.IO namespace invalidate the matching queries, so screen status and media processing update without a refresh.
+
+## Deployment
+
+The Vercel deployment serves the dashboards only; it needs a hosted API reachable at `NEXT_PUBLIC_API_URL` to be functional.

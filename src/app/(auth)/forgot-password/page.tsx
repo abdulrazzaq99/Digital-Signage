@@ -1,6 +1,9 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
+import { Alert } from "@/components/ui/misc";
+import { useForgotPassword } from "@/lib/api/hooks/auth";
+import { errorMessage } from "@/lib/format";
 import { ArrowLeft, Mail } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -8,6 +11,8 @@ import { useState } from "react";
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
+  const forgot = useForgotPassword();
+  const send = () => forgot.mutate({ email }, { onSuccess: () => setSent(true) });
 
   if (sent) {
     return (
@@ -23,14 +28,14 @@ export default function ForgotPasswordPage() {
         </div>
         <Button href="/login" size="lg" className="w-full">Back to Sign In</Button>
         <p className="text-center text-xs text-slate-500">
-          Didn&apos;t receive it? <button type="button" className="font-medium text-blue-600 hover:underline">Resend email</button>
+          Didn&apos;t receive it? <button type="button" onClick={send} disabled={forgot.isPending} className="font-medium text-blue-600 hover:underline">Resend email</button>
         </p>
       </div>
     );
   }
 
   return (
-    <form onSubmit={(e) => { e.preventDefault(); setSent(true); }} className="space-y-6">
+    <form onSubmit={(e) => { e.preventDefault(); send(); }} className="space-y-6">
       <Link href="/login" className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-800">
         <ArrowLeft className="h-3.5 w-3.5" /> Back to Sign In
       </Link>
@@ -38,11 +43,12 @@ export default function ForgotPasswordPage() {
         <h1 className="text-2xl font-bold tracking-tight text-slate-900">Forgot your password?</h1>
         <p className="mt-1.5 text-sm text-slate-500">Enter your email address and we&apos;ll send you a link to reset your password.</p>
       </div>
+      {forgot.isError && <Alert tone="red">{errorMessage(forgot.error)}</Alert>}
       <div>
         <Label>Email address</Label>
-        <Input type="email" placeholder="you@company.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <Input type="email" placeholder="you@company.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
       </div>
-      <Button type="submit" size="lg" className="w-full">Send Reset Link</Button>
+      <Button type="submit" size="lg" className="w-full" disabled={forgot.isPending}>{forgot.isPending ? "Sending…" : "Send Reset Link"}</Button>
       <p className="text-center text-xs text-slate-500">
         Don&apos;t have an account? <a href="#" className="font-medium text-blue-600 hover:underline">Request access</a>
       </p>

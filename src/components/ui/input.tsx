@@ -46,12 +46,24 @@ export function Select({ className, children, ...rest }: SelectHTMLAttributes<HT
   );
 }
 
-export function FilterSelect({ label, className }: { label: string; className?: string }) {
+export function FilterSelect({ label, options, value = "", onChange, className }: { label: string; options?: { value: string; label: string }[]; value?: string; onChange?: (v: string) => void; className?: string }) {
+  const base = "inline-flex h-9 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-xs font-medium text-slate-500 hover:bg-slate-50";
+  if (!options) {
+    return (
+      <button type="button" className={cn(base, className)}>
+        {label}
+        <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+      </button>
+    );
+  }
   return (
-    <button type="button" className={cn("inline-flex h-9 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-xs font-medium text-slate-500 hover:bg-slate-50", className)}>
-      {label}
-      <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
-    </button>
+    <div className={cn("relative", className)}>
+      <select value={value} onChange={(e) => onChange?.(e.target.value)} className={cn(base, "appearance-none pr-8", value && "text-slate-900")} aria-label={label}>
+        <option value="">{label}</option>
+        {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
+      <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+    </div>
   );
 }
 

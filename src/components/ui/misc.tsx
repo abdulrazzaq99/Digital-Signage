@@ -41,20 +41,23 @@ export function CompanyLogo({ seed, size = "md", className }: { seed: string; si
   return <img src={`https://picsum.photos/seed/${seed}-logo/96/96`} alt="" className={cn("shrink-0 rounded-lg object-cover border border-slate-200 bg-slate-100", s, className)} />;
 }
 
-export function Pagination({ page = 1, pages = 16, summary, className }: { page?: number; pages?: number; summary?: ReactNode; className?: string }) {
-  const nums = [1, 2, 3, 4, 5];
-  const btn = "flex h-7 min-w-7 items-center justify-center rounded-md border px-1.5 text-xs font-medium transition-colors";
+export function Pagination({ page = 1, pages = 1, summary, onChange, className }: { page?: number; pages?: number; summary?: ReactNode; onChange?: (p: number) => void; className?: string }) {
+  const btn = "flex h-7 min-w-7 items-center justify-center rounded-md border px-1.5 text-xs font-medium transition-colors disabled:opacity-40";
+  const go = (p: number) => { if (p >= 1 && p <= pages && p !== page) onChange?.(p); };
+  // Window of up to five numbers around the current page, plus the last page when out of view.
+  const start = Math.max(1, Math.min(page - 2, pages - 4));
+  const nums = Array.from({ length: Math.min(5, pages) }, (_, i) => start + i);
   return (
     <div className={cn("flex flex-wrap items-center justify-between gap-3", className)}>
       <div className="text-xs text-slate-400">{summary}</div>
       <div className="flex flex-wrap items-center gap-1">
-        <button className={cn(btn, "border-slate-200 bg-white text-slate-400 hover:bg-slate-50")}><ChevronLeft className="h-3.5 w-3.5" /></button>
+        <button type="button" disabled={page <= 1} onClick={() => go(page - 1)} className={cn(btn, "border-slate-200 bg-white text-slate-400 hover:bg-slate-50")} aria-label="Previous page"><ChevronLeft className="h-3.5 w-3.5" /></button>
         {nums.map((n) => (
-          <button key={n} className={cn(btn, n === page ? "border-blue-600 bg-blue-600 text-white" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50")}>{n}</button>
+          <button type="button" key={n} onClick={() => go(n)} className={cn(btn, n === page ? "border-blue-600 bg-blue-600 text-white" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50")}>{n}</button>
         ))}
-        {pages > 6 && <span className="px-1 text-xs text-slate-400">…</span>}
-        {pages > 5 && <button className={cn(btn, "border-slate-200 bg-white text-slate-600 hover:bg-slate-50")}>{pages}</button>}
-        <button className={cn(btn, "border-slate-200 bg-white text-slate-400 hover:bg-slate-50")}><ChevronRight className="h-3.5 w-3.5" /></button>
+        {nums[nums.length - 1] < pages - 1 && <span className="px-1 text-xs text-slate-400">…</span>}
+        {nums[nums.length - 1] < pages && <button type="button" onClick={() => go(pages)} className={cn(btn, "border-slate-200 bg-white text-slate-600 hover:bg-slate-50")}>{pages}</button>}
+        <button type="button" disabled={page >= pages} onClick={() => go(page + 1)} className={cn(btn, "border-slate-200 bg-white text-slate-400 hover:bg-slate-50")} aria-label="Next page"><ChevronRight className="h-3.5 w-3.5" /></button>
       </div>
     </div>
   );
