@@ -21,4 +21,4 @@ export function OffersShell({ tab, children, hideCreate }: { tab: "manage" | "ma
   );
 }
 
-export function offerTone(s: string) { return s === "Active" ? "green" : s === "Draft" ? "slate" : s === "Inactive" ? "amber" : "red"; }
+export { offerTone } from "@/lib/api/hooks/offers";
