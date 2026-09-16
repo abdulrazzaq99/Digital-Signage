@@ -60,7 +60,7 @@ export function MediaLibrary() {
             <div className="flex-1 px-3.5 py-3">
               <div className="flex items-start justify-between gap-2">
                 <Link href={`/media/${m.id}`} className="truncate text-sm font-semibold text-slate-900 hover:text-blue-600">{m.name}</Link>
-                <DropdownMenu items={[{ label: "Preview", icon: <Eye className="h-3.5 w-3.5" />, onSelect: () => setPreview(m) }, { label: "View Details", icon: <FileText className="h-3.5 w-3.5" />, href: `/media/${m.id}` }, { label: "Rename", icon: <Pencil className="h-3.5 w-3.5" />, onSelect: () => setRename(m) }, { label: "Delete", icon: <Trash2 className="h-3.5 w-3.5" />, tone: "danger", onSelect: () => setRemove(m) }]} />
+                <DropdownMenu items={[{ label: "Preview", icon: <Eye className="h-3.5 w-3.5" />, onSelect: () => setPreview(m) }, { label: "View Details", icon: <FileText className="h-3.5 w-3.5" />, href: `/media/${m.id}` }, { label: "Rename", icon: <Pencil className="h-3.5 w-3.5" />, onSelect: () => setRename(m) }, { label: "Remove", icon: <Trash2 className="h-3.5 w-3.5" />, tone: "danger", onSelect: () => setRemove(m) }]} />
               </div>
               <div className="mt-1 text-[11px] text-slate-400">{m.meta} · {m.size}</div>
               <div className="mt-2 flex items-center justify-between">

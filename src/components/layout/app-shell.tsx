@@ -1,15 +1,12 @@
 "use client";
 import { cn } from "@/lib/utils";
 import { useEffect, useState, type ReactNode } from "react";
-import { usePathname } from "next/navigation";
 import { Sidebar } from "./sidebar";
 import { Topbar } from "./topbar";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const pathname = usePathname();
-  useEffect(() => { setMobileOpen(false); }, [pathname]);
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };

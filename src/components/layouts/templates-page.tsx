@@ -47,14 +47,15 @@ export function TemplatesPage({ initialTab = "fixed" }: { initialTab?: "fixed" |
       ) : (
         <>
           <div className="flex flex-wrap items-center gap-3"><SearchInput placeholder="Search templates..." className="w-64" /><PillTabs options={[{ value: "All", label: "All" }, { value: "Landscape", label: "Landscape" }, { value: "Portrait", label: "Portrait" }]} value={orient} onChange={setOrient} /></div>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {zoneLayouts.map((z) => (
+          <div className="text-xs text-slate-400">{zoneLayouts.filter((z) => orient !== "Portrait" || z.id !== "main-two-side").length} presets</div>
+          <div className="grid items-start gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {zoneLayouts.filter((z) => orient !== "Portrait" || z.id !== "main-two-side").map((z) => (
               <div key={z.id} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-                <div className="relative bg-slate-900 p-5"><ZoneDiagram layout={z.id} portrait={orient === "Portrait"} /><span className="absolute right-3 top-3 rounded bg-blue-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">{z.zones} Zone{z.zones > 1 ? "s" : ""}</span><span className="absolute bottom-3 left-3 rounded bg-slate-800 px-1.5 py-0.5 text-[9px] text-slate-300">L | P</span></div>
+                <div className="relative bg-slate-900 p-5"><ZoneDiagram layout={z.id} portrait={orient === "Portrait"} /><span className="absolute right-3 top-3 rounded bg-blue-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">{z.zones} Zone{z.zones > 1 ? "s" : ""}</span><span className="absolute bottom-3 left-3 rounded bg-slate-800 px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-slate-300">{orient === "Portrait" ? "Portrait" : z.id === "main-two-side" || z.id === "main-sidebar" ? "Landscape" : "L | P"}</span></div>
                 <div className="px-4 py-3">
                   <div className="text-sm font-semibold text-slate-900">{z.name}</div>
                   <p className="mt-1 min-h-[32px] text-[11px] leading-4 text-slate-400">{z.description}</p>
-                  <div className="mt-2 flex gap-1.5">{z.zoneNames.map((n, i) => <Badge key={n} tone={i === 0 ? "blue" : "purple"}>Zone {i + 1}</Badge>)}</div>
+                  <div className="mt-2 flex flex-wrap gap-1.5">{z.zoneNames.map((n, i) => <Badge key={n} tone={i === 0 ? "blue" : i === 1 ? "purple" : "green"}>Zone {i + 1}</Badge>)}</div>
                   <Button href={`/layouts/use/${z.id}`} variant="secondary" className="mt-3 w-full">Use Layout</Button>
                 </div>
               </div>
@@ -68,11 +69,15 @@ export function TemplatesPage({ initialTab = "fixed" }: { initialTab?: "fixed" |
 }
 
 export function ZoneDiagram({ layout, portrait, className, labels = true }: { layout: string; portrait?: boolean; className?: string; labels?: boolean }) {
-  const zone = (n: number, name: string, cls: string) => <div className={cn("flex flex-col items-center justify-center gap-1 rounded-md border", n === 1 ? "border-blue-200 bg-blue-50/80" : "border-violet-200 bg-violet-50/80", cls)}>{labels && <><span className={cn("flex h-4 w-4 items-center justify-center rounded-full text-[8px] font-bold text-white", n === 1 ? "bg-blue-600" : "bg-violet-600")}>{n}</span><span className="text-[8px] font-semibold text-slate-700">Zone {n}</span><span className="text-[7px] text-slate-400">{name}</span></>}</div>;
+  const tones = ["", "border-blue-200 bg-blue-50/80", "border-violet-200 bg-violet-50/80", "border-emerald-200 bg-emerald-50/80"];
+  const dots = ["", "bg-blue-600", "bg-violet-600", "bg-emerald-600"];
+  const zone = (n: number, name: string, cls: string) => <div className={cn("flex min-h-0 flex-col items-center justify-center gap-1 overflow-hidden rounded-md border", tones[n], cls)}>{labels && <><span className={cn("flex h-4 w-4 items-center justify-center rounded-full text-[8px] font-bold text-white", dots[n])}>{n}</span><span className="text-[8px] font-semibold text-slate-700">Zone {n}</span><span className="text-[7px] text-slate-400">{name}</span></>}</div>;
   return (
     <div className={cn("mx-auto overflow-hidden rounded-lg border-4 border-slate-700 bg-slate-100 p-1", portrait ? "aspect-[9/16] w-24" : "aspect-video w-full", className)}>
       {layout === "full-screen" && zone(1, "Full Screen", "h-full")}
+      {layout === "main-sidebar" && <div className={cn("flex h-full gap-1", portrait && "flex-col")}>{zone(1, "Main Content", "flex-[7]")}{zone(2, "Sidebar", "flex-[3]")}</div>}
       {layout === "main-bottom-bar" && <div className="flex h-full flex-col gap-1">{zone(1, "Main Content", "flex-[3]")}{zone(2, "Bottom Bar", "flex-1")}</div>}
+      {layout === "main-two-side" && <div className="flex h-full gap-1">{zone(1, "Main Content", "flex-[68]")}<div className="flex flex-[32] flex-col gap-1">{zone(2, "Top", "flex-1")}{zone(3, "Bottom", "flex-1")}</div></div>}
       {layout === "split-screen" && <div className={cn("flex h-full gap-1", portrait && "flex-col")}>{zone(1, portrait ? "Top" : "Left", "flex-1")}{zone(2, portrait ? "Bottom" : "Right", "flex-1")}</div>}
     </div>
   );

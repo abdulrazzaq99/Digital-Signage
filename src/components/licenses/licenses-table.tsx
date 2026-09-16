@@ -91,6 +91,12 @@ export function LicensesTable() {
             })}
           </tbody>
         </Table>
+        {rows.length === 0 && (
+          <div className="px-6 py-14 text-center">
+            <div className="text-sm font-semibold text-slate-900">No licenses match your filters</div>
+            <div className="mt-1 text-xs text-slate-400">Try adjusting your search or filter.</div>
+          </div>
+        )}
       </Card>
 
       <EditLimitModal company={edit} onClose={() => setEdit(null)} />

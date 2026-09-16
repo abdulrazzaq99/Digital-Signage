@@ -72,7 +72,7 @@ export function Sidebar({ collapsed, mobileOpen, onClose }: { collapsed: boolean
                       collapsed && "lg:justify-center lg:px-0",
                       active ? "bg-blue-600 text-white shadow-sm" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
                     )}
-                    onClick={() => hasChildren && setOpenScreens(true)}
+                    onClick={() => { if (hasChildren) setOpenScreens(true); else onClose?.(); }}
                   >
                     <span className={cn(active ? "text-white" : "text-slate-400")}>{item.icon}</span>
                     <span className={cn("flex-1 truncate", collapsed && "lg:hidden")}>{item.label}</span>
@@ -94,7 +94,7 @@ export function Sidebar({ collapsed, mobileOpen, onClose }: { collapsed: boolean
                       const sub = c.href === "/screens" ? pathname === "/screens" || (pathname.startsWith("/screens/") && !pathname.startsWith("/screens/groups") && !pathname.startsWith("/screens/canvas")) : isActive(pathname, c.href);
                       return (
                         <li key={c.href}>
-                          <Link href={c.href} className={cn("flex h-8 items-center gap-2.5 rounded-lg px-3 text-xs font-medium transition-colors", sub ? "bg-blue-50 text-blue-600" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800")}>
+                          <Link href={c.href} onClick={() => onClose?.()} className={cn("flex h-8 items-center gap-2.5 rounded-lg px-3 text-xs font-medium transition-colors", sub ? "bg-blue-50 text-blue-600" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800")}>
                             <span className={cn("h-1 w-1 rounded-full", sub ? "bg-blue-600" : "bg-slate-300")} />
                             {c.label}
                           </Link>

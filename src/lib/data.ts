@@ -199,8 +199,10 @@ export const templates: Template[] = [
 export interface ZoneLayout { id: string; name: string; zones: number; description: string; orientation: Orientation; zoneNames: string[] }
 export const zoneLayouts: ZoneLayout[] = [
   { id: "full-screen", name: "Full Screen", zones: 1, description: "Single zone spanning the entire display. Best for hero content, video loops, and announcements.", orientation: "Landscape", zoneNames: ["Full Screen"] },
+  { id: "main-sidebar", name: "Main + Sidebar", zones: 2, description: "Large primary zone with a 30% secondary sidebar. Ideal for promotions with live info feeds.", orientation: "Landscape", zoneNames: ["Main Content", "Sidebar"] },
   { id: "main-bottom-bar", name: "Main + Bottom Bar", zones: 2, description: "75% main content zone with a bottom bar for tickers, alerts, or brand elements.", orientation: "Landscape", zoneNames: ["Main Content", "Bottom Bar"] },
   { id: "split-screen", name: "Split Screen", zones: 2, description: "Equal 50/50 halves for side-by-side dual-content displays. Works landscape and portrait.", orientation: "Landscape", zoneNames: ["Left", "Right"] },
+  { id: "main-two-side", name: "Main + Two Side Zones", zones: 3, description: "68% dominant main zone with two stacked 32% secondary zones. Ideal for retail dashboards.", orientation: "Landscape", zoneNames: ["Main Content", "Top Side", "Bottom Side"] },
 ];
 
 /* ---------- Offers ---------- */
