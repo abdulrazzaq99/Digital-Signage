@@ -1,121 +1,173 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { Badge, DotStatus } from "@/components/ui/badge";
+import { Badge, DotStatus, StatusBadge } from "@/components/ui/badge";
 import { Card, CardHeader, StatCard } from "@/components/ui/card";
 import { Input, Label, Select } from "@/components/ui/input";
-import { Breadcrumb, CompanyLogo, Progress } from "@/components/ui/misc";
-import type { Company } from "@/lib/data";
-import { ImageIcon, Monitor, MonitorOff, Pencil, Play } from "lucide-react";
+import { Alert, Breadcrumb, CompanyLogo, Progress } from "@/components/ui/misc";
+import { QueryState, Skeleton } from "@/components/ui/query-state";
+import { TD, TH, THead, TR, Table } from "@/components/ui/table";
+import { useToast } from "@/components/ui/toast";
+import { useActivity } from "@/lib/api/hooks/activity";
+import { counts, useCompany } from "@/lib/api/hooks/companies";
+import { LICENSE_STATES, useLicense, useUpdateLicense } from "@/lib/api/hooks/licenses";
+import { screenStatusLabel, useScreens } from "@/lib/api/hooks/screens";
+import { useUsers } from "@/lib/api/hooks/users";
+import type { Company } from "@/lib/api/types";
+import { formatDate, formatDateTime, label, timeAgo } from "@/lib/format";
+import { Activity, Pencil, Users } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { UserDrawer } from "@/components/portal/user-drawer";
 import { CompanyFormModal } from "./company-modals";
 
-const activity = [
-  { icon: <Monitor className="h-3.5 w-3.5" />, tone: "bg-green-50 text-green-600", text: '"Lobby Display 01" paired', when: "2h ago" },
-  { icon: <Play className="h-3.5 w-3.5" />, tone: "bg-blue-50 text-blue-600", text: '"Weekend Promo" playlist published', when: "5h ago" },
-  { icon: <MonitorOff className="h-3.5 w-3.5" />, tone: "bg-red-50 text-red-600", text: '"Entrance Display" went offline', when: "Yesterday" },
-  { icon: <ImageIcon className="h-3.5 w-3.5" />, tone: "bg-slate-100 text-slate-500", text: "12 media assets uploaded", when: "2 days ago" },
-];
+function LicensePanel({ company }: { company: Company }) {
+  const toast = useToast();
+  const license = useLicense(company.id);
+  const update = useUpdateLicense();
+  const [editing, setEditing] = useState(false);
+  const [limit, setLimit] = useState(company.license?.screenLimit ?? 0);
+  const [state, setState] = useState(company.license?.state ?? "ACTIVE");
+  const l = license.data ?? { screenLimit: company.license?.screenLimit ?? 0, state: company.license?.state ?? "DISABLED", overLimit: company.overLimit, paired: counts(company).screens, available: counts(company).available, expiresAt: null };
+  const usagePct = l.screenLimit ? Math.min(100, (l.paired / l.screenLimit) * 100) : 0;
+  const save = () => update.mutate({ companyId: company.id, screenLimit: Number(limit), state }, { onSuccess: (r) => { toast.success("License updated", r.overLimit ? "The account is now over its limit." : `${r.screenLimit} screens · ${label(r.state)}`); setEditing(false); }, onError: (e) => toast.error(e) });
+  const desc: Record<string, string> = { ACTIVE: "Users can sign in and manage screens within the assigned limit.", SUSPENDED: "Publishing and pairing are blocked until the licence is reactivated.", DISABLED: "The account cannot use the platform.", EXPIRED: "The licence period has ended; renew to restore access." };
+  return (
+    <Card className="self-start">
+      <CardHeader title="License" subtitle="Screen allocation and access control" action={!editing && <Button variant="secondary" size="sm" onClick={() => { setLimit(l.screenLimit); setState(l.state); setEditing(true); }}>Edit License</Button>} />
+      <div className="space-y-4 px-5 py-4">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {[["License Status", <StatusBadge key="a" status={label(l.state)} />], ["Screen Limit", <span key="b" className="text-lg font-bold text-slate-900">{l.screenLimit}</span>], ["Paired Screens", <span key="c" className="text-lg font-bold text-slate-900">{l.paired}</span>], ["Available Slots", <span key="d" className={`text-lg font-bold ${l.available > 0 ? "text-green-600" : "text-red-600"}`}>{l.available}</span>]].map(([k, v]) => (
+            <div key={String(k)} className="rounded-lg border border-slate-100 bg-slate-50/60 px-2 py-3 text-center"><div className="text-[10px] leading-3 text-slate-400">{k}</div><div className="mt-2 flex justify-center">{v}</div></div>
+          ))}
+        </div>
+        <div>
+          <div className="flex items-center justify-between text-xs"><span className="text-slate-500">Screen usage</span><span className="font-semibold text-slate-900">{l.paired} of {l.screenLimit} used</span></div>
+          <Progress value={usagePct} tone={l.overLimit ? "red" : usagePct >= 90 ? "amber" : "blue"} className="mt-2" />
+        </div>
+        {l.overLimit && <Alert tone="red">Over limit: more screens are paired than the licence allows. Pairing is blocked until the limit is raised or screens are unpaired.</Alert>}
+        <div className="rounded-lg border border-slate-100 bg-slate-50/60 px-4 py-3">
+          <div className={`flex items-center gap-2 text-xs font-semibold ${l.state === "ACTIVE" ? "text-green-700" : "text-amber-700"}`}><span className={`h-1.5 w-1.5 rounded-full ${l.state === "ACTIVE" ? "bg-green-500" : "bg-amber-500"}`} />{label(l.state)}</div>
+          <p className="mt-1 text-[11px] text-slate-400">{desc[l.state]}</p>
+          {l.expiresAt && <p className="mt-1 text-[11px] text-slate-400">Expires {formatDate(l.expiresAt)}</p>}
+        </div>
+        {editing && (
+          <form onSubmit={(e) => { e.preventDefault(); save(); }} className="space-y-4 border-t border-slate-100 pt-4 animate-fade-in">
+            <div><Label>Maximum Screens</Label><Input type="number" min={1} value={limit} onChange={(e) => setLimit(Number(e.target.value))} /></div>
+            <div><Label>License Status</Label><Select value={state} onChange={(e) => setState(e.target.value as typeof state)}>{LICENSE_STATES.map((s) => <option key={s} value={s}>{label(s)}</option>)}</Select></div>
+            {Number(limit) < l.paired && <Alert tone="amber">Lower than the {l.paired} screens already paired; the account will be flagged over limit (screens are not removed).</Alert>}
+            <div className="flex justify-end gap-2"><Button type="button" variant="secondary" size="sm" onClick={() => setEditing(false)}>Cancel</Button><Button type="submit" size="sm" disabled={update.isPending}>{update.isPending ? "Saving…" : "Save Changes"}</Button></div>
+          </form>
+        )}
+      </div>
+    </Card>
+  );
+}
 
-export function CompanyDetail({ company }: { company: Company }) {
-  const [editLicense, setEditLicense] = useState(false);
+function Detail({ company }: { company: Company }) {
   const [editCompany, setEditCompany] = useState(false);
-  const total = company.online + company.offline;
-  const onlineRate = total ? Math.round((company.online / total) * 100) : 0;
-  const usagePct = (company.screensUsed / company.screenLimit) * 100;
+  const [tab, setTab] = useState<"overview" | "users" | "screens">("overview");
+  const [userDrawer, setUserDrawer] = useState<{ mode: "create" } | { mode: "edit"; id: string } | null>(null);
+  const activity = useActivity({ companyId: company.id, pageSize: 6 });
+  const users = useUsers({ pageSize: 50 }, { companyId: company.id, enabled: tab === "users" });
+  const screens = useScreens({ pageSize: 50 }, { companyId: company.id, enabled: tab === "screens" });
+  const total = counts(company).online + counts(company).offline;
+  const onlineRate = total ? Math.round((counts(company).online / total) * 100) : 0;
 
   return (
     <div className="space-y-5">
       <Breadcrumb items={[{ label: "Companies", href: "/companies" }, { label: company.name }]} />
-
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <CompanyLogo seed={company.seed} size="lg" />
+          <CompanyLogo seed={company.code} name={company.name} size="lg" />
           <div>
-            <div className="flex items-center gap-2.5">
-              <h1 className="text-xl font-bold tracking-tight text-slate-900">{company.name}</h1>
-              <Badge tone="green" dot>{company.status}</Badge>
-            </div>
-            <p className="mt-0.5 text-xs text-slate-400">Customer since {company.since}</p>
+            <div className="flex items-center gap-2.5"><h1 className="text-xl font-bold tracking-tight text-slate-900">{company.name}</h1><Badge tone={company.status === "ACTIVE" ? "green" : company.status === "SUSPENDED" ? "amber" : "slate"} dot>{label(company.status)}</Badge></div>
+            <p className="mt-0.5 text-xs text-slate-400">{company.code} · Customer since {formatDate(company.createdAt)}{company.plan ? ` · ${company.plan}` : ""}</p>
           </div>
         </div>
         <Button variant="secondary" onClick={() => setEditCompany(true)}><Pencil className="h-3.5 w-3.5" /> Edit Company</Button>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        <StatCard value={company.screenLimit} label="Licensed" sub="total capacity" tone="blue" />
-        <StatCard value={company.screensUsed} label="Paired" sub="screens registered" />
-        <StatCard value={company.available} label="Available" sub="free slots" tone="green" />
-        <StatCard value={company.online} label="Online" sub="currently active" tone="green" />
-        <StatCard value={company.offline} label="Offline" sub="need attention" tone="red" />
+        <StatCard value={company.license?.screenLimit ?? 0} label="Licensed" sub="total capacity" tone="blue" />
+        <StatCard value={counts(company).screens} label="Paired" sub="screens registered" />
+        <StatCard value={counts(company).available} label="Available" sub="free slots" tone="green" />
+        <StatCard value={counts(company).online} label="Online" sub="currently active" tone="green" />
+        <StatCard value={counts(company).offline} label="Offline" sub="need attention" tone="red" />
       </div>
 
-      <div className="grid gap-5 xl:grid-cols-[1fr_380px]">
-        <div className="space-y-5">
-          <Card>
-            <CardHeader title="Company Information" />
-            <dl className="divide-y divide-slate-100 px-5">
-              {[["Company name", <span key="n" className="font-semibold text-slate-900">{company.name}</span>], ["Status", <DotStatus key="s" status={company.status} />], ["Member since", <span key="m" className="font-semibold text-slate-900">{company.since}</span>]].map(([k, v]) => (
-                <div key={String(k)} className="flex items-center justify-between py-3 text-sm"><dt className="text-slate-400">{k}</dt><dd>{v}</dd></div>
-              ))}
-            </dl>
-          </Card>
+      <div className="flex gap-1 rounded-lg border border-slate-200 bg-white p-1 text-xs font-medium sm:w-fit">
+        {([["overview", "Overview"], ["users", "Users"], ["screens", "Screens"]] as const).map(([v, l]) => <button key={v} onClick={() => setTab(v)} className={`h-8 flex-1 rounded-md px-4 transition-colors sm:flex-none ${tab === v ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-50"}`}>{l}</button>)}
+      </div>
 
-          <Card>
-            <CardHeader title="Screen Health" />
-            <div className="px-5 py-4">
-              <div className="flex items-center justify-between text-xs"><span className="text-slate-500">Online rate</span><span className="font-semibold text-green-600">{onlineRate}%</span></div>
-              <Progress value={onlineRate} tone="green" className="mt-2" />
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                <div className="flex items-center justify-between rounded-lg border border-green-100 bg-green-50/50 px-4 py-3"><span className="flex items-center gap-2 text-xs font-medium text-green-700"><span className="h-1.5 w-1.5 rounded-full bg-green-500" />Online</span><span className="text-lg font-bold text-slate-900">{company.online}</span></div>
-                <div className="flex items-center justify-between rounded-lg border border-red-100 bg-red-50/50 px-4 py-3"><span className="flex items-center gap-2 text-xs font-medium text-red-600"><span className="h-1.5 w-1.5 rounded-full bg-red-500" />Offline</span><span className="text-lg font-bold text-slate-900">{company.offline}</span></div>
+      {tab === "overview" && (
+        <div className="grid gap-5 xl:grid-cols-[1fr_380px]">
+          <div className="space-y-5">
+            <Card>
+              <CardHeader title="Company Information" />
+              <dl className="divide-y divide-slate-100 px-5">
+                {([["Company name", company.name], ["Code", company.code], ["Status", <DotStatus key="s" status={label(company.status)} />], ["Website", company.website ? <a href={company.website} className="text-blue-600 hover:underline" target="_blank" rel="noreferrer">{company.website}</a> : "—"], ["Industry", company.industry || "—"], ["Phone", company.phone || "—"], ["Timezone", company.timezone], ["Member since", formatDate(company.createdAt)]] as [string, React.ReactNode][]).map(([k, v]) => (
+                  <div key={k} className="flex items-center justify-between py-3 text-sm"><dt className="text-slate-400">{k}</dt><dd className="font-semibold text-slate-900">{v}</dd></div>
+                ))}
+              </dl>
+            </Card>
+            <Card>
+              <CardHeader title="Screen Health" />
+              <div className="px-5 py-4">
+                <div className="flex items-center justify-between text-xs"><span className="text-slate-500">Online rate</span><span className="font-semibold text-green-600">{onlineRate}%</span></div>
+                <Progress value={onlineRate} tone="green" className="mt-2" />
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  <div className="flex items-center justify-between rounded-lg border border-green-100 bg-green-50/50 px-4 py-3"><span className="flex items-center gap-2 text-xs font-medium text-green-700"><span className="h-1.5 w-1.5 rounded-full bg-green-500" />Online</span><span className="text-lg font-bold text-slate-900">{counts(company).online}</span></div>
+                  <div className="flex items-center justify-between rounded-lg border border-red-100 bg-red-50/50 px-4 py-3"><span className="flex items-center gap-2 text-xs font-medium text-red-600"><span className="h-1.5 w-1.5 rounded-full bg-red-500" />Offline</span><span className="text-lg font-bold text-slate-900">{counts(company).offline}</span></div>
+                </div>
+                <div className="mt-3 text-right text-[11px] text-slate-400">{total} total paired screens</div>
               </div>
-              <div className="mt-3 text-right text-[11px] text-slate-400">{total} total paired screens</div>
-            </div>
-          </Card>
-
-          <Card>
-            <CardHeader title="Recent Activity" action={<Link href="/activity" className="text-xs font-medium text-blue-600 hover:underline">View all</Link>} />
-            <ul className="divide-y divide-slate-100">
-              {activity.map((a, i) => (
-                <li key={i} className="flex items-center gap-3 px-5 py-3">
-                  <span className={`flex h-7 w-7 items-center justify-center rounded-md ${a.tone}`}>{a.icon}</span>
-                  <span className="flex-1 text-sm text-slate-800">{a.text}</span>
-                  <span className="text-[11px] text-slate-400">{a.when}</span>
-                </li>
-              ))}
-            </ul>
-          </Card>
-        </div>
-
-        <Card className="self-start">
-          <CardHeader title="License" subtitle="Screen allocation and access control" action={!editLicense && <Button variant="secondary" size="sm" onClick={() => setEditLicense(true)}>Edit License</Button>} />
-          <div className="space-y-4 px-5 py-4">
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              {[["License Status", <Badge key="a" tone="green" dot>{company.license}</Badge>], ["Screen Limit", <span key="b" className="text-lg font-bold text-slate-900">{company.screenLimit}</span>], ["Paired Screens", <span key="c" className="text-lg font-bold text-slate-900">{company.screensUsed}</span>], ["Available Slots", <span key="d" className="text-lg font-bold text-green-600">{company.available}</span>]].map(([k, v]) => (
-                <div key={String(k)} className="rounded-lg border border-slate-100 bg-slate-50/60 px-2 py-3 text-center"><div className="text-[10px] leading-3 text-slate-400">{k}</div><div className="mt-2 flex justify-center">{v}</div></div>
-              ))}
-            </div>
-            <div>
-              <div className="flex items-center justify-between text-xs"><span className="text-slate-500">Screen usage</span><span className="font-semibold text-slate-900">{company.screensUsed} of {company.screenLimit} used</span></div>
-              <Progress value={usagePct} className="mt-2" />
-            </div>
-            <div className="rounded-lg border border-slate-100 bg-slate-50/60 px-4 py-3">
-              <div className="flex items-center gap-2 text-xs font-semibold text-green-700"><span className="h-1.5 w-1.5 rounded-full bg-green-500" />Active</div>
-              <p className="mt-1 text-[11px] text-slate-400">Users can sign in and manage screens within the assigned limit.</p>
-            </div>
-            {editLicense && (
-              <form onSubmit={(e) => { e.preventDefault(); setEditLicense(false); }} className="space-y-4 border-t border-slate-100 pt-4 animate-fade-in">
-                <div><Label>Maximum Screens</Label><Input type="number" defaultValue={company.screenLimit} /></div>
-                <div><Label>License Status</Label><Select defaultValue={company.license}><option>Active</option><option>Suspended</option><option>Disabled</option><option>Expired</option></Select></div>
-                <div className="flex justify-end gap-2"><Button type="button" variant="secondary" size="sm" onClick={() => setEditLicense(false)}>Cancel</Button><Button type="submit" size="sm">Save Changes</Button></div>
-              </form>
-            )}
+            </Card>
+            <Card>
+              <CardHeader title="Recent Activity" action={<Link href={`/activity?company=${company.id}`} className="text-xs font-medium text-blue-600 hover:underline">View all</Link>} />
+              <QueryState query={activity} skeleton={<div className="p-4"><Skeleton className="h-24" /></div>} empty={<div className="px-5 py-6 text-center text-xs text-slate-400">No activity yet.</div>}>
+                {({ data }) => <ul className="divide-y divide-slate-100">{data.map((a) => <li key={a.id} className="flex items-center gap-3 px-5 py-3"><span className="flex h-7 w-7 items-center justify-center rounded-md bg-slate-100 text-slate-500"><Activity className="h-3.5 w-3.5" /></span><span className="flex-1 text-sm text-slate-800">{a.summary}</span><span className="text-[11px] text-slate-400" title={formatDateTime(a.createdAt)}>{timeAgo(a.createdAt)}</span></li>)}</ul>}
+              </QueryState>
+            </Card>
           </div>
+          <LicensePanel company={company} />
+        </div>
+      )}
+
+      {tab === "users" && (
+        <Card>
+          <CardHeader title="Users" subtitle="People who can sign in to this company's portal." action={<Button size="sm" onClick={() => setUserDrawer({ mode: "create" })}><Users className="h-3.5 w-3.5" /> Add User</Button>} />
+          <QueryState query={users} empty={<div className="px-5 py-8 text-center text-xs text-slate-400">No users yet.</div>}>
+            {({ data }) => (
+              <Table>
+                <THead><tr><TH>User</TH><TH>Role</TH><TH>Status</TH><TH>Last login</TH></tr></THead>
+                <tbody>{data.map((u) => <TR key={u.id} className="cursor-pointer" onClick={() => setUserDrawer({ mode: "edit", id: u.id })}><TD><div className="text-sm font-semibold text-slate-900">{u.name}</div><div className="text-[11px] text-slate-400">{u.email}</div></TD><TD><Badge tone="blue">{label(u.role)}</Badge></TD><TD><StatusBadge status={label(u.status)} /></TD><TD className="text-xs text-slate-400">{timeAgo(u.lastLoginAt)}</TD></TR>)}</tbody>
+              </Table>
+            )}
+          </QueryState>
+          <UserDrawer state={userDrawer} companyId={company.id} onClose={() => setUserDrawer(null)} />
         </Card>
-      </div>
+      )}
+
+      {tab === "screens" && (
+        <Card>
+          <CardHeader title="Screens" subtitle={`${counts(company).screens} paired · ${counts(company).available} slots free`} />
+          <QueryState query={screens} empty={<div className="px-5 py-8 text-center text-xs text-slate-400">No screens paired yet.</div>}>
+            {({ data }) => (
+              <Table>
+                <THead><tr><TH>Screen</TH><TH>Status</TH><TH>Content</TH><TH>Last seen</TH></tr></THead>
+                <tbody>{data.map((s) => <TR key={s.id}><TD><Link href={`/screens/${s.id}`} className="text-sm font-semibold text-slate-900 hover:text-blue-600">{s.name}</Link><div className="text-[11px] text-slate-400">{s.location ?? "—"}</div></TD><TD><StatusBadge status={screenStatusLabel(s.status)} /></TD><TD className="text-xs">{s.assignment?.name ?? "—"}</TD><TD className="text-xs text-slate-400">{timeAgo(s.lastSeenAt)}</TD></TR>)}</tbody>
+              </Table>
+            )}
+          </QueryState>
+        </Card>
+      )}
 
       <CompanyFormModal open={editCompany} onClose={() => setEditCompany(false)} company={company} />
     </div>
   );
+}
+
+export function CompanyDetail({ id }: { id: string }) {
+  const company = useCompany(id);
+  return <QueryState query={company} skeleton={<div className="space-y-5"><Skeleton className="h-16" /><Skeleton className="h-24" /><Skeleton className="h-64" /></div>}>{(c) => <Detail company={c} />}</QueryState>;
 }

@@ -36,9 +36,15 @@ export function Avatar({ name, src, size = "md", className }: { name: string; sr
   return <div className={cn("flex items-center justify-center rounded-full font-semibold text-white", !/\bbg-/.test(className ?? "") && "bg-slate-900", s, className)}>{initials}</div>;
 }
 
-export function CompanyLogo({ seed, size = "md", className }: { seed: string; size?: "sm" | "md" | "lg"; className?: string }) {
-  const s = { sm: "h-8 w-8", md: "h-10 w-10", lg: "h-12 w-12" }[size];
-  return <img src={`https://picsum.photos/seed/${seed}-logo/96/96`} alt="" className={cn("shrink-0 rounded-lg object-cover border border-slate-200 bg-slate-100", s, className)} />;
+/** Deterministic initials tile for a company (no external images). */
+export function CompanyLogo({ seed, name, size = "md", className }: { seed: string; name?: string; size?: "sm" | "md" | "lg"; className?: string }) {
+  const s = { sm: "h-8 w-8 text-[10px]", md: "h-10 w-10 text-xs", lg: "h-12 w-12 text-sm" }[size];
+  const palette = ["bg-blue-600", "bg-violet-600", "bg-emerald-600", "bg-amber-500", "bg-rose-600", "bg-cyan-600", "bg-indigo-600"];
+  const key = name ?? seed;
+  let h = 0;
+  for (const ch of key) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  const initials = key.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase() ?? "").join("") || "?";
+  return <span className={cn("flex shrink-0 items-center justify-center rounded-lg font-bold text-white", palette[h % palette.length], s, className)}>{initials}</span>;
 }
 
 export function Pagination({ page = 1, pages = 1, summary, onChange, className }: { page?: number; pages?: number; summary?: ReactNode; onChange?: (p: number) => void; className?: string }) {

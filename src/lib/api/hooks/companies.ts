@@ -5,6 +5,9 @@ import { api, ApiError, request, requestData, requestPage } from "../client";
 import { clean, keys } from "../query";
 import type { Company, Page, Schemas } from "../types";
 
+/** `counts` is present on every read; write responses omit it. This keeps UI code free of optional chaining. */
+export const counts = (c: Company) => c.counts ?? { screens: 0, online: 0, offline: 0, available: c.license?.screenLimit ?? 0 };
+
 export interface CompanyFilters { search?: string; status?: Company["status"]; page?: number; pageSize?: number }
 
 export function useCompanies(filters: CompanyFilters = {}, opts: { enabled?: boolean } = {}) {
