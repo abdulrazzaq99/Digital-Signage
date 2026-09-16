@@ -37,6 +37,11 @@ export default function LoginPage() {
       <p className="text-center text-xs text-slate-500">
         Don&apos;t have an account? <a href="#" className="font-medium text-blue-600 hover:underline">Request access</a>
       </p>
+      <div className="flex items-center justify-center gap-4 border-t border-slate-100 pt-4 text-[11px] text-slate-400">
+        <span>Demo:</span>
+        <Link href="/" className="font-medium text-blue-600 hover:underline">Super Admin</Link>
+        <Link href="/portal" className="font-medium text-blue-600 hover:underline">Customer Portal</Link>
+      </div>
     </form>
   );
 }

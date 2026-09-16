@@ -3,26 +3,11 @@ import { Menu, Search, Share2 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { Avatar } from "@/components/ui/misc";
 
-const titles: { match: (p: string) => boolean; title: string; subtitle: string }[] = [
-  { match: (p) => p === "/", title: "Overview", subtitle: "Monitor your platform and manage connected screens." },
-  { match: (p) => p.startsWith("/companies"), title: "Companies", subtitle: "Manage customer companies, licenses, and screen capacity." },
-  { match: (p) => p.startsWith("/licenses"), title: "License Management", subtitle: "Manage company screen limits and license status." },
-  { match: (p) => p.startsWith("/screens/groups"), title: "Screen Group", subtitle: "Organize screens and publish content to groups." },
-  { match: (p) => p.startsWith("/screens/canvas"), title: "Synchronized Canvas", subtitle: "Synchronize multiple screens into a single canvas display." },
-  { match: (p) => p.startsWith("/screens"), title: "Screens", subtitle: "Monitor, manage and publish content to connected displays." },
-  { match: (p) => p.startsWith("/media"), title: "Media", subtitle: "Upload and organize media assets." },
-  { match: (p) => p.startsWith("/playlists"), title: "Playlists", subtitle: "Sequence content for your displays." },
-  { match: (p) => p.startsWith("/layouts"), title: "Layouts / Templates", subtitle: "Design reusable screen layouts." },
-  { match: (p) => p.startsWith("/offers"), title: "Offers / Marketplace", subtitle: "Manage promotional offers." },
-  { match: (p) => p.startsWith("/scratch-win"), title: "Scratch & Win", subtitle: "Run interactive campaigns." },
-  { match: (p) => p.startsWith("/notifications"), title: "Notifications", subtitle: "Platform alerts and messages." },
-  { match: (p) => p.startsWith("/activity"), title: "Activity", subtitle: "Audit log of platform events." },
-  { match: (p) => p.startsWith("/settings"), title: "Settings", subtitle: "Configure your platform." },
-];
+import type { ShellConfig } from "./nav-config";
 
-export function Topbar({ onToggle, collapsed }: { onToggle: () => void; collapsed: boolean }) {
+export function Topbar({ config, onToggle, collapsed }: { config: ShellConfig; onToggle: () => void; collapsed: boolean }) {
   const pathname = usePathname();
-  const t = titles.find((x) => x.match(pathname)) ?? titles[0];
+  const t = config.titles.find((x) => x.match(pathname)) ?? config.titles[0];
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-slate-200 bg-white px-4 sm:gap-4 sm:px-5">
       <button onClick={onToggle} className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50" aria-label="Toggle sidebar">
@@ -41,7 +26,7 @@ export function Topbar({ onToggle, collapsed }: { onToggle: () => void; collapse
         <button className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50" aria-label="Share">
           <Share2 className="h-4 w-4" />
         </button>
-        {collapsed && <Avatar name="Super Admin" size="sm" className="hidden lg:flex" />}
+        {collapsed && <Avatar name={config.user.name} size="sm" className="hidden lg:flex" />}
       </div>
     </header>
   );

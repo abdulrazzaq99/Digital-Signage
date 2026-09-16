@@ -1,44 +1,24 @@
 "use client";
 import { cn } from "@/lib/utils";
-import {
-  Activity, Bell, Building2, ChevronDown, FileBadge, Image as ImageIcon, LayoutDashboard, LayoutTemplate, ListVideo, Monitor, Settings, Tag, Ticket, X,
-} from "lucide-react";
+import { ChevronDown, LayoutDashboard, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import { Avatar } from "@/components/ui/misc";
 
-interface NavItem { label: string; href: string; icon: ReactNode; children?: { label: string; href: string }[] }
+import type { ShellConfig } from "./nav-config";
 
-const nav: NavItem[] = [
-  { label: "Overview", href: "/", icon: <LayoutDashboard className="h-4 w-4" /> },
-  { label: "Companies", href: "/companies", icon: <Building2 className="h-4 w-4" /> },
-  { label: "Licenses", href: "/licenses", icon: <FileBadge className="h-4 w-4" /> },
-  { label: "Screens", href: "/screens", icon: <Monitor className="h-4 w-4" />, children: [
-    { label: "All Screens", href: "/screens" },
-    { label: "Screen Groups", href: "/screens/groups" },
-    { label: "Synchronized Canvas", href: "/screens/canvas" },
-  ] },
-  { label: "Media", href: "/media", icon: <ImageIcon className="h-4 w-4" /> },
-  { label: "Playlists", href: "/playlists", icon: <ListVideo className="h-4 w-4" /> },
-  { label: "Layouts / Templates", href: "/layouts", icon: <LayoutTemplate className="h-4 w-4" /> },
-  { label: "Offers / Marketplace", href: "/offers", icon: <Tag className="h-4 w-4" /> },
-  { label: "Scratch & Win", href: "/scratch-win", icon: <Ticket className="h-4 w-4" /> },
-  { label: "Notifications", href: "/notifications", icon: <Bell className="h-4 w-4" /> },
-  { label: "Activity", href: "/activity", icon: <Activity className="h-4 w-4" /> },
-  { label: "Settings", href: "/settings", icon: <Settings className="h-4 w-4" /> },
-];
-
-function isActive(pathname: string, href: string) {
-  if (href === "/") return pathname === "/";
+function isActive(pathname: string, href: string, basePath: string) {
+  if (href === basePath) return pathname === basePath;
   return pathname === href || pathname.startsWith(href + "/");
 }
 
-export function Sidebar({ collapsed, mobileOpen, onClose }: { collapsed: boolean; mobileOpen?: boolean; onClose?: () => void }) {
+export function Sidebar({ config, collapsed, mobileOpen, onClose }: { config: ShellConfig; collapsed: boolean; mobileOpen?: boolean; onClose?: () => void }) {
   const isCollapsed = collapsed;
   const pathname = usePathname();
-  const [openScreens, setOpenScreens] = useState(pathname.startsWith("/screens"));
-  const screensOpen = openScreens || pathname.startsWith("/screens");
+  const parentWithChildren = config.nav.find((n) => n.children)?.href;
+  const [openScreens, setOpenScreens] = useState(!!parentWithChildren && pathname.startsWith(parentWithChildren));
+  const screensOpen = openScreens || (!!parentWithChildren && pathname.startsWith(parentWithChildren));
 
   return (
     <aside className={cn(
@@ -51,14 +31,14 @@ export function Sidebar({ collapsed, mobileOpen, onClose }: { collapsed: boolean
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white">
           <LayoutDashboard className="h-4 w-4" />
         </div>
-        <span className={cn("text-sm font-bold text-slate-900", collapsed && "lg:hidden")}>DSP Admin</span>
+        <span className={cn("min-w-0", collapsed && "lg:hidden")}><span className="block truncate text-sm font-bold text-slate-900">{config.brand.name}</span>{config.brand.subtitle && <span className="block text-[10px] leading-3 text-slate-400">{config.brand.subtitle}</span>}</span>
         {onClose && <button onClick={onClose} className="ml-auto flex h-7 w-7 items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 lg:hidden" aria-label="Close menu"><X className="h-4 w-4" /></button>}
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-3">
         <ul className="space-y-0.5">
-          {nav.map((item) => {
-            const active = isActive(pathname, item.href);
+          {config.nav.map((item) => {
+            const active = isActive(pathname, item.href, config.basePath);
             const hasChildren = !!item.children;
             const expanded = hasChildren && screensOpen;
             return (
@@ -91,7 +71,8 @@ export function Sidebar({ collapsed, mobileOpen, onClose }: { collapsed: boolean
                 {expanded && (
                   <ul className={cn("mt-1 space-y-0.5 pl-4", collapsed && "lg:hidden")}>
                     {item.children!.map((c) => {
-                      const sub = c.href === "/screens" ? pathname === "/screens" || (pathname.startsWith("/screens/") && !pathname.startsWith("/screens/groups") && !pathname.startsWith("/screens/canvas")) : isActive(pathname, c.href);
+                      const siblings = item.children!.filter((x) => x.href !== c.href).map((x) => x.href);
+                      const sub = c.href === item.href ? isActive(pathname, c.href, config.basePath) && !siblings.some((h) => pathname.startsWith(h)) : isActive(pathname, c.href, config.basePath);
                       return (
                         <li key={c.href}>
                           <Link href={c.href} onClick={() => onClose?.()} className={cn("flex h-8 items-center gap-2.5 rounded-lg px-3 text-xs font-medium transition-colors", sub ? "bg-blue-50 text-blue-600" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800")}>
@@ -110,11 +91,11 @@ export function Sidebar({ collapsed, mobileOpen, onClose }: { collapsed: boolean
       </nav>
 
       <div className={cn("flex items-center gap-2.5 border-t border-slate-100 px-4 py-3", collapsed && "lg:justify-center lg:px-0")}>
-        <Avatar name="Alex Rivera" src="https://picsum.photos/seed/alexr/80/80" size="md" />
+        <Avatar name={config.user.name} src={`https://picsum.photos/seed/${config.user.avatarSeed}/80/80`} size="md" />
         {(
           <div className={cn("min-w-0", collapsed && "lg:hidden")}>
-            <div className="truncate text-xs font-semibold text-slate-900">Alex Rivera</div>
-            <div className="truncate text-[10px] text-blue-600">Super Admin</div>
+            <div className="truncate text-xs font-semibold text-slate-900">{config.user.name}</div>
+            <div className="truncate text-[10px] text-blue-600">{config.user.role}</div>
           </div>
         )}
       </div>
