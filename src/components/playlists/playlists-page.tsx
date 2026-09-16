@@ -66,7 +66,7 @@ export function PlaylistsPage() {
 
       <PreviewPlaylistModal key={preview?.id} playlist={preview} onClose={() => setPreview(null)} />
       <PublishPlaylistModal key={publish?.id} playlist={publish} onClose={() => setPublish(null)} />
-      <RenameModal open={!!rename} onClose={() => setRename(null)} name={rename?.name ?? ""} kind="Playlist" />
+      <RenameModal open={!!rename} onClose={() => setRename(null)} name={rename?.name ?? ""} kind="Playlist" onSave={async () => undefined} />
       <DeletePlaylistModal playlist={del} onClose={() => setDel(null)} />
     </div>
   );
