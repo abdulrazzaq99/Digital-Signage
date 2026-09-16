@@ -1,5 +1,6 @@
 import { ActivityPage } from "@/components/activity/activity-page";
+import { Suspense } from "react";
 
 export default function Page() {
-  return <ActivityPage />;
+  return <Suspense><ActivityPage /></Suspense>;
 }
