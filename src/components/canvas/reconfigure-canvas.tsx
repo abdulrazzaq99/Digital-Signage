@@ -1,82 +1,101 @@
 "use client";
+import { useCompanyScope } from "@/components/admin/company-scope";
 import { Button } from "@/components/ui/button";
 import { Badge, DotStatus } from "@/components/ui/badge";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/input";
 import { Alert, Breadcrumb, Stepper } from "@/components/ui/misc";
+import { QueryState, Skeleton } from "@/components/ui/query-state";
 import { TD, TH, THead, TR, Table } from "@/components/ui/table";
-import type { Canvas } from "@/lib/data";
-import { img } from "@/lib/utils";
-import { AlertTriangle, ArrowLeft, Check, CheckCircle2, ChevronLeft, ChevronRight, Plus, RefreshCw, X } from "lucide-react";
+import { useToast } from "@/components/ui/toast";
+import { useCanvas, useUpdateCanvas } from "@/lib/api/hooks/canvas";
+import { usePlaylists } from "@/lib/api/hooks/playlists";
+import { screenStatusLabel, useScreens } from "@/lib/api/hooks/screens";
+import type { CanvasSet } from "@/lib/api/types";
+import { label } from "@/lib/format";
+import { AlertTriangle, ArrowLeft, Check, CheckCircle2, ChevronRight, RefreshCw, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Arrangement, ContentPicker, MasterPreview, canvasCompatible, swatches } from "./canvas-shared";
 
-const swatches = ["bg-blue-600", "bg-violet-600", "bg-emerald-600"];
 const STEPS = ["Screens", "Arrangement", "Content & Preview", "Review & Apply"];
 
-export function ReconfigureCanvas({ canvas }: { canvas: Canvas }) {
+function Reconfigure({ canvas, companyId }: { canvas: CanvasSet; companyId: string }) {
   const router = useRouter();
+  const toast = useToast();
+  const scope = useCompanyScope();
+  const screens = useScreens({ pageSize: 100 }, { companyId });
+  const playlists = usePlaylists({ pageSize: 100 }, { companyId });
+  const update = useUpdateCanvas(companyId);
   const [step, setStep] = useState(1);
-  const [members, setMembers] = useState(canvas.members.map((m) => m.name));
+  const [members, setMembers] = useState<string[]>(canvas.members.map((m) => m.screenId));
+  const [playlistId, setPlaylistId] = useState(canvas.content?.kind === "PLAYLIST" ? canvas.content.refId : "");
+  const pool = screens.data?.data ?? [];
+  const selected = members.map((id) => pool.find((s) => s.id === id)).filter((s): s is NonNullable<typeof s> => !!s);
+  const addable = pool.filter((s) => canvasCompatible(s) && !members.includes(s.id));
   const move = (i: number, dir: -1 | 1) => setMembers((o) => { const n = [...o]; const j = i + dir; if (j < 0 || j >= n.length) return o; [n[i], n[j]] = [n[j], n[i]]; return n; });
-  const info = (name: string) => canvas.members.find((m) => m.name === name)!;
+  const back = scope.withCompany(`/screens/canvas/${canvas.id}`);
+  const playlistName = (id: string) => playlists.data?.data.find((p) => p.id === id)?.name ?? "—";
+
+  const membersChanged = members.join(",") !== canvas.members.map((m) => m.screenId).join(",");
+  const contentChanged = playlistId !== (canvas.content?.kind === "PLAYLIST" ? canvas.content.refId : "");
+
+  const apply = () => update.mutate(
+    { id: canvas.id, ...(membersChanged ? { screenIds: members } : {}), ...(contentChanged ? { content: playlistId ? { kind: "PLAYLIST", refId: playlistId } : null } : {}) },
+    { onSuccess: () => { toast.success("Canvas updated", "Activate it again to push the new configuration."); router.push(back); }, onError: (e) => toast.error(e, "Couldn't apply changes") },
+  );
 
   return (
     <div className="space-y-5">
-      <Breadcrumb items={[{ label: canvas.name, href: `/screens/canvas/${canvas.id}` }, { label: "Reconfigure" }]} />
+      <Breadcrumb items={[{ label: canvas.name, href: back }, { label: "Reconfigure" }]} />
       <div><h1 className="text-xl font-bold tracking-tight text-slate-900">Reconfigure Canvas</h1><p className="mt-1 text-sm text-slate-400">Update screens, physical arrangement, or canvas content.</p></div>
-      <Alert tone="green" icon={<CheckCircle2 className="h-3.5 w-3.5 shrink-0" />}>The current canvas remains active until the updated configuration is applied and all screens are ready.</Alert>
+      <Alert tone="green" icon={<CheckCircle2 className="h-3.5 w-3.5 shrink-0" />}>The current canvas keeps running until you apply and re-activate the updated configuration.</Alert>
       <Stepper steps={STEPS} current={step} />
 
       {step === 1 && (
         <div className="space-y-5 animate-fade-in">
           <Card>
-            <CardHeader title="Selected Screens" subtitle="Minimum 2 screens required. Remove or add compatible screens." action={<div className="flex items-center gap-2"><Badge tone="blue">{members.length} screens</Badge><Button size="sm"><Plus className="h-3.5 w-3.5" /> Add Screen</Button></div>} />
+            <CardHeader title="Selected Screens" subtitle="Minimum 2 screens required. Remove members or add compatible screens below." action={<Badge tone="blue">{members.length} screens</Badge>} />
             <Table>
-              <THead><tr><TH className="w-10"> </TH><TH>Screen</TH><TH>Status</TH><TH>Orientation</TH><TH>Resolution</TH><TH> </TH></tr></THead>
+              <THead><tr><TH>Screen</TH><TH>Status</TH><TH>Orientation</TH><TH>Resolution</TH><TH> </TH></tr></THead>
               <tbody>
-                {members.map((n) => (
-                  <TR key={n}>
-                    <TD><Checkbox /></TD>
-                    <TD><div className="text-sm font-semibold text-slate-900">{n}</div><div className="text-[11px] text-slate-400">{info(n).location}</div></TD>
-                    <TD><DotStatus status={info(n).status} /></TD>
-                    <TD className="text-xs whitespace-nowrap">↔ Landscape</TD>
-                    <TD className="text-xs">1920×1080</TD>
-                    <TD className="text-right"><button onClick={() => members.length > 2 && setMembers((m) => m.filter((x) => x !== n))} className="flex h-6 w-6 items-center justify-center rounded border border-red-200 text-red-500 hover:bg-red-50" aria-label="Remove"><X className="h-3 w-3" /></button></TD>
+                {selected.map((s) => (
+                  <TR key={s.id}>
+                    <TD><div className="text-sm font-semibold text-slate-900">{s.name}</div><div className="text-[11px] text-slate-400">{s.location ?? "—"}</div></TD>
+                    <TD><DotStatus status={screenStatusLabel(s.status)} /></TD>
+                    <TD className="text-xs whitespace-nowrap">↔ {label(s.orientation)}</TD>
+                    <TD className="text-xs">{s.device?.resolution ?? "—"}</TD>
+                    <TD className="text-right"><button type="button" onClick={() => members.length > 2 && setMembers((m) => m.filter((x) => x !== s.id))} disabled={members.length <= 2} className="flex h-6 w-6 items-center justify-center rounded border border-red-200 text-red-500 hover:bg-red-50 disabled:opacity-30" aria-label="Remove"><X className="h-3 w-3" /></button></TD>
                   </TR>
                 ))}
               </tbody>
             </Table>
+            {addable.length > 0 && (
+              <div className="border-t border-slate-100 px-5 py-4">
+                <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400">Add screens</div>
+                <ul className="space-y-1.5">{addable.map((s) => <li key={s.id} className="flex items-center gap-3 text-xs"><Checkbox checked={false} onChange={() => setMembers((m) => [...m, s.id])} /><span className="font-semibold text-slate-900">{s.name}</span><span className="text-slate-400">{s.location ?? "—"}</span><DotStatus status={screenStatusLabel(s.status)} /></li>)}</ul>
+              </div>
+            )}
           </Card>
-          <div className="flex flex-wrap items-center justify-between gap-2"><Button variant="secondary" onClick={() => router.push(`/screens/canvas/${canvas.id}`)}>Cancel</Button><Button onClick={() => setStep(2)}>Continue <ChevronRight className="h-3.5 w-3.5" /></Button></div>
+          <div className="flex flex-wrap items-center justify-between gap-2"><Button variant="secondary" onClick={() => router.push(back)}>Cancel</Button><Button onClick={() => setStep(2)} disabled={members.length < 2}>Continue <ChevronRight className="h-3.5 w-3.5" /></Button></div>
         </div>
       )}
 
       {step === 2 && (
         <div className="space-y-5 animate-fade-in">
           <Card>
-            <CardHeader title="Physical Arrangement" subtitle="Drag to reorder, or use the Move Left / Right controls. Screens are displayed left-to-right." />
-            <div className="p-5">
-              <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${members.length}, minmax(0,1fr))` }}>
-                {members.map((n, i) => (
-                  <div key={n} className="overflow-hidden rounded-lg border border-slate-200">
-                    <div className="relative aspect-video bg-slate-900"><img src={img(`${canvas.seed}-${i}`, 480, 270)} alt="" className="h-full w-full object-cover" /><span className={`absolute left-2 top-2 rounded px-1.5 py-0.5 text-[10px] font-semibold text-white ${swatches[i % 3]}`}>#{i + 1}</span></div>
-                    <div className="px-3 py-2"><div className="text-xs font-semibold text-slate-900">{n}</div><div className="text-[10px] text-slate-400">Position {i + 1}</div></div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <CardHeader title="Physical Arrangement" subtitle="Use the arrows to reorder. Screens are displayed left-to-right." />
+            <div className="p-5"><Arrangement screens={selected} onMove={move} /></div>
             <Table>
-              <THead><tr><TH>Pos</TH><TH>Screen</TH><TH>Status</TH><TH>Orientation</TH><TH>Resolution</TH><TH>Move</TH></tr></THead>
+              <THead><tr><TH>Pos</TH><TH>Screen</TH><TH>Status</TH><TH>Orientation</TH><TH>Resolution</TH></tr></THead>
               <tbody>
-                {members.map((n, i) => (
-                  <TR key={n}>
-                    <TD><span className={`flex h-5 w-5 items-center justify-center rounded text-[10px] font-semibold text-white ${swatches[i % 3]}`}>{i + 1}</span></TD>
-                    <TD><div className="text-sm font-semibold text-slate-900">{n}</div><div className="text-[11px] text-slate-400">{info(n).location}</div></TD>
-                    <TD><DotStatus status={info(n).status} /></TD>
-                    <TD className="text-xs whitespace-nowrap">↔ Landscape</TD>
-                    <TD className="text-xs">1920×1080</TD>
-                    <TD><div className="flex gap-1"><button onClick={() => move(i, -1)} disabled={i === 0} className="flex h-6 w-6 items-center justify-center rounded border border-slate-200 text-slate-500 disabled:opacity-30"><ChevronLeft className="h-3 w-3" /></button><button onClick={() => move(i, 1)} disabled={i === members.length - 1} className="flex h-6 w-6 items-center justify-center rounded border border-slate-200 text-slate-500 disabled:opacity-30"><ChevronRight className="h-3 w-3" /></button></div></TD>
+                {selected.map((s, i) => (
+                  <TR key={s.id}>
+                    <TD><span className={`flex h-5 w-5 items-center justify-center rounded text-[10px] font-semibold text-white ${swatches[i % swatches.length]}`}>{i + 1}</span></TD>
+                    <TD><div className="text-sm font-semibold text-slate-900">{s.name}</div><div className="text-[11px] text-slate-400">{s.location ?? "—"}</div></TD>
+                    <TD><DotStatus status={screenStatusLabel(s.status)} /></TD>
+                    <TD className="text-xs whitespace-nowrap">↔ {label(s.orientation)}</TD>
+                    <TD className="text-xs">{s.device?.resolution ?? "—"}</TD>
                   </TR>
                 ))}
               </tbody>
@@ -88,27 +107,10 @@ export function ReconfigureCanvas({ canvas }: { canvas: Canvas }) {
 
       {step === 3 && (
         <div className="space-y-5 animate-fade-in">
-          <Card>
-            <CardHeader title="Assigned Content" />
-            <div className="flex items-center gap-3 px-5 py-4"><img src={img(canvas.seed ?? "c", 96, 64)} alt="" className="h-8 w-12 rounded object-cover" /><div><div className="text-sm font-semibold text-slate-900">{canvas.content}</div><div className="text-[11px] text-slate-400">Currently assigned · Playlist</div></div></div>
-          </Card>
+          <ContentPicker companyId={companyId} value={playlistId} onChange={setPlaylistId} />
           <Card>
             <CardHeader title="Master Canvas Preview" subtitle={`Content is split evenly across ${members.length} physical screens.`} />
-            <div className="space-y-4 p-5">
-              <div className="relative overflow-hidden rounded-lg bg-slate-900" style={{ aspectRatio: `${members.length * 16} / 9`, maxHeight: 220 }}>
-                <img src={img(`${canvas.seed}-wide`, 1600, 400)} alt="" className="h-full w-full object-cover" />
-                <div className="absolute inset-0 grid" style={{ gridTemplateColumns: `repeat(${members.length}, minmax(0,1fr))` }}>{members.map((n, i) => <div key={n} className="relative border-r border-white/40 last:border-r-0"><span className={`absolute left-2 top-2 rounded px-1.5 py-0.5 text-[10px] font-semibold text-white ${swatches[i % 3]}`}>Screen {i + 1}</span></div>)}</div>
-                <div className="absolute bottom-3 left-3 text-xs font-semibold text-white">{canvas.content}</div>
-              </div>
-              <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${members.length}, minmax(0,1fr))` }}>
-                {members.map((n, i) => (
-                  <div key={n} className="overflow-hidden rounded-lg border border-slate-200">
-                    <div className="relative aspect-video bg-slate-900"><img src={img(`${canvas.seed}-${i}`, 480, 270)} alt="" className="h-full w-full object-cover" /><span className={`absolute left-2 top-2 flex h-4 w-4 items-center justify-center rounded text-[9px] font-semibold text-white ${swatches[i % 3]}`}>{i + 1}</span></div>
-                    <div className="px-3 py-2"><div className="text-xs font-semibold text-slate-900">{n}</div><div className="text-[10px] text-slate-400">Screen {i + 1}</div></div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <div className="p-5"><MasterPreview count={members.length} caption={playlistId ? playlistName(playlistId) : "No content assigned"} thumbnailUrl={selected[0]?.assignment?.thumbnailUrl} /></div>
           </Card>
           <div className="flex flex-wrap items-center justify-between gap-2"><Button variant="secondary" onClick={() => setStep(2)}><ArrowLeft className="h-3.5 w-3.5" /> Back</Button><Button onClick={() => setStep(4)}>Continue <ChevronRight className="h-3.5 w-3.5" /></Button></div>
         </div>
@@ -118,12 +120,22 @@ export function ReconfigureCanvas({ canvas }: { canvas: Canvas }) {
         <div className="space-y-5 animate-fade-in">
           <Card>
             <CardHeader title="Summary of Changes" />
-            <div className="flex items-center gap-3 px-5 py-4 text-xs"><span className="flex h-6 w-6 items-center justify-center rounded-md bg-blue-50 text-blue-600"><RefreshCw className="h-3 w-3" /></span><span className="font-semibold text-slate-900">Content changed —</span><span className="text-slate-600">{canvas.content} → New Campaign 2026</span></div>
+            <ul className="divide-y divide-slate-100">
+              {membersChanged && <li className="flex items-center gap-3 px-5 py-4 text-xs"><span className="flex h-6 w-6 items-center justify-center rounded-md bg-blue-50 text-blue-600"><RefreshCw className="h-3 w-3" /></span><span className="font-semibold text-slate-900">Screens changed —</span><span className="text-slate-600">{canvas.members.length} → {members.length} screens, order {selected.map((s) => s.name).join(" › ")}</span></li>}
+              {contentChanged && <li className="flex items-center gap-3 px-5 py-4 text-xs"><span className="flex h-6 w-6 items-center justify-center rounded-md bg-blue-50 text-blue-600"><RefreshCw className="h-3 w-3" /></span><span className="font-semibold text-slate-900">Content changed —</span><span className="text-slate-600">{canvas.content ? playlistName(canvas.content.refId) : "None"} → {playlistId ? playlistName(playlistId) : "None"}</span></li>}
+              {!membersChanged && !contentChanged && <li className="px-5 py-6 text-center text-xs text-slate-400">No changes yet.</li>}
+            </ul>
           </Card>
-          <Alert tone="amber" icon={<AlertTriangle className="h-3.5 w-3.5 shrink-0" />}>Current canvas remains active until the updated configuration is ready. Applying will start a synchronization process across all member screens.</Alert>
-          <div className="flex flex-wrap items-center justify-between gap-2"><Button variant="secondary" onClick={() => setStep(3)}><ArrowLeft className="h-3.5 w-3.5" /> Back</Button><div className="flex gap-2"><Button variant="secondary" href={`/screens/canvas/${canvas.id}`}>Cancel</Button><Button variant="success" onClick={() => router.push(`/screens/canvas/${canvas.id}`)}><Check className="h-3.5 w-3.5" /> Apply Changes</Button></div></div>
+          <Alert tone="amber" icon={<AlertTriangle className="h-3.5 w-3.5 shrink-0" />}>Applying saves the configuration and returns the canvas to draft. Activate it from the canvas page to start synchronization across the member screens.</Alert>
+          <div className="flex flex-wrap items-center justify-between gap-2"><Button variant="secondary" onClick={() => setStep(3)}><ArrowLeft className="h-3.5 w-3.5" /> Back</Button><div className="flex gap-2"><Button variant="secondary" href={back}>Cancel</Button><Button variant="success" onClick={apply} disabled={update.isPending || (!membersChanged && !contentChanged)}><Check className="h-3.5 w-3.5" /> {update.isPending ? "Applying…" : "Apply Changes"}</Button></div></div>
         </div>
       )}
     </div>
   );
+}
+
+export function ReconfigureCanvas({ id }: { id: string }) {
+  const scope = useCompanyScope();
+  const canvas = useCanvas(id, { companyId: scope.companyId, enabled: !!scope.companyId });
+  return <QueryState query={canvas} skeleton={<div className="space-y-5"><Skeleton className="h-16" /><Skeleton className="h-64" /></div>}>{(c) => <Reconfigure key={c.id} canvas={c} companyId={scope.companyId} />}</QueryState>;
 }
