@@ -66,12 +66,12 @@ export function PublishModal({ open, onClose, defaultScreen }: { open: boolean; 
               const selected = mode === "single" ? single === s.id : multi.includes(s.id);
               const toggle = () => mode === "single" ? setSingle(s.id) : setMulti((m) => m.includes(s.id) ? m.filter((x) => x !== s.id) : [...m, s.id]);
               return (
-                <button key={s.id} onClick={toggle} className={cn("flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors", selected ? "border-blue-300 bg-blue-50/50" : "border-slate-200 hover:bg-slate-50")}>
+                <div role="button" tabIndex={0} key={s.id} onClick={toggle} className={cn("flex w-full cursor-pointer items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors", selected ? "border-blue-300 bg-blue-50/50" : "border-slate-200 hover:bg-slate-50")}>
                   {mode === "multiple" && <Checkbox checked={selected} />}
                   <img src={img(s.seed, 96, 64)} alt="" className="h-8 w-12 rounded object-cover" />
                   <span className="flex-1"><span className="block text-sm font-semibold text-slate-900">{s.name}</span><span className="block text-[11px] text-slate-400">{s.company}{mode === "single" ? ` · ${s.location}` : ""}</span></span>
                   {mode === "single" && <DotStatus status={s.status} className="lowercase" />}
-                </button>
+                </div>
               );
             })}
           </div>

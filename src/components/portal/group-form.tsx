@@ -35,12 +35,12 @@ export function GroupForm({ group }: { group?: PortalGroup }) {
                     const on = sel.includes(s.id);
                     return (
                       <li key={s.id}>
-                        <button type="button" onClick={() => toggle(s.id)} className={cn("flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors", on ? "border-blue-300 bg-blue-50/40" : "border-slate-200 hover:bg-slate-50")}>
+                        <div role="button" tabIndex={0} onClick={() => toggle(s.id)} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && toggle(s.id)} className={cn("flex w-full cursor-pointer items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors", on ? "border-blue-300 bg-blue-50/40" : "border-slate-200 hover:bg-slate-50")}>
                           <Checkbox checked={on} />
                           <span className="relative h-8 w-11 shrink-0 overflow-hidden rounded bg-slate-900"><img src={img(s.seed, 88, 64)} alt="" className="h-full w-full object-cover" /><span className="absolute inset-x-0 bottom-0 truncate bg-black/60 px-1 text-[6px] text-white">{s.content}</span></span>
                           <span className="min-w-0 flex-1"><span className="block truncate text-xs font-semibold text-slate-900">{s.name}</span><span className="block truncate text-[10px] text-slate-400">{s.location}</span></span>
                           <DotStatus status={s.status} />
-                        </button>
+                        </div>
                       </li>
                     );
                   })}
