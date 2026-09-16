@@ -42,3 +42,6 @@ next-env.d.ts
 
 # playwright
 .playwright-mcp/
+
+# keep the example env committed
+!.env.local.example
