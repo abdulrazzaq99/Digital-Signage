@@ -1,5 +1,6 @@
-import { PlaylistEditor } from "@/components/playlists/playlist-editor";
+import { CreatePlaylist } from "@/components/playlists/playlist-editor";
+import { Suspense } from "react";
 
 export default function Page() {
-  return <PlaylistEditor />;
+  return <Suspense><CreatePlaylist /></Suspense>;
 }
