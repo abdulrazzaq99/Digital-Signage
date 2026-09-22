@@ -1,9 +1,10 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { Input, Label } from "@/components/ui/input";
+import { Input, Label, Select } from "@/components/ui/input";
 import { Alert } from "@/components/ui/misc";
 import { QueryState, Skeleton } from "@/components/ui/query-state";
 import { useToast } from "@/components/ui/toast";
+import { useMedia } from "@/lib/api/hooks/media";
 import { useCreateInstance, usePublishInstance, useRenderInstance, useTemplateInstance, useTemplates, useUpdateInstance } from "@/lib/api/hooks/templates";
 import type { Template, TemplateInstance } from "@/lib/api/types";
 import { errorMessage, label } from "@/lib/format";
@@ -13,6 +14,22 @@ import { useState } from "react";
 import { BackLinkButton } from "./portal-stepper";
 import { PublishTarget } from "./publish-target";
 import { PortalTemplateArt } from "./template-art";
+
+/** Image fields take a ready image from the company's media library; the API draws it into the render. */
+function ImagePicker({ value, onChange, companyId }: { value: string; onChange: (v: string) => void; companyId?: string | null }) {
+  const media = useMedia({ type: "IMAGE", status: "READY", pageSize: 100 }, { companyId });
+  const images = media.data?.data ?? [];
+  const selected = images.find((m) => m.id === value);
+  return (
+    <div className="flex items-center gap-3">
+      {selected?.thumbnailUrl && <img src={selected.thumbnailUrl} alt="" className="h-10 w-10 shrink-0 rounded-md border border-slate-200 object-cover" />}
+      <Select className="flex-1" value={value} onChange={(e) => onChange(e.target.value)} disabled={media.isLoading}>
+        <option value="">{media.isLoading ? "Loading images…" : images.length ? "No image" : "No ready images in your media library"}</option>
+        {images.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
+      </Select>
+    </div>
+  );
+}
 
 /**
  * Fill a template's fields → create the instance → render it on the API → publish.
@@ -68,7 +85,10 @@ function Flow({ template, companyId, basePath }: { template: Template; companyId
         <div><PortalTemplateArt template={template} values={values} className="text-xl shadow-xl" /><div className="mt-2 flex items-center gap-1.5 text-[11px] text-slate-400"><Lock className="h-3 w-3" /> Live preview — the API renders the final image.</div></div>
         <form onSubmit={(e) => { e.preventDefault(); generate(); }} className="space-y-4">
           <div><Label required>Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Weekend Flash Sale" /></div>
-          {template.fields.map((f) => <div key={f.key}><Label required={f.required}>{f.label}</Label><Input placeholder={f.type === "image" ? "Image URL" : f.type === "color" ? "#RRGGBB" : f.label} type={f.type === "color" ? "color" : "text"} maxLength={f.max} value={values[f.key] ?? ""} onChange={(e) => setValues((v) => ({ ...v, [f.key]: e.target.value }))} /></div>)}
+          {template.fields.map((f) => {
+            const set = (value: string) => setValues((v) => ({ ...v, [f.key]: value }));
+            return <div key={f.key}><Label required={f.required}>{f.label}</Label>{f.type === "image" ? <ImagePicker value={values[f.key] ?? ""} onChange={set} companyId={companyId} /> : <Input placeholder={f.type === "color" ? "#RRGGBB" : f.label} type={f.type === "color" ? "color" : "text"} maxLength={f.max} value={values[f.key] ?? ""} onChange={(e) => set(e.target.value)} />}</div>;
+          })}
           {error && <Alert tone="red">{error}</Alert>}
           <Button type="submit" className="w-full" disabled={!valid || busy}><Sparkles className="h-3.5 w-3.5" /> {busy ? "Generating…" : "Generate Output"}</Button>
         </form>

@@ -869,7 +869,7 @@ export interface paths {
                     status?: "ONLINE" | "OFFLINE" | "ERROR";
                     groupId?: string;
                     orientation?: "LANDSCAPE" | "PORTRAIT";
-                    personal?: boolean | null;
+                    personal?: boolean;
                 };
                 header?: never;
                 path?: never;
@@ -1596,6 +1596,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** @description Creates the asset and a presigned PUT URL. The lifetime grows with the file size (15 minutes to 6 hours). */
         post: {
             parameters: {
                 query?: never;
@@ -1615,11 +1616,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            data: {
-                                asset: components["schemas"]["Media"];
-                                uploadUrl: string;
-                                expiresInSec: number;
-                            };
+                            data: components["schemas"]["UploadUrl"];
                             meta?: {
                                 [key: string]: unknown;
                             };
@@ -1627,6 +1624,64 @@ export interface paths {
                     };
                 };
                 400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/media/{id}/upload-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description A fresh presigned PUT URL for an asset that is still UPLOADING or FAILED. Uploads left UPLOADING for 24 hours are deleted. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["UploadUrl"];
+                            meta?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                409: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -1741,7 +1796,7 @@ export interface paths {
         delete: {
             parameters: {
                 query?: {
-                    force?: boolean | null;
+                    force?: boolean;
                 };
                 header?: never;
                 path: {
@@ -2352,7 +2407,7 @@ export interface paths {
                     targetKind?: "SCREEN" | "GROUP";
                     targetId?: string;
                     playlistId?: string;
-                    activeOnly?: boolean | null;
+                    activeOnly?: boolean;
                 };
                 header?: never;
                 path?: never;
@@ -4154,6 +4209,99 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/notifications/inbox": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Sent notifications addressed to the caller (everyone, their company, or them), newest first. */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    pageSize?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["InboxNotification"][];
+                            meta?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description One notification, if the caller is in its audience (any, for the Super Admin). */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["InboxNotification"];
+                            meta?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/notifications/subscriptions": {
         parameters: {
             query?: never;
@@ -4800,16 +4948,7 @@ export interface components {
                 refId: string;
                 name: string;
             } | null;
-            assets: {
-                id: string;
-                type: string;
-                url: string;
-                checksum: string | null;
-                sizeBytes: number;
-                durationSec: number;
-                mimeType: string;
-                position: number;
-            }[];
+            items: components["schemas"]["ManifestItem"][];
             layout: {
                 presetId: string;
                 zones: {
@@ -4821,21 +4960,54 @@ export interface components {
                     h: number;
                     bindingKind: string | null;
                     refId: string | null;
+                    items: components["schemas"]["ManifestItem"][];
                 }[];
             } | null;
-            schedule: {
-                id: string;
-                playlistId: string;
-                startsAt: string;
-                endsAt: string | null;
-                timezone: string;
-            }[];
             canvas: {
                 setId: string;
                 position: number;
                 total: number;
                 activateAt: string | null;
+                viewport: {
+                    x: number;
+                    y: number;
+                    width: number;
+                    height: number;
+                };
+                content: {
+                    kind: string;
+                    refId: string;
+                } | null;
             } | null;
+            schedule: {
+                id: string;
+                playlistId: string;
+                name: string;
+                /** @enum {string} */
+                targetKind: "SCREEN" | "GROUP";
+                startsAt: string;
+                endsAt: string | null;
+                timezone: string;
+                items: components["schemas"]["ManifestItem"][];
+            }[];
+            assets: {
+                id: string;
+                type: string;
+                mimeType: string;
+                url: string;
+                checksum: string | null;
+                sizeBytes: number;
+                width: number | null;
+                height: number | null;
+                durationSec: number | null;
+                sourceAssetId: string | null;
+                page: number | null;
+            }[];
+        };
+        ManifestItem: {
+            assetId: string;
+            position: number;
+            durationSec: number;
         };
         HeartbeatBody: {
             playerVersion?: string;
@@ -4895,6 +5067,11 @@ export interface components {
             }[];
             thumbnailUrl: string | null;
         };
+        UploadUrl: {
+            asset: components["schemas"]["Media"];
+            uploadUrl: string;
+            expiresInSec: number;
+        };
         UploadUrlBody: {
             fileName: string;
             /** @enum {string} */
@@ -4933,6 +5110,7 @@ export interface components {
             id: string;
             position: number;
             durationSec: number;
+            page: number | null;
             asset: {
                 id: string;
                 name: string;
@@ -4947,6 +5125,7 @@ export interface components {
             items: {
                 assetId: string;
                 durationSec: number;
+                page?: number;
             }[];
         };
         UpdatePlaylistBody: {
@@ -4954,11 +5133,13 @@ export interface components {
             items?: {
                 assetId: string;
                 durationSec: number;
+                page?: number;
             }[];
         };
         AddPlaylistItemBody: {
             assetId: string;
             durationSec?: number;
+            page?: number;
             position?: number;
         };
         UpdatePlaylistItemBody: {
@@ -5095,6 +5276,20 @@ export interface components {
                 /** @default false */
                 required: boolean;
                 max?: number;
+                box?: {
+                    x: number;
+                    y: number;
+                    w: number;
+                    h: number;
+                };
+                fontSize?: number;
+                /** @enum {string} */
+                weight?: "regular" | "bold";
+                /** @enum {string} */
+                align?: "left" | "center" | "right";
+                color?: string;
+                /** @enum {string} */
+                fit?: "cover" | "contain";
             }[];
             isGlobal: boolean;
             usedIn: number;
@@ -5116,6 +5311,20 @@ export interface components {
                 /** @default false */
                 required: boolean;
                 max?: number;
+                box?: {
+                    x: number;
+                    y: number;
+                    w: number;
+                    h: number;
+                };
+                fontSize?: number;
+                /** @enum {string} */
+                weight?: "regular" | "bold";
+                /** @enum {string} */
+                align?: "left" | "center" | "right";
+                color?: string;
+                /** @enum {string} */
+                fit?: "cover" | "contain";
             }[];
         };
         TemplateInstance: {
@@ -5128,6 +5337,7 @@ export interface components {
             };
             outputUrl: string | null;
             rendered: boolean;
+            rendering: boolean;
             createdAt: string;
             updatedAt: string;
         };
@@ -5296,6 +5506,20 @@ export interface components {
             reason: string | null;
             attemptsUsed: number;
             attemptsRemaining: number;
+            attempts: components["schemas"]["MyAttempt"][];
+        };
+        MyAttempt: {
+            attemptId: string;
+            /** @enum {string} */
+            outcome: "WIN" | "LOSE";
+            prize: {
+                id: string;
+                name: string;
+                value: string | null;
+            } | null;
+            /** @enum {string|null} */
+            redemption: "PENDING" | "REDEEMED" | null;
+            createdAt: string;
         };
         AttemptResult: {
             attemptId: string;
@@ -5337,6 +5561,8 @@ export interface components {
             id: string;
             title: string;
             body: string;
+            type: components["schemas"]["NotificationType"];
+            targetId: string | null;
             audience: {
                 /** @enum {string} */
                 kind: "all";
@@ -5355,9 +5581,22 @@ export interface components {
             providerId: string | null;
             createdAt: string;
         };
+        /** @enum {string} */
+        NotificationType: "announcement" | "offer" | "campaign";
+        InboxNotification: {
+            id: string;
+            title: string;
+            body: string;
+            type: components["schemas"]["NotificationType"];
+            targetId: string | null;
+            sentAt: string;
+            createdAt: string;
+        };
         CreateNotificationBody: {
             title: string;
             body: string;
+            type?: components["schemas"]["NotificationType"];
+            targetId?: string;
             audience: {
                 /** @enum {string} */
                 kind: "all";
@@ -5409,6 +5648,8 @@ export interface components {
                 location: string | null;
                 position: number;
                 status: string;
+                online: boolean;
+                preloaded: boolean;
                 ready: boolean;
                 synced: boolean;
                 orientation: string;

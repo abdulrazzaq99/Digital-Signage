@@ -1,7 +1,7 @@
 import type { Template } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
 
-/** Client-side preview of a template by category. The real render (SVG in storage) is produced by the API. */
+/** Client-side preview of a template by category. The real render (a PNG in storage) is produced by the API. */
 export function PortalTemplateArt({ template, values, className }: { template: Pick<Template, "name" | "category" | "fields">; values?: Record<string, string>; className?: string }) {
   const v = (k: string, fallback = "") => values?.[k] ?? fallback;
   const cat = template.category.toLowerCase();

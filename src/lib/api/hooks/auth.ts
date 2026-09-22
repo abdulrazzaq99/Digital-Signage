@@ -10,6 +10,11 @@ export function useForgotPassword() {
   return useMutation<void, ApiError, { email: string }>({ mutationFn: async (body) => { await request(() => api.POST("/auth/forgot-password", { body })); } });
 }
 
+/** Completes a reset or invite link: sets the password and signs out every existing session. */
+export function useResetPassword() {
+  return useMutation<void, ApiError, Schemas["ResetPasswordBody"]>({ mutationFn: async (body) => { await request(() => api.POST("/auth/reset-password", { body })); } });
+}
+
 export function useChangePassword() {
   return useMutation<void, ApiError, Schemas["ChangePasswordBody"]>({ mutationFn: async (body) => { await request(() => api.POST("/auth/change-password", { body })); } });
 }
