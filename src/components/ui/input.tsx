@@ -15,7 +15,7 @@ export function Label({ children, required, className, htmlFor }: { children: Re
 export function Input({ className, ...rest }: InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
-      className={cn("h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 aria-invalid:border-red-400 aria-invalid:focus:border-red-500 aria-invalid:focus:ring-red-500/20 disabled:bg-slate-50 disabled:text-slate-500", className)}
+      className={cn("h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-base text-slate-900 sm:h-10 sm:text-sm placeholder:text-slate-400 shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 aria-invalid:border-red-400 aria-invalid:focus:border-red-500 aria-invalid:focus:ring-red-500/20 disabled:bg-slate-50 disabled:text-slate-500", className)}
       {...rest}
     />
   );
@@ -26,7 +26,7 @@ export function SearchInput({ className, ...rest }: InputHTMLAttributes<HTMLInpu
     <div className={cn("relative", className)}>
       <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
       <input
-        className="h-9 w-full rounded-lg border border-slate-200 bg-white pl-8 pr-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+        className="h-10 w-full rounded-lg border border-slate-200 bg-white pl-8 pr-3 text-base text-slate-900 sm:h-9 sm:text-sm placeholder:text-slate-400 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
         {...rest}
       />
     </div>
@@ -37,7 +37,7 @@ export function Select({ className, children, ...rest }: SelectHTMLAttributes<HT
   return (
     <div className={cn("relative", className)}>
       <select
-        className="h-10 w-full appearance-none rounded-lg border border-slate-200 bg-white pl-3 pr-8 text-sm text-slate-900 shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 aria-invalid:border-red-400 aria-invalid:focus:border-red-500 aria-invalid:focus:ring-red-500/20 disabled:bg-slate-50"
+        className="h-11 w-full appearance-none rounded-lg border border-slate-200 bg-white pl-3 pr-8 text-base text-slate-900 sm:h-10 sm:text-sm shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 aria-invalid:border-red-400 aria-invalid:focus:border-red-500 aria-invalid:focus:ring-red-500/20 disabled:bg-slate-50"
         {...rest}
       >
         {children}
@@ -48,7 +48,7 @@ export function Select({ className, children, ...rest }: SelectHTMLAttributes<HT
 }
 
 export function FilterSelect({ label, options, value = "", onChange, className }: { label: string; options?: { value: string; label: string }[]; value?: string; onChange?: (v: string) => void; className?: string }) {
-  const base = "inline-flex h-9 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-xs font-medium text-slate-500 hover:bg-slate-50";
+  const base = "inline-flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-base font-medium sm:h-9 sm:text-xs text-slate-500 hover:bg-slate-50";
   if (!options) {
     return (
       <button type="button" className={cn(base, className)}>
@@ -75,7 +75,7 @@ export function Checkbox({ checked, onChange, className }: { checked?: boolean; 
       role="checkbox"
       aria-checked={checked}
       onClick={() => onChange?.(!checked)}
-      className={cn("flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors", checked ? "border-blue-600 bg-blue-600 text-white" : "border-slate-300 bg-white", className)}
+      className={cn("relative flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors after:absolute after:-inset-3 after:content-[''] sm:after:-inset-1", checked ? "border-blue-600 bg-blue-600 text-white" : "border-slate-300 bg-white", className)}
     >
       {checked && <svg viewBox="0 0 12 12" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2}><path d="M2.5 6.5l2.5 2.5 4.5-5" /></svg>}
     </button>
@@ -90,7 +90,7 @@ export function Segmented<T extends string>({ options, value, onChange, classNam
           key={o.value}
           type="button"
           onClick={() => onChange(o.value)}
-          className={cn("h-9 rounded-lg border text-xs font-medium transition-colors", value === o.value ? "border-blue-600 bg-blue-600 text-white" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50")}
+          className={cn("h-10 rounded-lg border text-xs font-medium transition-colors sm:h-9", value === o.value ? "border-blue-600 bg-blue-600 text-white" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50")}
         >
           {o.label}
         </button>
@@ -107,7 +107,7 @@ export function PillTabs<T extends string>({ options, value, onChange, className
           key={o.value}
           type="button"
           onClick={() => onChange(o.value)}
-          className={cn("h-8 rounded-md border px-3 text-xs font-medium transition-colors", value === o.value ? "border-blue-200 bg-blue-50 text-blue-600" : "border-slate-200 bg-white text-slate-500 hover:bg-slate-50")}
+          className={cn("h-10 rounded-md border px-3 text-xs font-medium transition-colors sm:h-8", value === o.value ? "border-blue-200 bg-blue-50 text-blue-600" : "border-slate-200 bg-white text-slate-500 hover:bg-slate-50")}
         >
           {o.label}
         </button>
@@ -119,7 +119,7 @@ export function PillTabs<T extends string>({ options, value, onChange, className
 export function Textarea({ className, ...rest }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return (
     <textarea
-      className={cn("w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 aria-invalid:border-red-400 aria-invalid:focus:border-red-500 aria-invalid:focus:ring-red-500/20", className)}
+      className={cn("w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-base text-slate-900 sm:text-sm placeholder:text-slate-400 shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 aria-invalid:border-red-400 aria-invalid:focus:border-red-500 aria-invalid:focus:ring-red-500/20", className)}
       {...rest}
     />
   );
@@ -127,7 +127,7 @@ export function Textarea({ className, ...rest }: TextareaHTMLAttributes<HTMLText
 
 export function Toggle({ checked, onChange, className }: { checked: boolean; onChange: (v: boolean) => void; className?: string }) {
   return (
-    <button type="button" role="switch" aria-checked={checked} onClick={() => onChange(!checked)} className={cn("relative h-5 w-9 shrink-0 rounded-full transition-colors", checked ? "bg-blue-600" : "bg-slate-200", className)}>
+    <button type="button" role="switch" aria-checked={checked} onClick={() => onChange(!checked)} className={cn("relative h-5 w-9 shrink-0 rounded-full transition-colors after:absolute after:-inset-2.5 after:content-[''] sm:after:inset-0", checked ? "bg-blue-600" : "bg-slate-200", className)}>
       <span className={cn("absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform", checked ? "translate-x-4" : "translate-x-0.5")} />
     </button>
   );

@@ -12,7 +12,7 @@ export function Topbar({ config, onToggle, collapsed }: { config: ShellConfig; o
   const t = config.titles.find((x) => x.match(pathname)) ?? config.titles[0];
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-slate-200 bg-white px-4 sm:gap-4 sm:px-5">
-      <button onClick={onToggle} className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50" aria-label="Toggle sidebar">
+      <button onClick={onToggle} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg sm:h-8 sm:w-8 border border-slate-200 text-slate-500 hover:bg-slate-50" aria-label="Toggle sidebar">
         <Menu className="h-4 w-4" />
       </button>
       <div className="min-w-0 flex-1">

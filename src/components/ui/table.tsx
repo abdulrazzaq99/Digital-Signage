@@ -3,13 +3,13 @@ import type { HTMLAttributes, ReactNode, TdHTMLAttributes, ThHTMLAttributes } fr
 
 export function Table({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className={cn("overflow-x-auto", className)}>
+    <div className={cn("-mx-px overflow-x-auto overscroll-x-contain", className)}>
       <table className="w-full min-w-[640px] text-sm">{children}</table>
     </div>
   );
 }
 export function THead({ children }: { children: ReactNode }) {
-  return <thead className="bg-slate-50/80 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-400">{children}</thead>;
+  return <thead className="bg-slate-50/80 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">{children}</thead>;
 }
 export function TH({ className, children, ...rest }: ThHTMLAttributes<HTMLTableCellElement>) {
   return <th className={cn("px-4 py-2.5 font-semibold", className)} {...rest}>{children}</th>;

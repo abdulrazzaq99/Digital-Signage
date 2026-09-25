@@ -25,7 +25,7 @@ export function AppShell({ variant, children }: { variant: "admin" | "portal"; c
       <Sidebar config={config} collapsed={collapsed} mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
       <div className={cn("flex min-h-screen flex-col transition-[padding] duration-200", collapsed ? "lg:pl-16" : "lg:pl-[232px]")}>
         <Topbar config={config} onToggle={toggle} collapsed={collapsed} />
-        <main className="flex-1 p-4 sm:p-6">{children}</main>
+        <main className="min-w-0 flex-1 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:p-6">{children}</main>
       </div>
     </div>
     </RequireSession>

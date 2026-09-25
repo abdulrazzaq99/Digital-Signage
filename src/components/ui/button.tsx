@@ -15,8 +15,8 @@ const variants: Record<Variant, string> = {
   "warning-outline": "bg-white text-amber-600 border border-amber-200 hover:bg-amber-50 shadow-sm",
 };
 const sizes: Record<Size, string> = {
-  sm: "h-8 px-3 text-xs gap-1.5",
-  md: "h-9 px-3.5 text-sm gap-2",
+  sm: "h-10 px-3 text-xs gap-1.5 sm:h-8",
+  md: "h-10 px-3.5 text-sm gap-2 sm:h-9",
   lg: "h-11 px-5 text-sm gap-2",
 };
 
@@ -42,7 +42,7 @@ export function Button({ variant = "primary", size = "md", href, className, chil
 export function IconButton({ className, children, ...rest }: ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button
-      className={cn("inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-colors", className)}
+      className={cn("inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg sm:h-8 sm:w-8 border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-colors", className)}
       {...rest}
     >
       {children}
