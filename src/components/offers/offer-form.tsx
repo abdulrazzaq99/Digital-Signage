@@ -24,7 +24,8 @@ import { OffersShell } from "./offers-shell";
 const previewOffer = (b: Schemas["CreateOfferBody"], base?: Offer): Offer => ({ id: base?.id ?? "preview", status: base?.status ?? "DRAFT", imageUrl: base?.imageUrl ?? null, publishedAt: base?.publishedAt ?? null, createdAt: base?.createdAt ?? new Date().toISOString(), updatedAt: new Date().toISOString(), ...b, startsAt: b.startsAt ?? null, endsAt: b.endsAt ?? null });
 
 const fromOffer = (o?: Offer): OfferFormValues => ({
-  title: o?.title ?? "", category: o?.category ?? OFFER_CATEGORIES[0]!, summary: o?.summary ?? "", description: o?.description ?? "", instructions: o?.instructions ?? "",
+  title: o?.title ?? "", // A stored category outside the allowed list shows "Choose a category" rather than failing on save.
+  category: (o?.category ?? OFFER_CATEGORIES[0]) as OfferFormValues["category"], summary: o?.summary ?? "", description: o?.description ?? "", instructions: o?.instructions ?? "",
   included: (o?.included ?? []).join("\n"), steps: (o?.steps ?? []).join("\n"),
   contactName: o?.contact?.name ?? "", contactRole: o?.contact?.role ?? "", contactEmail: o?.contact?.email ?? "", contactPhone: o?.contact?.phone ?? "", contactHours: o?.contact?.hours ?? "",
   start: toDateInput(o?.startsAt), end: toDateInput(o?.endsAt),

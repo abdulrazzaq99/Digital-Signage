@@ -2529,7 +2529,7 @@ export interface paths {
             parameters: {
                 query: {
                     screenId: string;
-                    at?: string;
+                    at?: string | null;
                 };
                 header?: never;
                 path?: never;
@@ -3298,7 +3298,7 @@ export interface paths {
                     pageSize?: number;
                     search?: string;
                     status?: "DRAFT" | "PUBLISHED" | "UNPUBLISHED" | "EXPIRED";
-                    category?: string;
+                    category?: "Hardware" | "Software" | "Services" | "Support" | "Retail & Shopping" | "Food & Beverage" | "Travel & Hospitality" | "Technology" | "Health & Wellness";
                 };
                 header?: never;
                 path?: never;
@@ -4396,11 +4396,11 @@ export interface paths {
                     page?: number;
                     pageSize?: number;
                     action?: string;
-                    resourceType?: string;
+                    resourceType?: "campaign" | "canvas" | "company" | "layout" | "license" | "media" | "notification" | "offer" | "playlist" | "schedule" | "screen" | "screen_group" | "template" | "template_instance" | "user" | "winner";
                     status?: "SUCCESS" | "PENDING" | "FAILED";
                     companyId?: string;
-                    from?: string;
-                    to?: string;
+                    from?: string | null;
+                    to?: string | null;
                     search?: string;
                 };
                 header?: never;
@@ -4706,6 +4706,7 @@ export interface components {
             companyId: string | null;
             title: string | null;
             phone: string | null;
+            readOnlyReason: string | null;
         };
         ErrorEnvelope: {
             error: {
@@ -4716,7 +4717,6 @@ export interface components {
             };
         };
         LoginBody: {
-            /** Format: email */
             email: string;
             password: string;
         };
@@ -4724,7 +4724,6 @@ export interface components {
             refreshToken: string;
         };
         ForgotPasswordBody: {
-            /** Format: email */
             email: string;
         };
         ResetPasswordBody: {
@@ -4768,7 +4767,6 @@ export interface components {
              * @enum {string}
              */
             status: "ACTIVE" | "INACTIVE" | "SUSPENDED";
-            /** Format: uri */
             website?: string;
             industry?: string;
             phone?: string;
@@ -4786,10 +4784,9 @@ export interface components {
             name?: string;
             /** @enum {string} */
             status?: "ACTIVE" | "INACTIVE" | "SUSPENDED";
-            /** Format: uri */
-            website?: string | null;
+            website?: string | unknown;
             industry?: string | null;
-            phone?: string | null;
+            phone?: string | unknown;
             timezone?: string;
             plan?: string | null;
         };
@@ -4825,7 +4822,6 @@ export interface components {
             createdAt: string;
         };
         CreateUserBody: {
-            /** Format: email */
             email: string;
             name: string;
             /** @enum {string} */
@@ -4839,13 +4835,13 @@ export interface components {
             /** @enum {string} */
             role?: "ADMIN" | "EDITOR" | "VIEWER";
             title?: string | null;
-            phone?: string | null;
+            phone?: string | unknown;
             isActive?: boolean;
         };
         UpdateProfileBody: {
             name?: string;
             title?: string | null;
-            phone?: string | null;
+            phone?: string | unknown;
         };
         Screen: {
             id: string;
@@ -4904,7 +4900,7 @@ export interface components {
             /** @enum {string} */
             orientation?: "LANDSCAPE" | "PORTRAIT";
             tags?: string[];
-            groupId?: string | null;
+            groupId?: string | unknown;
         };
         RemoteCommandBody: {
             /** @enum {string} */
@@ -5206,7 +5202,7 @@ export interface components {
             targetKind: "SCREEN" | "GROUP";
             targetId: string;
             /** Format: date-time */
-            startsAt: string;
+            startsAt: string | null;
             /** Format: date-time */
             endsAt?: string | null;
             /** @default UTC */
@@ -5226,11 +5222,10 @@ export interface components {
         UpdateScheduleBody: {
             playlistId?: string;
             /** Format: date-time */
-            startsAt?: string;
+            startsAt?: string | null;
             /** Format: date-time */
             endsAt?: string | null;
-            /** @default UTC */
-            timezone: string;
+            timezone?: string;
         };
         Layout: {
             id: string;
@@ -5387,14 +5382,14 @@ export interface components {
         };
         CreateOfferBody: {
             title: string;
-            category: string;
+            /** @enum {string} */
+            category: "Hardware" | "Software" | "Services" | "Support" | "Retail & Shopping" | "Food & Beverage" | "Travel & Hospitality" | "Technology" | "Health & Wellness";
             summary: string;
             description: string;
             instructions: string;
             contact: {
                 name: string;
                 role?: string;
-                /** Format: email */
                 email?: string;
                 phone?: string;
                 hours?: string;
@@ -5411,22 +5406,20 @@ export interface components {
         };
         UpdateOfferBody: {
             title?: string;
-            category?: string;
+            /** @enum {string} */
+            category?: "Hardware" | "Software" | "Services" | "Support" | "Retail & Shopping" | "Food & Beverage" | "Travel & Hospitality" | "Technology" | "Health & Wellness";
             summary?: string;
             description?: string;
             instructions?: string;
             contact?: {
                 name: string;
                 role?: string;
-                /** Format: email */
                 email?: string;
                 phone?: string;
                 hours?: string;
             };
-            /** @default [] */
-            included: string[];
-            /** @default [] */
-            steps: string[];
+            included?: string[];
+            steps?: string[];
             imageKey?: string;
             /** Format: date-time */
             startsAt?: string | null;
@@ -5464,7 +5457,7 @@ export interface components {
             /** Format: date-time */
             startsAt: string;
             /** Format: date-time */
-            endsAt: string;
+            endsAt: string | null;
             /** @default 1 */
             maxAttempts: number;
             /** @default false */
@@ -5486,9 +5479,9 @@ export interface components {
             title?: string;
             description?: string | null;
             /** Format: date-time */
-            startsAt?: string;
+            startsAt?: string | null;
             /** Format: date-time */
-            endsAt?: string;
+            endsAt?: string | null;
             maxAttempts?: number;
             requireOffersVisit?: boolean;
             loseWeight?: number;

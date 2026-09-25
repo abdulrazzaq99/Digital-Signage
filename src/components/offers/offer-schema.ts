@@ -9,7 +9,8 @@ import { dateInput, endAfterStart, optionalEmail, optionalPhone, optionalText, p
 import { fromDateInput } from "@/lib/format";
 import type { Schemas } from "@/lib/api/types";
 
-export const OFFER_CATEGORIES = ["Hardware", "Software", "Services", "Support", "Retail & Shopping", "Food & Beverage", "Travel & Hospitality", "Technology", "Health & Wellness"];
+/** The API accepts exactly these categories. */
+export const OFFER_CATEGORIES = ["Hardware", "Software", "Services", "Support", "Retail & Shopping", "Food & Beverage", "Travel & Hospitality", "Technology", "Health & Wellness"] as const satisfies readonly Schemas["CreateOfferBody"]["category"][];
 export const MAX_LINES = 50;
 export const MAX_LINE = 200;
 
@@ -29,7 +30,7 @@ const DATES = ["start", "end"];
 export const offerSchema = z
   .object({
     title: text(120, 3),
-    category: text(60, 2),
+    category: z.enum(OFFER_CATEGORIES, { error: "Choose a category" }),
     summary: text(300, 10),
     description: text(2000, 10),
     instructions: text(2000, 5),

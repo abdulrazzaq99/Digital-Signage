@@ -4,7 +4,7 @@ import { api, ApiError, request, requestData, requestPage } from "../client";
 import { clean, keys } from "../query";
 import type { Offer, Page, Schemas } from "../types";
 
-export interface OfferFilters { search?: string; status?: Offer["status"]; category?: string; page?: number; pageSize?: number }
+export interface OfferFilters { search?: string; status?: Offer["status"]; category?: Schemas["CreateOfferBody"]["category"]; page?: number; pageSize?: number }
 
 /** Offers are platform content: the Super Admin writes them, every company reads the published ones. */
 export function useOffers(filters: OfferFilters = {}, opts: { enabled?: boolean } = {}) {

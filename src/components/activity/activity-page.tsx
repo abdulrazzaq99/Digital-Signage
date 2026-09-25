@@ -20,7 +20,8 @@ import { maskEmailsIn, metaText } from "./redact";
 /** "screen.paired" → "Screen Paired"; tolerates a missing action. */
 const actionLabel = (a: string | null | undefined) => label((a ?? "").replace(/\./g, "_"));
 const tone = (s: string) => (s === "SUCCESS" ? "green" : s === "PENDING" ? "amber" : "red");
-const RESOURCE_TYPES = ["company", "user", "license", "screen", "screen_group", "media", "playlist", "schedule", "layout", "template", "template_instance", "offer", "campaign", "winner", "notification", "canvas"];
+const RESOURCE_TYPES = ["company", "user", "license", "screen", "screen_group", "media", "playlist", "schedule", "layout", "template", "template_instance", "offer", "campaign", "winner", "notification", "canvas"] as const;
+type ResourceType = (typeof RESOURCE_TYPES)[number];
 const PERIODS: { value: string; label: string; days?: number }[] = [{ value: "", label: "All Time" }, { value: "1", label: "Last 24 hours", days: 1 }, { value: "7", label: "Last 7 days", days: 7 }, { value: "30", label: "Last 30 days", days: 30 }];
 
 /** Where an entry's resource lives in the admin, when there is a page for it. */
@@ -43,7 +44,7 @@ export function ActivityPage() {
   const [from, setFrom] = useState<string | undefined>(undefined);
   const changePeriod = (v: string) => { setPeriod(v); const days = PERIODS.find((p) => p.value === v)?.days; setFrom(days ? new Date(Date.now() - days * 86_400_000).toISOString() : undefined); };
   const search = useDebouncedValue(q.trim(), 300);
-  const activity = useActivity({ search: search || undefined, status: (status || undefined) as "SUCCESS" | "PENDING" | "FAILED" | undefined, resourceType: resourceType || undefined, companyId: companyId || undefined, from, page });
+  const activity = useActivity({ search: search || undefined, status: (status || undefined) as "SUCCESS" | "PENDING" | "FAILED" | undefined, resourceType: (resourceType || undefined) as ResourceType | undefined, companyId: companyId || undefined, from, page });
   const reset = (fn: () => void) => { fn(); setPage(1); };
 
   return (
