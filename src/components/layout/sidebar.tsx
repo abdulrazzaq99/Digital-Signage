@@ -1,12 +1,12 @@
 "use client";
 import { cn } from "@/lib/utils";
-import { ChevronDown, LayoutDashboard, LogOut, X } from "lucide-react";
+import { ChevronDown, ChevronUp, KeyRound, LayoutDashboard, LogOut, UserRound, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Avatar } from "@/components/ui/misc";
 import { useAuth } from "@/components/auth/auth-provider";
-import { roleLabel } from "@/lib/format";
+import { isSuperAdmin, roleLabel } from "@/lib/format";
 
 import type { ShellConfig } from "./nav-config";
 
@@ -19,7 +19,8 @@ export function Sidebar({ config, collapsed, mobileOpen, onClose }: { config: Sh
   const isCollapsed = collapsed;
   const pathname = usePathname();
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
+  const signOut = async () => { await logout(); router.replace("/login"); };
   const parentWithChildren = config.nav.find((n) => n.children)?.href;
   const [openScreens, setOpenScreens] = useState(!!parentWithChildren && pathname.startsWith(parentWithChildren));
   const screensOpen = openScreens || (!!parentWithChildren && pathname.startsWith(parentWithChildren));
@@ -94,15 +95,11 @@ export function Sidebar({ config, collapsed, mobileOpen, onClose }: { config: Sh
         </ul>
       </nav>
 
-      <div className={cn("flex items-center gap-2.5 border-t border-slate-100 px-4 py-3", collapsed && "lg:justify-center lg:px-0")}>
-        <Avatar name={user?.name ?? ""} size="md" />
-        <div className={cn("min-w-0 flex-1", collapsed && "lg:hidden")}>
-          <div className="truncate text-xs font-semibold text-slate-900">{user?.name}</div>
-          <div className="truncate text-[10px] text-blue-600">{roleLabel(user)}</div>
-        </div>
+      <div className={cn("flex items-center gap-1 border-t border-slate-100 px-2 py-2", collapsed && "lg:justify-center lg:px-0")}>
+        <AccountMenu collapsed={collapsed} onNavigate={onClose} onSignOut={signOut} />
         <button
           type="button"
-          onClick={async () => { await logout(); router.replace("/login"); }}
+          onClick={signOut}
           title="Sign out"
           aria-label="Sign out"
           className={cn("flex h-10 w-10 shrink-0 sm:h-7 sm:w-7 items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-700", collapsed && "lg:hidden")}
@@ -111,5 +108,75 @@ export function Sidebar({ config, collapsed, mobileOpen, onClose }: { config: Sh
         </button>
       </div>
     </aside>
+  );
+}
+
+/**
+ * The signed-in user's card. Clicking it opens a menu with the profile and password pages for this
+ * dashboard (Settings for the Super Admin, My Account for customers) and sign out.
+ */
+function AccountMenu({ collapsed, onNavigate, onSignOut }: { collapsed: boolean; onNavigate?: () => void; onSignOut: () => void }) {
+  const { user } = useAuth();
+  const [open, setOpen] = useState(false);
+  const root = useRef<HTMLDivElement>(null);
+  const base = isSuperAdmin(user) ? "/settings" : "/portal/account";
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent | TouchEvent) => { if (!root.current?.contains(e.target as Node)) setOpen(false); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("touchstart", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("touchstart", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  const go = () => { setOpen(false); onNavigate?.(); };
+  const item = "flex w-full items-center gap-2.5 rounded-md px-2.5 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 sm:py-2";
+
+  return (
+    <div ref={root} className="relative min-w-0 flex-1">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label="Account menu"
+        className={cn("flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-slate-50", open && "bg-slate-50", collapsed && "lg:justify-center lg:px-0")}
+      >
+        <Avatar name={user?.name ?? ""} size="md" />
+        <span className={cn("min-w-0 flex-1", collapsed && "lg:hidden")}>
+          <span className="block truncate text-xs font-semibold text-slate-900">{user?.name}</span>
+          <span className="block truncate text-[11px] text-blue-600">{roleLabel(user)}</span>
+        </span>
+        <ChevronUp className={cn("h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform", !open && "rotate-180", collapsed && "lg:hidden")} aria-hidden />
+      </button>
+      {open && (
+        <div
+          role="menu"
+          aria-label="Account"
+          className={cn(
+            "absolute bottom-full left-0 z-50 mb-2 w-60 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg animate-pop-in",
+            collapsed && "lg:bottom-0 lg:left-full lg:mb-0 lg:ml-2",
+          )}
+        >
+          <div className="border-b border-slate-100 px-2.5 pb-2 pt-1.5">
+            <div className="truncate text-sm font-semibold text-slate-900">{user?.name}</div>
+            <div className="truncate text-xs text-slate-500">{user?.email}</div>
+          </div>
+          <div className="py-1">
+            <Link role="menuitem" href={`${base}?tab=profile`} onClick={go} className={item}><UserRound className="h-4 w-4 text-slate-400" /> My profile</Link>
+            <Link role="menuitem" href={`${base}?tab=security`} onClick={go} className={item}><KeyRound className="h-4 w-4 text-slate-400" /> Change password</Link>
+          </div>
+          <div className="border-t border-slate-100 pt-1">
+            <button role="menuitem" type="button" onClick={() => { setOpen(false); onSignOut(); }} className={cn(item, "text-red-600 hover:bg-red-50")}><LogOut className="h-4 w-4" /> Sign out</button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

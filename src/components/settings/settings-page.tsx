@@ -12,11 +12,13 @@ import { cn } from "@/lib/utils";
 import { TIME_ZONES } from "@/lib/validation/fields";
 import { maskInteger, maskName } from "@/lib/validation/masks";
 import { Info } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { applyPasswordError, generalSchema, PASSWORD_HINT, passwordChangeDefaults, passwordChangeSchema, profileBody, profileDefaults, profileSchema } from "./account-schemas";
 
 type Tab = "general" | "profile" | "security";
+const TABS: Tab[] = ["general", "profile", "security"];
+const isTab = (v: string | null): v is Tab => !!v && (TABS as string[]).includes(v);
 
 function Section({ title, sub, children }: { title: string; sub?: string; children: React.ReactNode }) {
   return <Card className="px-5 py-5"><div className="text-sm font-semibold text-slate-900">{title}</div>{sub && <div className="mt-0.5 text-[11px] text-slate-400">{sub}</div>}<div className="mt-4 space-y-4">{children}</div></Card>;
@@ -156,11 +158,16 @@ function SecurityTab() {
 }
 
 export function SettingsPage() {
-  const [tab, setTab] = useState<Tab>("general");
+  const params = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const requested = params.get("tab");
+  const tab: Tab = isTab(requested) ? requested : "general";
+  const setTab = (t: Tab) => router.replace(`${pathname}?tab=${t}`, { scroll: false });
   return (
     <div className="space-y-5">
       <PageHeader title="Settings" subtitle="Manage your platform configuration, profile and security." />
-      <div className="inline-flex rounded-lg border border-slate-200 bg-slate-100 p-1">{(["general", "profile", "security"] as Tab[]).map((t) => <button key={t} type="button" onClick={() => setTab(t)} className={cn("h-9 sm:h-7 rounded-md px-4 text-xs font-medium capitalize transition-colors", tab === t ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-800")}>{t}</button>)}</div>
+      <div className="inline-flex rounded-lg border border-slate-200 bg-slate-100 p-1">{TABS.map((t) => <button key={t} type="button" onClick={() => setTab(t)} className={cn("h-9 sm:h-7 rounded-md px-4 text-xs font-medium capitalize transition-colors", tab === t ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-800")}>{t}</button>)}</div>
 
       <div className="max-w-[760px] space-y-4">
         {tab === "general" && <GeneralTab />}

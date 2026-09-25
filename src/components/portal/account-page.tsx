@@ -19,11 +19,12 @@ import { formatPhone, maskEmail, maskName } from "@/lib/validation/masks";
 import { applyPasswordError, PASSWORD_HINT, passwordChangeDefaults, passwordChangeSchema, profileBody, profileDefaults, profileSchema } from "@/components/settings/account-schemas";
 import { cn } from "@/lib/utils";
 import { Pencil, Plus } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { UserDrawer, type UserDrawerState } from "./user-drawer";
 
 type Tab = "profile" | "company" | "users";
+const isTab = (v: string | null): v is Tab => v === "profile" || v === "company" || v === "users";
 const roleTone = (r: User["role"]) => (r === "ADMIN" ? "purple" : r === "EDITOR" ? "blue" : "slate");
 const statusTone = (s: User["status"]) => (s === "ACTIVE" ? "green" : s === "INVITED" ? "blue" : "slate");
 
@@ -34,6 +35,14 @@ function ProfileTab() {
   const update = useUpdateProfile();
   const changePw = useChangePassword();
   const [changingPw, setChangingPw] = useState(false);
+  // "Change password" from the account menu (?tab=security) opens the password form, also when
+  // already on this page.
+  const wantsPw = useSearchParams().get("tab") === "security";
+  const [sawWantsPw, setSawWantsPw] = useState(false);
+  if (wantsPw !== sawWantsPw) {
+    setSawWantsPw(wantsPw);
+    if (wantsPw) setChangingPw(true);
+  }
   const form = useZodForm(profileSchema, { defaultValues: profileDefaults(user) });
   const pwForm = useZodForm(passwordChangeSchema(user?.email), { defaultValues: passwordChangeDefaults });
   const save = form.handleSubmit(async (v) => {
@@ -144,7 +153,12 @@ function UsersTab() {
 
 export function AccountPage() {
   const { user, companyId } = useAuth();
-  const [tab, setTab] = useState<Tab>("profile");
+  const params = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const requested = params.get("tab");
+  const tab: Tab = isTab(requested) ? requested : "profile";
+  const setTab = (t: Tab) => router.replace(`${pathname}?tab=${t}`, { scroll: false });
   const canManageUsers = user?.companyRole === "ADMIN";
   const tabs: [Tab, string][] = [["profile", "Profile"], ["company", "Company Settings"], ...(canManageUsers ? [["users", "Users"] as [Tab, string]] : [])];
   return (
