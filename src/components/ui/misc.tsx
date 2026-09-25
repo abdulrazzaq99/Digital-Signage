@@ -1,5 +1,6 @@
 "use client";
 import { cn } from "@/lib/utils";
+import { Floating, useDismiss } from "./floating";
 import { Check, ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
@@ -115,20 +116,16 @@ export interface MenuItem { label: string; icon?: ReactNode; onSelect?: () => vo
 
 export function DropdownMenu({ items, align = "right", trigger, className }: { items: MenuItem[]; align?: "left" | "right"; trigger?: ReactNode; className?: string }) {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const onDoc = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
-    document.addEventListener("mousedown", onDoc);
-    return () => document.removeEventListener("mousedown", onDoc);
-  }, [open]);
+  const button = useRef<HTMLButtonElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
+  useDismiss(open, () => setOpen(false), [button, panel]);
   return (
-    <div ref={ref} className={cn("relative inline-block", className)}>
-      <button type="button" onClick={() => setOpen((v) => !v)} className="flex h-10 w-10 sm:h-7 sm:w-7 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-400 hover:bg-slate-50 hover:text-slate-600" aria-label="Actions">
+    <div className={cn("relative inline-block", className)}>
+      <button ref={button} type="button" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((v) => !v)} className="flex h-10 w-10 sm:h-7 sm:w-7 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-400 hover:bg-slate-50 hover:text-slate-600" aria-label="Actions">
         {trigger ?? <MoreHorizontal className="h-3.5 w-3.5" />}
       </button>
-      {open && (
-        <div className={cn("absolute z-30 mt-1 min-w-40 rounded-lg border border-slate-200 bg-white p-1 shadow-lg animate-pop-in", align === "right" ? "right-0" : "left-0")}>
+      {/* Rendered on <body> so tables and scroll containers can't clip it; opens upward near the bottom. */}
+      <Floating anchor={button} open={open} panelRef={panel} placement={align === "right" ? "bottom-end" : "bottom-start"} role="menu" className="min-w-40 rounded-lg border border-slate-200 bg-white p-1 shadow-lg animate-pop-in">
           {items.map((it) => {
             const cls = cn("flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-xs font-medium transition-colors", it.disabled ? "text-slate-300 cursor-not-allowed" : it.tone === "danger" ? "text-red-600 hover:bg-red-50" : "text-slate-700 hover:bg-slate-50");
             if (it.href && !it.disabled) return <Link key={it.label} href={it.href} className={cls} onClick={() => setOpen(false)}>{it.icon}{it.label}</Link>;
@@ -136,8 +133,7 @@ export function DropdownMenu({ items, align = "right", trigger, className }: { i
               <button key={it.label} type="button" disabled={it.disabled} className={cls} onClick={() => { setOpen(false); it.onSelect?.(); }}>{it.icon}{it.label}</button>
             );
           })}
-        </div>
-      )}
+      </Floating>
     </div>
   );
 }

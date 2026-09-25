@@ -8,6 +8,7 @@ import { Check, ChevronDown, Search } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type Ref } from "react";
 import { clampDigits, COUNTRIES, countryByCode, defaultCountry, formatNational, splitPhone, toE164, type CountryCode } from "@/lib/phone";
 import { cn } from "@/lib/utils";
+import { Floating, useDismiss } from "./floating";
 
 export interface PhoneInputProps {
   value: string | null | undefined;
@@ -106,7 +107,8 @@ function CountryPicker({ value, onChange, disabled }: { value: CountryCode; onCh
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
-  const root = useRef<HTMLDivElement>(null);
+  const button = useRef<HTMLButtonElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
   const list = useRef<HTMLUListElement>(null);
   const listId = useId();
   const selected = countryByCode(value);
@@ -117,18 +119,7 @@ function CountryPicker({ value, onChange, disabled }: { value: CountryCode; onCh
     return COUNTRIES.filter((c) => c.name.toLowerCase().includes(q) || c.code.toLowerCase() === q || c.dial.slice(1).startsWith(q));
   }, [query]);
 
-  useEffect(() => {
-    if (!open) return;
-    const close = (e: MouseEvent | TouchEvent) => {
-      if (!root.current?.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", close);
-    document.addEventListener("touchstart", close);
-    return () => {
-      document.removeEventListener("mousedown", close);
-      document.removeEventListener("touchstart", close);
-    };
-  }, [open]);
+  useDismiss(open, () => setOpen(false), [button, panel]);
 
   useEffect(() => {
     list.current?.querySelector(`[data-index="${active}"]`)?.scrollIntoView({ block: "nearest" });
@@ -147,8 +138,9 @@ function CountryPicker({ value, onChange, disabled }: { value: CountryCode; onCh
   };
 
   return (
-    <div ref={root} className="relative flex">
+    <div className="relative flex">
       <button
+        ref={button}
         type="button"
         disabled={disabled}
         onClick={() => {
@@ -168,8 +160,8 @@ function CountryPicker({ value, onChange, disabled }: { value: CountryCode; onCh
         <span className="tabular-nums">{selected?.dial}</span>
         <ChevronDown className="h-3.5 w-3.5 text-slate-400" aria-hidden />
       </button>
-      {open && (
-        <div className="absolute left-0 top-full z-50 mt-1 w-[min(20rem,calc(100vw-2rem))] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg animate-pop-in">
+      {/* On <body>, so a scrolling dialog can't clip the list; opens upward near the bottom of the screen. */}
+      <Floating anchor={button} open={open} panelRef={panel} className="w-[min(20rem,calc(100vw-2rem))] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg animate-pop-in">
           <div className="relative border-b border-slate-100 p-2">
             <Search className="pointer-events-none absolute left-4 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" aria-hidden />
             <input
@@ -205,8 +197,7 @@ function CountryPicker({ value, onChange, disabled }: { value: CountryCode; onCh
               </li>
             ))}
           </ul>
-        </div>
-      )}
+      </Floating>
     </div>
   );
 }
