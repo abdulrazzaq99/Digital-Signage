@@ -2,6 +2,8 @@
 import { Button } from "@/components/ui/button";
 import { DotStatus } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { GROUP_DESCRIPTION_MAX, GROUP_NAME_MAX, groupDefaults, groupSchema, toCreateGroupBody, toUpdateGroupBody } from "@/components/groups/group-schema";
+import { applyApiError, Field, fieldError, FormError, maskedRegister, SubmitButton, useZodForm } from "@/components/ui/form";
 import { Checkbox, Input, Label } from "@/components/ui/input";
 import { Modal, ModalFooter, ModalHeader } from "@/components/ui/modal";
 import { QueryState, TableSkeleton } from "@/components/ui/query-state";
@@ -10,6 +12,7 @@ import { useCreateGroup, useDeleteGroup, useGroup, useUpdateGroup } from "@/lib/
 import { screenStatusLabel, useScreens } from "@/lib/api/hooks/screens";
 import type { Screen, ScreenGroup } from "@/lib/api/types";
 import { timeAgo } from "@/lib/format";
+import { maskName } from "@/lib/validation/masks";
 import { cn } from "@/lib/utils";
 import { Send, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -37,24 +40,25 @@ function Form({ group, companyId, basePath }: { group?: ScreenGroup; companyId?:
   const create = useCreateGroup(companyId);
   const update = useUpdateGroup(group?.id ?? "", companyId);
   const remove = useDeleteGroup(companyId);
-  const [name, setName] = useState(group?.name ?? "");
-  const [desc, setDesc] = useState(group?.description ?? "");
+  const form = useZodForm(groupSchema, { defaultValues: groupDefaults(group) });
   const [sel, setSel] = useState<string[]>(group?.screenIds ?? []);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const toggle = (id: string) => setSel((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
   const members = (screens.data?.data ?? []).filter((s) => sel.includes(s.id));
   const listHref = `${basePath}?tab=groups`;
-  const pending = create.isPending || update.isPending;
 
-  const save = async () => {
-    const body = { name: name.trim(), description: desc.trim() || undefined, screenIds: sel };
+  const save = form.handleSubmit(async (v) => {
     try {
-      if (group) { await update.mutateAsync(body); toast.success("Group updated"); }
-      else { await create.mutateAsync(body); toast.success("Group created"); }
+      if (group) { await update.mutateAsync(toUpdateGroupBody(group, v, sel)); toast.success("Group updated"); }
+      else { await create.mutateAsync(toCreateGroupBody(v, sel)); toast.success("Group created"); }
       router.push(listHref);
-    } catch (e) { toast.error(e, group ? "Couldn't update group" : "Couldn't create group"); }
+    } catch (e) { applyApiError(form, e, { screenIds: "root.server" }); }
+  });
+  // mutateAsync, not mutate callbacks: the refetch of the deleted group fails and unmounts this form before per-call callbacks run.
+  const doDelete = async () => {
+    if (!group || remove.isPending) return;
+    try { await remove.mutateAsync(group.id); toast.success("Group deleted"); router.replace(listHref); } catch (e) { toast.error(e); }
   };
-  const doDelete = () => group && remove.mutate(group.id, { onSuccess: () => { toast.success("Group deleted"); router.replace(listHref); }, onError: (e) => toast.error(e) });
 
   return (
     <div className="space-y-4">
@@ -63,9 +67,10 @@ function Form({ group, companyId, basePath }: { group?: ScreenGroup; companyId?:
         <div className="space-y-5">
           <Card>
             <div className="border-b border-slate-100 px-5 py-3 text-sm font-semibold text-slate-900">{group ? group.name : "Create Group"}</div>
-            <div className="space-y-4 px-5 py-4">
-              <div><Label required>Group Name</Label><Input placeholder="Lobby" value={name} onChange={(e) => setName(e.target.value)} /></div>
-              <div><Label>Description <span className="font-normal text-slate-400">(optional)</span></Label><Input placeholder="Brief description of this group" value={desc} onChange={(e) => setDesc(e.target.value)} /></div>
+            <form onSubmit={save} noValidate className="space-y-4 px-5 py-4">
+              <FormError form={form} />
+              <Field label="Group Name" required error={fieldError(form, "name")}><Input placeholder="Lobby" maxLength={GROUP_NAME_MAX} {...maskedRegister(form, "name", maskName)} /></Field>
+              <Field label={<>Description <span className="font-normal text-slate-400">(optional)</span></>} hint={`Up to ${GROUP_DESCRIPTION_MAX} characters`} error={fieldError(form, "description")}><Input placeholder="Brief description of this group" maxLength={GROUP_DESCRIPTION_MAX} {...form.register("description")} /></Field>
               <div>
                 <Label>Member Screens</Label>
                 <QueryState query={screens} skeleton={<TableSkeleton rows={4} />}>
@@ -73,11 +78,11 @@ function Form({ group, companyId, basePath }: { group?: ScreenGroup; companyId?:
                 </QueryState>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Button disabled={name.trim().length < 2 || pending} onClick={save}>{pending ? "Saving…" : group ? "Save Changes" : "Create Group"}</Button>
+                <SubmitButton form={form}>{group ? "Save Changes" : "Create Group"}</SubmitButton>
                 {group && group.screenIds[0] && <Button variant="secondary" href={`${basePath}/${group.screenIds[0]}/publish?group=${group.id}`}><Send className="h-3.5 w-3.5" /> Publish to Group</Button>}
-                {group && <Button variant="danger-outline" onClick={() => setConfirmDelete(true)}><Trash2 className="h-3.5 w-3.5" /> Delete</Button>}
+                {group && <Button type="button" variant="danger-outline" onClick={() => setConfirmDelete(true)} disabled={remove.isPending}><Trash2 className="h-3.5 w-3.5" /> Delete</Button>}
               </div>
-            </div>
+            </form>
           </Card>
         </div>
         {group && (
@@ -97,7 +102,7 @@ function Form({ group, companyId, basePath }: { group?: ScreenGroup; companyId?:
         )}
       </div>
 
-      <Modal open={confirmDelete} onClose={() => setConfirmDelete(false)} width="max-w-md">
+      <Modal open={confirmDelete} onClose={() => !remove.isPending && setConfirmDelete(false)} width="max-w-md">
         <ModalHeader title="Delete this group?" subtitle="Screens stay paired; only the grouping is removed." onClose={() => setConfirmDelete(false)} />
         <ModalFooter>
           <Button variant="secondary" onClick={() => setConfirmDelete(false)}>Cancel</Button>

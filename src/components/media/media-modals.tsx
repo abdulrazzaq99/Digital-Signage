@@ -3,22 +3,26 @@ import { MediaPreview, typeTone } from "@/components/portal/media-drawer";
 import { PortalUploadModal } from "@/components/portal/upload-media-modal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input, Label, Select } from "@/components/ui/input";
+import { CompanySelect, useCompanyOptions } from "@/components/screens/query-guards";
+import { applyApiError, Field, fieldError, FormError, maskedRegister, SubmitButton, useZodForm } from "@/components/ui/form";
+import { Input, Label } from "@/components/ui/input";
 import { Modal, ModalHeader } from "@/components/ui/modal";
 import { Alert } from "@/components/ui/misc";
 import { useToast } from "@/components/ui/toast";
-import { useCompanyNames } from "@/lib/api/hooks/companies";
 import { mediaTypeLabel, useDeleteMedia } from "@/lib/api/hooks/media";
 import type { Media } from "@/lib/api/types";
 import { errorMessage, fmtClock } from "@/lib/format";
 import { Eye, Upload, X } from "lucide-react";
 import { useState } from "react";
+import { text } from "@/lib/validation/fields";
+import { maskName } from "@/lib/validation/masks";
+import { z } from "zod";
 
 /** Super Admin upload: pick the company first, then the shared upload flow uploads on its behalf. */
 export function UploadMediaModal({ open, onClose, defaultCompanyId }: { open: boolean; onClose: () => void; defaultCompanyId?: string }) {
-  const { companies } = useCompanyNames();
+  const companies = useCompanyOptions();
   const [companyId, setCompanyId] = useState(defaultCompanyId ?? "");
-  const effective = companyId || defaultCompanyId || companies[0]?.id || "";
+  const effective = companyId || defaultCompanyId || companies.data?.data[0]?.id || "";
   return (
     <PortalUploadModal
       open={open}
@@ -26,8 +30,8 @@ export function UploadMediaModal({ open, onClose, defaultCompanyId }: { open: bo
       companyId={effective}
       extra={
         <div>
-          <Label required>Upload to company</Label>
-          <Select value={effective} onChange={(e) => setCompanyId(e.target.value)}>{companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</Select>
+          <Label htmlFor="upload-company" required>Upload to company</Label>
+          <CompanySelect id="upload-company" value={effective} onChange={setCompanyId} />
           <p className="mt-1 flex items-center gap-1 text-[10px] text-slate-400"><Upload className="h-3 w-3" /> Files become part of this company&apos;s media library.</p>
         </div>
       }
@@ -35,22 +39,26 @@ export function UploadMediaModal({ open, onClose, defaultCompanyId }: { open: bo
   );
 }
 
-/** Generic rename dialog; `onSave` performs the mutation and may throw to keep the dialog open. */
+export const MEDIA_NAME_MAX = 120;
+const renameSchema = z.object({ name: text(MEDIA_NAME_MAX) });
+
+/** Rename dialog; `onSave` performs the mutation and may throw to keep the dialog open with the error. */
 export function RenameModal({ open, onClose, name, kind = "Media", onSave }: { open: boolean; onClose: () => void; name: string; kind?: string; onSave: (name: string) => Promise<unknown> }) {
-  const [value, setValue] = useState(name);
-  const [error, setError] = useState("");
-  const [pending, setPending] = useState(false);
-  const submit = async () => {
-    setPending(true);
-    setError("");
-    try { await onSave(value.trim()); onClose(); } catch (e) { setError(errorMessage(e)); } finally { setPending(false); }
-  };
+  const form = useZodForm(renameSchema, { defaultValues: { name } });
+  const close = () => { if (!form.formState.isSubmitting) onClose(); };
+  const submit = form.handleSubmit(async (v) => {
+    if (v.name === name) { onClose(); return; }
+    try { await onSave(v.name); onClose(); } catch (e) { applyApiError(form, e); }
+  });
   return (
-    <Modal open={open} onClose={onClose} width="max-w-[400px]">
-      <ModalHeader title={`Rename ${kind}`} onClose={onClose} />
-      <form onSubmit={(e) => { e.preventDefault(); submit(); }}>
-        <div className="px-6 py-5"><Label>{kind} Name</Label><Input value={value} onChange={(e) => setValue(e.target.value)} autoFocus required minLength={1} />{error && <p className="mt-1.5 text-[11px] text-red-600">{error}</p>}</div>
-        <div className="flex justify-end gap-2 px-6 pb-6"><Button type="button" variant="secondary" onClick={onClose}>Cancel</Button><Button type="submit" disabled={pending || !value.trim() || value.trim() === name}>{pending ? "Saving…" : "Save Changes"}</Button></div>
+    <Modal open={open} onClose={close} width="max-w-[400px]">
+      <ModalHeader title={`Rename ${kind}`} onClose={close} />
+      <form onSubmit={submit} noValidate>
+        <div className="space-y-3 px-6 py-5">
+          <FormError form={form} />
+          <Field label={`${kind} Name`} required hint={`Up to ${MEDIA_NAME_MAX} characters`} error={fieldError(form, "name")}><Input maxLength={MEDIA_NAME_MAX} autoFocus {...maskedRegister(form, "name", maskName)} /></Field>
+        </div>
+        <div className="flex justify-end gap-2 px-6 pb-6"><Button type="button" variant="secondary" onClick={close} disabled={form.formState.isSubmitting}>Cancel</Button><SubmitButton form={form}>Save Changes</SubmitButton></div>
       </form>
     </Modal>
   );
@@ -81,19 +89,24 @@ export function RemoveMediaModal({ item, companyId, onClose, onDeleted }: { item
   const remove = useDeleteMedia(companyId);
   const [error, setError] = useState("");
   const failed = item?.status === "FAILED";
-  const inUse = (item?.usedIn.length ?? 0) > 0;
-  const doDelete = () => item && remove.mutate({ id: item.id, force: inUse }, { onSuccess: () => { toast.success(failed ? "Upload removed" : "Media deleted", item.name); onClose(); onDeleted?.(); }, onError: (e) => setError(errorMessage(e)) });
+  const usedIn = item?.usedIn ?? [];
+  const inUse = usedIn.length > 0;
+  // mutateAsync so onDeleted (navigation) still runs if the detail page unmounts when its refetch 404s.
+  const doDelete = async () => {
+    if (!item || remove.isPending) return;
+    try { await remove.mutateAsync({ id: item.id, force: inUse }); toast.success(failed ? "Upload removed" : "Media deleted", item.name); onClose(); onDeleted?.(); } catch (e) { setError(errorMessage(e)); }
+  };
   return (
-    <Modal open={!!item} onClose={onClose} width="max-w-[400px]">
+    <Modal open={!!item} onClose={() => !remove.isPending && onClose()} width="max-w-[400px]">
       {item && (
         <>
           <ModalHeader title={failed ? "Remove Failed Upload?" : "Delete Media?"} onClose={onClose} />
           <div className="space-y-3 px-6 pt-4">
             <p className="text-xs leading-5 text-slate-500">{failed ? "Remove" : "Permanently delete"} <span className="font-semibold text-slate-800">&quot;{item.name}&quot;</span> from the media library?</p>
-            {inUse && <Alert tone="amber">Used by {item.usedIn.length} playlist{item.usedIn.length > 1 ? "s" : ""} ({item.usedIn.map((u) => u.name).join(", ")}). Deleting removes it from them.</Alert>}
+            {inUse && <Alert tone="amber">Used by {usedIn.length} playlist{usedIn.length > 1 ? "s" : ""} ({usedIn.map((u) => u.name).join(", ")}). Deleting removes it from them.</Alert>}
             {error && <Alert tone="red">{error}</Alert>}
           </div>
-          <div className="flex justify-end gap-2 px-6 py-5"><Button variant="secondary" onClick={onClose}>Cancel</Button><Button variant="danger" onClick={doDelete} disabled={remove.isPending}>{remove.isPending ? "Deleting…" : failed ? "Remove" : "Delete"}</Button></div>
+          <div className="flex justify-end gap-2 px-6 py-5"><Button variant="secondary" onClick={onClose} disabled={remove.isPending}>Cancel</Button><Button variant="danger" onClick={doDelete} disabled={remove.isPending}>{remove.isPending ? "Deleting…" : failed ? "Remove" : "Delete"}</Button></div>
         </>
       )}
     </Modal>

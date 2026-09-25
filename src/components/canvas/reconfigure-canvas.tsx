@@ -16,11 +16,13 @@ import { label } from "@/lib/format";
 import { AlertTriangle, ArrowLeft, Check, CheckCircle2, ChevronRight, RefreshCw, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { CompanyGate, QueryBlock } from "@/components/screens/query-guards";
 import { Arrangement, ContentPicker, MasterPreview, canvasCompatible, swatches } from "./canvas-shared";
 
 const STEPS = ["Screens", "Arrangement", "Content & Preview", "Review & Apply"];
 
-function Reconfigure({ canvas, companyId }: { canvas: CanvasSet; companyId: string }) {
+function Reconfigure({ canvas: raw, companyId }: { canvas: CanvasSet; companyId: string }) {
+  const canvas = { ...raw, members: raw.members ?? [] };
   const router = useRouter();
   const toast = useToast();
   const scope = useCompanyScope();
@@ -40,7 +42,7 @@ function Reconfigure({ canvas, companyId }: { canvas: CanvasSet; companyId: stri
   const membersChanged = members.join(",") !== canvas.members.map((m) => m.screenId).join(",");
   const contentChanged = playlistId !== (canvas.content?.kind === "PLAYLIST" ? canvas.content.refId : "");
 
-  const apply = () => update.mutate(
+  const apply = () => !update.isPending && update.mutate(
     { id: canvas.id, ...(membersChanged ? { screenIds: members } : {}), ...(contentChanged ? { content: playlistId ? { kind: "PLAYLIST", refId: playlistId } : null } : {}) },
     { onSuccess: () => { toast.success("Canvas updated", "Activate it again to push the new configuration."); router.push(back); }, onError: (e) => toast.error(e, "Couldn't apply changes") },
   );
@@ -55,7 +57,9 @@ function Reconfigure({ canvas, companyId }: { canvas: CanvasSet; companyId: stri
       {step === 1 && (
         <div className="space-y-5 animate-fade-in">
           <Card>
-            <CardHeader title="Selected Screens" subtitle="Minimum 2 screens required. Remove members or add compatible screens below." action={<Badge tone="blue">{members.length} screens</Badge>} />
+            <CardHeader title="Selected Screens" subtitle="2 to 16 screens. Remove members or add compatible screens below." action={<Badge tone="blue">{members.length} screens</Badge>} />
+            {/* Member details come from the screens list; while it loads or if it fails, say so instead of showing no members. */}
+            {!screens.data ? <div className="p-5"><QueryBlock query={screens} what="screens" skeleton={<Skeleton className="h-24" />}>{null}</QueryBlock></div> : (
             <Table>
               <THead><tr><TH>Screen</TH><TH>Status</TH><TH>Orientation</TH><TH>Resolution</TH><TH> </TH></tr></THead>
               <tbody>
@@ -70,14 +74,15 @@ function Reconfigure({ canvas, companyId }: { canvas: CanvasSet; companyId: stri
                 ))}
               </tbody>
             </Table>
+            )}
             {addable.length > 0 && (
               <div className="border-t border-slate-100 px-5 py-4">
                 <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400">Add screens</div>
-                <ul className="space-y-1.5">{addable.map((s) => <li key={s.id} className="flex items-center gap-3 text-xs"><Checkbox checked={false} onChange={() => setMembers((m) => [...m, s.id])} /><span className="font-semibold text-slate-900">{s.name}</span><span className="text-slate-400">{s.location ?? "—"}</span><DotStatus status={screenStatusLabel(s.status)} /></li>)}</ul>
+                <ul className="space-y-1.5">{addable.map((s) => <li key={s.id} className="flex items-center gap-3 text-xs"><Checkbox checked={false} onChange={() => setMembers((m) => (m.length >= 16 ? m : [...m, s.id]))} /><span className="font-semibold text-slate-900">{s.name}</span><span className="text-slate-400">{s.location ?? "—"}</span><DotStatus status={screenStatusLabel(s.status)} /></li>)}</ul>
               </div>
             )}
           </Card>
-          <div className="flex flex-wrap items-center justify-between gap-2"><Button variant="secondary" onClick={() => router.push(back)}>Cancel</Button><Button onClick={() => setStep(2)} disabled={members.length < 2}>Continue <ChevronRight className="h-3.5 w-3.5" /></Button></div>
+          <div className="flex flex-wrap items-center justify-between gap-2"><Button variant="secondary" onClick={() => router.push(back)}>Cancel</Button><Button onClick={() => setStep(2)} disabled={members.length < 2 || members.length > 16 || !screens.data}>Continue <ChevronRight className="h-3.5 w-3.5" /></Button></div>
         </div>
       )}
 
@@ -137,5 +142,6 @@ function Reconfigure({ canvas, companyId }: { canvas: CanvasSet; companyId: stri
 export function ReconfigureCanvas({ id }: { id: string }) {
   const scope = useCompanyScope();
   const canvas = useCanvas(id, { companyId: scope.companyId, enabled: !!scope.companyId });
-  return <QueryState query={canvas} skeleton={<div className="space-y-5"><Skeleton className="h-16" /><Skeleton className="h-64" /></div>}>{(c) => <Reconfigure key={c.id} canvas={c} companyId={scope.companyId} />}</QueryState>;
+  const skeleton = <div className="space-y-5"><Skeleton className="h-16" /><Skeleton className="h-64" /></div>;
+  return <CompanyGate companyId={scope.companyId} skeleton={skeleton} what="this canvas"><QueryState query={canvas} skeleton={skeleton}>{(c) => <Reconfigure key={c.id} canvas={c} companyId={scope.companyId} />}</QueryState></CompanyGate>;
 }

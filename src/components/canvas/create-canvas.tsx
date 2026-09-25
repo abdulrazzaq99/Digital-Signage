@@ -3,7 +3,9 @@ import { useCompanyScope } from "@/components/admin/company-scope";
 import { Button } from "@/components/ui/button";
 import { Badge, DotStatus } from "@/components/ui/badge";
 import { Card, CardHeader } from "@/components/ui/card";
-import { Checkbox, Input, Label, Select } from "@/components/ui/input";
+import { CompanyGate, CompanySelect } from "@/components/screens/query-guards";
+import { Field, fieldError, FormError, maskedRegister, SubmitButton, useZodForm } from "@/components/ui/form";
+import { Checkbox, Input, Label } from "@/components/ui/input";
 import { Alert, PageHeader, Stepper, SuccessIcon } from "@/components/ui/misc";
 import { QueryState } from "@/components/ui/query-state";
 import { TD, TH, THead, TR, Table } from "@/components/ui/table";
@@ -13,9 +15,19 @@ import type { CanvasSet } from "@/lib/api/types";
 import { errorMessage, label } from "@/lib/format";
 import { ArrowLeft, ArrowRight, ChevronRight, Info, Play } from "lucide-react";
 import { useState } from "react";
+import { useWatch } from "react-hook-form";
+import { text } from "@/lib/validation/fields";
+import { maskName } from "@/lib/validation/masks";
+import { z } from "zod";
 import { Arrangement, ContentPicker, MasterPreview, canvasCompatible, swatches } from "./canvas-shared";
 
 const STEPS = ["Select Screens", "Arrange", "Content & Preview", "Activate"];
+
+/** Mirrors the API's createCanvasBody: name 2–120 characters, 2–16 member screens. */
+const detailsSchema = z.object({
+  name: text(120, 2),
+  screenIds: z.array(z.string()).min(2, "Select at least 2 landscape screens").max(16, "A canvas can combine at most 16 screens"),
+});
 
 /**
  * Create → assign content → activate, in one flow. The canvas is only created on the final step so
@@ -27,8 +39,10 @@ export function CreateCanvas() {
   const screens = useScreens({ pageSize: 100 }, { companyId, enabled: !!companyId });
   const create = useCreateCanvas(companyId);
   const [step, setStep] = useState(1);
-  const [name, setName] = useState("");
-  const [sel, setSel] = useState<string[]>([]);
+  const form = useZodForm(detailsSchema, { defaultValues: { name: "", screenIds: [] } });
+  const sel = useWatch({ control: form.control, name: "screenIds" }) ?? [];
+  const name = useWatch({ control: form.control, name: "name" }) ?? "";
+  const setSel = (next: string[] | ((m: string[]) => string[])) => form.setValue("screenIds", typeof next === "function" ? next(form.getValues("screenIds")) : next, { shouldValidate: form.formState.isSubmitted });
   const [order, setOrder] = useState<string[]>([]);
   const [playlistId, setPlaylistId] = useState("");
   const [created, setCreated] = useState<CanvasSet | null>(null);
@@ -44,9 +58,11 @@ export function CreateCanvas() {
   const toggle = (id: string) => setSel((m) => (m.includes(id) ? m.filter((x) => x !== id) : [...m, id]));
   const move = (i: number, dir: -1 | 1) => setOrder((o) => { const n = [...o]; const j = i + dir; if (j < 0 || j >= n.length) return o; [n[i], n[j]] = [n[j], n[i]]; return n; });
   const displayName = name.trim() || "Untitled canvas";
+  const continueToArrange = form.handleSubmit((v) => { setOrder(v.screenIds); setStep(2); });
 
   /** Creates the canvas, assigns the playlist, then activates. A partial failure leaves a draft the user can finish from the canvas page. */
   const activateCanvas = async () => {
+    if (busy) return;
     setBusy(true);
     setError("");
     try {
@@ -64,17 +80,20 @@ export function CreateCanvas() {
       <Stepper steps={STEPS} current={step} />
 
       {step === 1 && (
-        <div className="space-y-5 animate-fade-in">
+        <form onSubmit={continueToArrange} noValidate className="space-y-5 animate-fade-in">
           <Card className="space-y-4 p-5">
-            <div><Label required>Canvas Name</Label><Input placeholder="e.g. Mall Entrance Video Wall" value={name} onChange={(e) => setName(e.target.value)} /></div>
-            <div className="max-w-xs"><Label required>Company</Label><Select value={companyId} onChange={(e) => { scope.setCompanyId(e.target.value); setSel([]); }}>{scope.companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</Select></div>
+            <FormError form={form} />
+            <Field label="Canvas Name" required error={fieldError(form, "name")}><Input placeholder="e.g. Mall Entrance Video Wall" maxLength={120} {...maskedRegister(form, "name", maskName)} /></Field>
+            <div className="max-w-xs"><Label htmlFor="canvas-company" required>Company</Label><CompanySelect id="canvas-company" value={companyId} onChange={(id) => { scope.setCompanyId(id); setSel([]); }} /></div>
           </Card>
           <Card>
-            <CardHeader title="Select Screens" subtitle={`Showing screens for ${scope.companyName || "the selected company"}. Select 2 or more landscape screens to combine.`} />
+            <CardHeader title="Select Screens" subtitle={`Showing screens for ${scope.companyName || "the selected company"}. Select 2 to 16 landscape screens to combine.`} />
+            {fieldError(form, "screenIds") && <p role="alert" className="px-5 pt-3 text-[11px] font-medium text-red-600">{fieldError(form, "screenIds")}</p>}
+            <CompanyGate companyId={companyId} what="its screens">
             <QueryState query={screens} empty={<div className="px-5 py-8 text-center text-xs text-slate-400">This company has no paired screens.</div>}>
               {({ data }) => (
                 <Table>
-                  <THead><tr><TH className="w-10"><Checkbox checked={compatible.length > 0 && compatible.every((p) => sel.includes(p.id))} onChange={(v) => setSel(v ? compatible.map((p) => p.id) : [])} /></TH><TH>Screen Name</TH><TH>Status</TH><TH>Orientation</TH><TH>Resolution</TH></tr></THead>
+                  <THead><tr><TH className="w-10"><Checkbox checked={compatible.length > 0 && compatible.every((p) => sel.includes(p.id))} onChange={(v) => setSel(v ? compatible.map((p) => p.id).slice(0, 16) : [])} /></TH><TH>Screen Name</TH><TH>Status</TH><TH>Orientation</TH><TH>Resolution</TH></tr></THead>
                   <tbody>
                     {data.map((s) => {
                       const ok = canvasCompatible(s);
@@ -92,9 +111,10 @@ export function CreateCanvas() {
                 </Table>
               )}
             </QueryState>
+            </CompanyGate>
           </Card>
-          <div className="flex flex-wrap items-center justify-between gap-2"><Button href={scope.withCompany("/screens/canvas")} variant="secondary">Cancel</Button><Button disabled={sel.length < 2 || name.trim().length < 2} onClick={() => { setOrder(sel); setStep(2); }}>Continue <ChevronRight className="h-3.5 w-3.5" /></Button></div>
-        </div>
+          <div className="flex flex-wrap items-center justify-between gap-2"><Button type="button" href={scope.withCompany("/screens/canvas")} variant="secondary">Cancel</Button><SubmitButton form={form}>Continue <ChevronRight className="h-3.5 w-3.5" /></SubmitButton></div>
+        </form>
       )}
 
       {step === 2 && (

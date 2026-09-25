@@ -9,6 +9,8 @@ import { useGroups } from "@/lib/api/hooks/groups";
 import { SCREEN_STATUSES, screenStatusLabel, useScreens } from "@/lib/api/hooks/screens";
 import type { Screen } from "@/lib/api/types";
 import { label, timeAgo } from "@/lib/format";
+import { useDebouncedValue } from "@/lib/use-debounced-value";
+import { QueryNotice } from "@/components/screens/query-guards";
 import { cn } from "@/lib/utils";
 import { Monitor, Plus, Send } from "lucide-react";
 import Link from "next/link";
@@ -36,7 +38,8 @@ export function ScreensPage({ tab }: { tab: "all" | "groups" }) {
   const [q, setQ] = useState("");
   const [groupId, setGroupId] = useState("");
   const [page, setPage] = useState(1);
-  const screens = useScreens({ search: q || undefined, status: status === "All" ? undefined : status, groupId: groupId || undefined, page });
+  const search = useDebouncedValue(q.trim(), 300);
+  const screens = useScreens({ search: search || undefined, status: status === "All" ? undefined : status, groupId: groupId || undefined, page });
   const groups = useGroups();
 
   return (
@@ -50,9 +53,12 @@ export function ScreensPage({ tab }: { tab: "all" | "groups" }) {
         <>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2">
-              <SearchInput placeholder="Search screens..." className="w-56" value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} />
+              <SearchInput placeholder="Search screens..." className="w-56" maxLength={120} value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} />
               <PillTabs options={[{ value: "All" as const, label: "All" }, ...SCREEN_STATUSES.map((v) => ({ value: v, label: screenStatusLabel(v) }))]} value={status} onChange={(v) => { setStatus(v); setPage(1); }} />
-              <FilterSelect label="All Groups" options={groups.data?.data.map((g) => ({ value: g.id, label: g.name })) ?? []} value={groupId} onChange={(v) => { setGroupId(v); setPage(1); }} />
+              <div className="relative">
+                <FilterSelect label={groups.data ? "All Groups" : groups.isError ? "Groups unavailable" : "Loading groups…"} options={groups.data?.data.map((g) => ({ value: g.id, label: g.name })) ?? []} value={groupId} onChange={(v) => { setGroupId(v); setPage(1); }} />
+                {groups.isError && <QueryNotice query={groups} what="groups" className="absolute left-0 top-full z-10 whitespace-nowrap" />}
+              </div>
             </div>
             <span className="text-xs text-slate-400">{screens.data?.meta?.total ?? 0} screens</span>
           </div>
@@ -75,7 +81,7 @@ export function ScreensPage({ tab }: { tab: "all" | "groups" }) {
                         </div>
                       </div>
                       <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-[11px]">
-                        {[["Content", s.assignment?.name ?? "—"], ["Group", s.groups[0]?.name ?? "—"], ["Last Seen", timeAgo(s.lastSeenAt)], ["Orientation", label(s.orientation)]].map(([k, v]) => <div key={k}><dt className="text-[9px] font-semibold uppercase tracking-wider text-slate-400">{k}</dt><dd className="mt-0.5 truncate font-medium text-slate-700">{v}</dd></div>)}
+                        {[["Content", s.assignment?.name ?? "—"], ["Group", (s.groups ?? [])[0]?.name ?? "—"], ["Last Seen", timeAgo(s.lastSeenAt)], ["Orientation", label(s.orientation)]].map(([k, v]) => <div key={k}><dt className="text-[9px] font-semibold uppercase tracking-wider text-slate-400">{k}</dt><dd className="mt-0.5 truncate font-medium text-slate-700">{v}</dd></div>)}
                       </dl>
                     </Link>
                   ))}

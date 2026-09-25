@@ -7,6 +7,7 @@ import { useGroups } from "@/lib/api/hooks/groups";
 import { Layers, Monitor, Plus } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { CompanyGate } from "@/components/screens/query-guards";
 import { CreateGroupModal } from "./group-modals";
 
 export function GroupsPage() {
@@ -16,7 +17,7 @@ export function GroupsPage() {
   return (
     <div className="space-y-5">
       <PageHeader title="Screen Groups" subtitle="Organize screens and publish content to multiple displays at once." action={<div className="flex flex-wrap items-center gap-2"><CompanyFilter value={scope.companyId} onChange={scope.setCompanyId} allLabel="Select company" /><Button onClick={() => setCreate(true)} disabled={!scope.companyId}><Plus className="h-4 w-4" /> Create Group</Button></div>} />
-      {!scope.companyId && !scope.isPending ? <EmptyState icon={<Layers className="h-5 w-5" />} title="No companies yet" body="Create a company before grouping screens." /> : (
+      <CompanyGate companyId={scope.companyId} skeleton={<CardGridSkeleton />} what="screen groups">
         <QueryState query={groups} skeleton={<CardGridSkeleton />} empty={<EmptyState icon={<Layers className="h-5 w-5" />} title={`${scope.companyName || "This company"} has no screen groups`} body="Groups let you publish to several screens in one step." action={<Button onClick={() => setCreate(true)}><Plus className="h-4 w-4" /> Create Group</Button>} />}>
           {({ data }) => (
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -42,7 +43,7 @@ export function GroupsPage() {
             </div>
           )}
         </QueryState>
-      )}
+      </CompanyGate>
       <CreateGroupModal open={create} onClose={() => setCreate(false)} companyId={scope.companyId} />
     </div>
   );

@@ -12,6 +12,8 @@ import { useGroup } from "@/lib/api/hooks/groups";
 import { screenStatusLabel, useScreens } from "@/lib/api/hooks/screens";
 import type { ScreenGroup } from "@/lib/api/types";
 import { formatDate, label, timeAgo } from "@/lib/format";
+import { useDebouncedValue } from "@/lib/use-debounced-value";
+import { CompanyGate } from "@/components/screens/query-guards";
 import { AlertTriangle, Pencil, Send, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -23,7 +25,8 @@ function Detail({ group, companyId, companyName }: { group: ScreenGroup; company
   const [edit, setEdit] = useState(false);
   const [del, setDel] = useState(false);
   const [publish, setPublish] = useState(false);
-  const members = useScreens({ groupId: group.id, search: q || undefined, pageSize: 100 }, { companyId });
+  const search = useDebouncedValue(q.trim(), 300);
+  const members = useScreens({ groupId: group.id, search: search || undefined, pageSize: 100 }, { companyId });
   const online = group.onlineCount;
   const offline = group.screenCount - online;
   const pct = group.screenCount ? Math.round((online / group.screenCount) * 100) : 0;
@@ -57,8 +60,8 @@ function Detail({ group, companyId, companyName }: { group: ScreenGroup; company
       <div className="grid gap-5 xl:grid-cols-[1fr_300px]">
         <Card>
           <CardHeader title="Screens in this Group" subtitle="Monitor and manage screens assigned to this group." action={<Button variant="secondary" size="sm" onClick={() => setEdit(true)}><Pencil className="h-3.5 w-3.5" /> Manage Screens</Button>} />
-          <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3"><SearchInput placeholder="Search screens..." className="w-full sm:w-52" value={q} onChange={(e) => setQ(e.target.value)} /><span className="text-xs text-slate-400">{members.data?.meta?.total ?? group.screenCount} screens</span></div>
-          <QueryState query={members} empty={<div className="px-5 py-8 text-center text-xs text-slate-400">No screens in this group.</div>}>
+          <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3"><SearchInput placeholder="Search screens..." className="w-full sm:w-52" maxLength={120} value={q} onChange={(e) => setQ(e.target.value)} /><span className="text-xs text-slate-400">{members.data?.meta?.total ?? group.screenCount} screens</span></div>
+          <QueryState query={members} empty={<div className="px-5 py-8 text-center text-xs text-slate-400">{search ? "No screens in this group match." : "No screens in this group."}</div>}>
             {({ data }) => (
               <Table>
                 <THead><tr><TH>Screen</TH><TH>Status</TH><TH>Orientation</TH><TH>Content</TH><TH>Last Seen</TH><TH>Sync</TH><TH> </TH></tr></THead>
@@ -111,9 +114,13 @@ function Detail({ group, companyId, companyName }: { group: ScreenGroup; company
 export function GroupDetail({ id }: { id: string }) {
   const scope = useCompanyScope();
   const group = useGroup(id, { companyId: scope.companyId, enabled: !!scope.companyId });
+  const skeleton = <div className="space-y-5"><Skeleton className="h-16" /><Skeleton className="h-64" /></div>;
+  // Without a company the group query is disabled and would stay "pending" forever; the gate explains instead.
   return (
-    <QueryState query={group} skeleton={<div className="space-y-5"><Skeleton className="h-16" /><Skeleton className="h-64" /></div>}>
-      {(g) => <Detail key={`${g.id}-${g.screenIds.join(",")}`} group={g} companyId={scope.companyId} companyName={scope.companyName} />}
-    </QueryState>
+    <CompanyGate companyId={scope.companyId} skeleton={skeleton} what="this group">
+      <QueryState query={group} skeleton={skeleton}>
+        {(g) => <Detail key={`${g.id}-${(g.screenIds ?? []).join(",")}`} group={g} companyId={scope.companyId} companyName={scope.companyName} />}
+      </QueryState>
+    </CompanyGate>
   );
 }

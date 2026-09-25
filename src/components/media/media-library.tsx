@@ -5,7 +5,9 @@ import { useMediaTotals } from "@/components/portal/media-page";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, StatCard } from "@/components/ui/card";
-import { FilterSelect, SearchInput, Select } from "@/components/ui/input";
+import { FilterSelect, SearchInput } from "@/components/ui/input";
+import { CompanyGate, CompanySelect } from "@/components/screens/query-guards";
+import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { DropdownMenu, PageHeader, Pagination } from "@/components/ui/misc";
 import { CardGridSkeleton, EmptyState, QueryState } from "@/components/ui/query-state";
 import { useToast } from "@/components/ui/toast";
@@ -33,11 +35,12 @@ export function MediaLibrary() {
   const [preview, setPreview] = useState<Media | null>(null);
   const [rename, setRename] = useState<Media | null>(null);
   const [remove, setRemove] = useState<Media | null>(null);
-  const media = useMedia({ search: q || undefined, type: (type || undefined) as Media["type"] | undefined, status: (status || undefined) as Media["status"] | undefined, page }, { companyId, enabled: !!companyId });
-  const totals = useMediaTotals(companyId);
+  const search = useDebouncedValue(q.trim(), 300);
+  const media = useMedia({ search: search || undefined, type: (type || undefined) as Media["type"] | undefined, status: (status || undefined) as Media["status"] | undefined, page }, { companyId, enabled: !!companyId });
+  const totals = useMediaTotals(companyId, !!companyId);
   const update = useUpdateMedia(companyId);
   const retry = useRetryMedia(companyId);
-  const doRetry = (m: Media) => retry.mutate(m.id, { onSuccess: () => toast.success("Processing restarted", m.name), onError: (e) => toast.error(e) });
+  const doRetry = (m: Media) => !retry.isPending && retry.mutate(m.id, { onSuccess: () => toast.success("Processing restarted", m.name), onError: (e) => toast.error(e) });
   const menu = (m: Media) => [
     { label: "Preview", icon: <Eye className="h-3.5 w-3.5" />, onSelect: () => setPreview(m) },
     { label: "View Details", icon: <FileText className="h-3.5 w-3.5" />, href: scope.withCompany(`/media/${m.id}`) },
@@ -55,12 +58,12 @@ export function MediaLibrary() {
       </div>
       <Card className="flex flex-wrap items-center gap-3 px-4 py-3">
         <span className="text-xs font-semibold text-slate-700">Media Context:</span>
-        <div className="flex items-center gap-2 text-xs text-slate-500">Company: <Select className="w-44 [&>select]:h-8" value={companyId} onChange={(e) => { scope.setCompanyId(e.target.value); setPage(1); }}>{scope.companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</Select></div>
+        <div className="flex items-center gap-2 text-xs text-slate-500">Company: <CompanySelect className="w-44 [&_select]:h-8" aria-label="Company" value={companyId} onChange={(id) => { scope.setCompanyId(id); setPage(1); }} /></div>
         <span className="ml-auto text-[11px] text-slate-400">Showing media files for {scope.companyName || "…"}</span>
       </Card>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
-          <SearchInput placeholder="Search media..." className="w-56" value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} />
+          <SearchInput placeholder="Search media..." className="w-56" maxLength={120} value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} />
           <FilterSelect label="All Types" options={MEDIA_TYPES.map((t) => ({ value: t, label: mediaTypeLabel(t) }))} value={type} onChange={(v) => { setType(v); setPage(1); }} />
           <FilterSelect label="All Statuses" options={["READY", "PROCESSING", "FAILED"].map((s) => ({ value: s, label: label(s) }))} value={status} onChange={(v) => { setStatus(v); setPage(1); }} />
           <span className="text-xs text-slate-400">{media.data?.meta?.total ?? 0} files</span>
@@ -68,7 +71,8 @@ export function MediaLibrary() {
         <div className="flex rounded-lg border border-slate-200 bg-white p-0.5"><button onClick={() => setView("grid")} className={cn("flex h-7 w-7 items-center justify-center rounded-md", view === "grid" ? "bg-blue-50 text-blue-600" : "text-slate-400")} aria-label="Grid view"><LayoutGrid className="h-3.5 w-3.5" /></button><button onClick={() => setView("list")} className={cn("flex h-7 w-7 items-center justify-center rounded-md", view === "list" ? "bg-blue-50 text-blue-600" : "text-slate-400")} aria-label="List view"><List className="h-3.5 w-3.5" /></button></div>
       </div>
 
-      <QueryState query={media} skeleton={<CardGridSkeleton count={10} className="xl:grid-cols-5" />} empty={<EmptyState icon={<ImageIcon className="h-5 w-5" />} title={q || type || status ? "No media matches" : `${scope.companyName || "This company"} has no media yet`} body="Upload images, videos, or PDFs on the company's behalf." action={<Button onClick={() => setUpload(true)}><Upload className="h-4 w-4" /> Upload Media</Button>} />}>
+      <CompanyGate companyId={companyId} skeleton={<CardGridSkeleton count={10} className="xl:grid-cols-5" />} what="its media library">
+      <QueryState query={media} skeleton={<CardGridSkeleton count={10} className="xl:grid-cols-5" />} empty={<EmptyState icon={<ImageIcon className="h-5 w-5" />} title={search || type || status ? "No media matches" : `${scope.companyName || "This company"} has no media yet`} body="Upload images, videos, or PDFs on the company's behalf." action={<Button onClick={() => setUpload(true)}><Upload className="h-4 w-4" /> Upload Media</Button>} />}>
         {({ data, meta }) => (
           <>
             <div className={cn(view === "grid" ? "grid gap-4 sm:grid-cols-2 xl:grid-cols-5" : "space-y-2")}>
@@ -86,7 +90,7 @@ export function MediaLibrary() {
                     <div className="mt-1 text-[11px] text-slate-400">{metaLine(m)} · {formatBytes(m.sizeBytes)}</div>
                     <div className="mt-2 flex items-center justify-between">
                       <Badge tone={statusTone(m.status)}>{label(m.status)}</Badge>
-                      {m.status === "FAILED" && <span className="flex gap-2 text-[11px] font-medium"><button onClick={() => doRetry(m)} className="flex items-center gap-1 text-blue-600 hover:underline"><RefreshCw className="h-3 w-3" />Retry</button><button onClick={() => setRemove(m)} className="text-red-600 hover:underline">Remove</button></span>}
+                      {m.status === "FAILED" && <span className="flex gap-2 text-[11px] font-medium"><button onClick={() => doRetry(m)} disabled={retry.isPending} className="flex items-center gap-1 text-blue-600 hover:underline disabled:opacity-50"><RefreshCw className="h-3 w-3" />Retry</button><button onClick={() => setRemove(m)} className="text-red-600 hover:underline">Remove</button></span>}
                     </div>
                   </div>
                 </div>
@@ -96,6 +100,7 @@ export function MediaLibrary() {
           </>
         )}
       </QueryState>
+      </CompanyGate>
 
       <UploadMediaModal open={upload} onClose={() => setUpload(false)} defaultCompanyId={companyId} />
       <PreviewMediaModal item={preview} onClose={() => setPreview(null)} />

@@ -12,17 +12,18 @@ import { formatBytes, formatDate, label } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Eye, ImageIcon, LayoutGrid, List, Trash2, Upload } from "lucide-react";
 import { useState } from "react";
+import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { MediaDrawer, MediaPreview, statusTone, typeTone, type MediaDrawerView } from "./media-drawer";
 import { PortalUploadModal } from "./upload-media-modal";
 
 const TYPE_TABS: { value: "" | Media["type"]; label: string }[] = [{ value: "", label: "All" }, { value: "IMAGE", label: "Images" }, { value: "VIDEO", label: "Videos" }, { value: "PDF", label: "PDFs" }];
 
 /** Counts per status for the stat tiles: one tiny query each (no aggregate endpoint). */
-export function useMediaTotals(companyId?: string | null) {
-  const all = useMedia({ pageSize: 1 }, { companyId });
-  const ready = useMedia({ status: "READY", pageSize: 1 }, { companyId });
-  const processing = useMedia({ status: "PROCESSING", pageSize: 1 }, { companyId });
-  const failed = useMedia({ status: "FAILED", pageSize: 1 }, { companyId });
+export function useMediaTotals(companyId?: string | null, enabled = true) {
+  const all = useMedia({ pageSize: 1 }, { companyId, enabled });
+  const ready = useMedia({ status: "READY", pageSize: 1 }, { companyId, enabled });
+  const processing = useMedia({ status: "PROCESSING", pageSize: 1 }, { companyId, enabled });
+  const failed = useMedia({ status: "FAILED", pageSize: 1 }, { companyId, enabled });
   const n = (q: typeof all) => q.data?.meta?.total ?? "—";
   return { total: n(all), ready: n(ready), processing: n(processing), failed: n(failed) };
 }
@@ -34,7 +35,8 @@ export function MediaPage({ companyId }: { companyId?: string | null } = {}) {
   const [page, setPage] = useState(1);
   const [upload, setUpload] = useState(false);
   const [drawer, setDrawer] = useState<{ id: string; view: MediaDrawerView } | null>(null);
-  const media = useMedia({ search: q || undefined, type: type || undefined, page }, { companyId });
+  const search = useDebouncedValue(q.trim(), 300);
+  const media = useMedia({ search: search || undefined, type: type || undefined, page }, { companyId });
   const totals = useMediaTotals(companyId);
   const open = (m: Media, v: MediaDrawerView = "detail") => setDrawer({ id: m.id, view: v });
   const menu = (m: Media) => [{ label: "View Details", icon: <Eye className="h-3.5 w-3.5" />, onSelect: () => open(m) }, { label: "Delete", icon: <Trash2 className="h-3.5 w-3.5" />, tone: "danger" as const, onSelect: () => open(m, "delete") }];
@@ -43,7 +45,7 @@ export function MediaPage({ companyId }: { companyId?: string | null } = {}) {
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
-          <SearchInput placeholder="Search media..." className="w-56" value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} />
+          <SearchInput placeholder="Search media..." className="w-56" maxLength={120} value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} />
           <div className="flex flex-wrap gap-1.5">{TYPE_TABS.map((t) => <button key={t.value} onClick={() => { setType(t.value); setPage(1); }} className={cn("flex h-8 items-center gap-1.5 rounded-md border px-3 text-xs font-medium transition-colors", type === t.value ? "border-blue-200 bg-blue-50 text-blue-600" : "border-slate-200 bg-white text-slate-500 hover:bg-slate-50")}>{t.label}</button>)}</div>
         </div>
         <div className="flex items-center gap-2">
@@ -59,7 +61,7 @@ export function MediaPage({ companyId }: { companyId?: string | null } = {}) {
         <StatCard value={totals.failed} label="Failed" tone="red" />
       </div>
 
-      <QueryState query={media} skeleton={<CardGridSkeleton count={10} className="xl:grid-cols-5" />} empty={<EmptyState icon={<ImageIcon className="h-5 w-5" />} title={q || type ? "No media matches" : "No media yet"} body={q || type ? "Try another search or type." : "Upload images, videos, or PDFs to use in playlists."} action={<Button onClick={() => setUpload(true)}><Upload className="h-4 w-4" /> Upload Media</Button>} />}>
+      <QueryState query={media} skeleton={<CardGridSkeleton count={10} className="xl:grid-cols-5" />} empty={<EmptyState icon={<ImageIcon className="h-5 w-5" />} title={search || type ? "No media matches" : "No media yet"} body={search || type ? "Try another search or type." : "Upload images, videos, or PDFs to use in playlists."} action={<Button onClick={() => setUpload(true)}><Upload className="h-4 w-4" /> Upload Media</Button>} />}>
         {({ data, meta }) => (
           <>
             {view === "grid" ? (
@@ -90,7 +92,7 @@ export function MediaPage({ companyId }: { companyId?: string | null } = {}) {
                         <TD><Badge tone={typeTone(m.type)}>{mediaTypeLabel(m.type)}</Badge></TD>
                         <TD><Badge tone={statusTone(m.status)} dot>{label(m.status)}</Badge></TD>
                         <TD className="text-xs whitespace-nowrap">{formatBytes(m.sizeBytes)}</TD>
-                        <TD className="text-xs text-slate-500 whitespace-nowrap">{m.usedIn.length ? `${m.usedIn.length} playlist${m.usedIn.length > 1 ? "s" : ""}` : <span className="text-slate-300">Unused</span>}</TD>
+                        <TD className="text-xs text-slate-500 whitespace-nowrap">{(m.usedIn ?? []).length ? `${m.usedIn.length} playlist${m.usedIn.length > 1 ? "s" : ""}` : <span className="text-slate-300">Unused</span>}</TD>
                         <TD onClick={(e) => e.stopPropagation()}><DropdownMenu items={menu(m)} /></TD>
                       </TR>
                     ))}

@@ -10,6 +10,7 @@ import { useActivity } from "@/lib/api/hooks/activity";
 import { useCompanyNames } from "@/lib/api/hooks/companies";
 import { screenStatusLabel, useScreen, useScreenCommand, useUnpairScreen } from "@/lib/api/hooks/screens";
 import { formatDate, formatDateTime, label, timeAgo } from "@/lib/format";
+import { maskIp, maskMiddle } from "@/lib/validation/masks";
 import { RefreshCw, RotateCcw, Send, Unlink } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -30,7 +31,10 @@ export function ScreenDetail({ id }: { id: string }) {
   const [confirmUnpair, setConfirmUnpair] = useState(false);
 
   const send = (cmd: "refresh" | "restart_player") => command.mutate({ id, command: cmd }, { onSuccess: () => toast.success(cmd === "refresh" ? "Refresh sent" : "Restart sent", "The player acts on it when online."), onError: (e) => toast.error(e) });
-  const doUnpair = () => unpair.mutate(id, { onSuccess: () => { toast.success("Screen unpaired"); router.replace("/screens"); }, onError: (e) => toast.error(e) });
+  const doUnpair = async () => {
+    if (unpair.isPending) return;
+    try { await unpair.mutateAsync(id); toast.success("Screen unpaired"); router.replace("/screens"); } catch (e) { toast.error(e); }
+  };
 
   return (
     <div className="space-y-5">
@@ -41,12 +45,12 @@ export function ScreenDetail({ id }: { id: string }) {
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2.5"><h1 className="text-xl font-bold tracking-tight text-slate-900">{s.name}</h1><StatusBadge status={screenStatusLabel(s.status)} /></div>
-                <p className="mt-1 text-xs text-slate-400">{names[s.companyId] ?? "—"} <span className="mx-1.5">·</span> {s.location ?? "No location"} <span className="mx-1.5">·</span> <span className="font-mono">{s.device?.deviceId ?? "—"}</span></p>
+                <p className="mt-1 text-xs text-slate-400">{names[s.companyId] ?? "—"} <span className="mx-1.5">·</span> {s.location ?? "No location"} <span className="mx-1.5">·</span> <span className="font-mono" title={s.device?.deviceId ?? undefined}>{maskMiddle(s.device?.deviceId)}</span></p>
               </div>
               <div className="flex flex-wrap gap-2">
                 <Button variant="secondary" onClick={() => send("refresh")} disabled={command.isPending}><RefreshCw className="h-3.5 w-3.5" /> Refresh</Button>
                 <Button variant="secondary" onClick={() => send("restart_player")} disabled={command.isPending}><RotateCcw className="h-3.5 w-3.5" /> Restart Player</Button>
-                <Button variant="danger-outline" onClick={() => setConfirmUnpair(true)}><Unlink className="h-3.5 w-3.5" /> Unpair</Button>
+                <Button variant="danger-outline" onClick={() => setConfirmUnpair(true)} disabled={unpair.isPending}><Unlink className="h-3.5 w-3.5" /> Unpair</Button>
                 <Button onClick={() => setPublish(true)}><Send className="h-3.5 w-3.5" /> Publish</Button>
               </div>
             </div>
@@ -91,21 +95,22 @@ export function ScreenDetail({ id }: { id: string }) {
                     <div><dt className="text-[10px] uppercase tracking-wider text-slate-400">Status</dt><dd className="mt-0.5 flex items-center gap-1.5 text-sm font-semibold text-slate-900"><span className={`h-2 w-2 rounded-full ${s.status === "ONLINE" ? "bg-green-500" : s.status === "OFFLINE" ? "bg-slate-400" : "bg-red-500"}`} />{screenStatusLabel(s.status)}</dd><div className="text-[11px] text-slate-400">Last seen {timeAgo(s.lastSeenAt)}</div></div>
                     <div><dt className="text-[10px] uppercase tracking-wider text-slate-400">Orientation</dt><dd className="mt-0.5 text-sm font-semibold text-slate-900">{label(s.orientation)}</dd><div className="text-[11px] text-slate-400">{s.device?.resolution ?? "Resolution unknown"}</div></div>
                     <div><dt className="text-[10px] uppercase tracking-wider text-slate-400">Sync</dt><dd className="mt-0.5 text-sm font-semibold text-slate-900">{label(s.syncState)}</dd><div className="text-[11px] text-slate-400">Manifest v{s.manifestVersion} · acknowledged v{s.ackVersion}</div></div>
-                    <div><dt className="text-[10px] uppercase tracking-wider text-slate-400">Groups</dt><dd className="mt-0.5 text-sm font-semibold text-slate-900">{s.groups.map((g) => g.name).join(", ") || "None"}</dd></div>
+                    <div><dt className="text-[10px] uppercase tracking-wider text-slate-400">Groups</dt><dd className="mt-0.5 text-sm font-semibold text-slate-900">{(s.groups ?? []).map((g) => g.name).join(", ") || "None"}</dd></div>
                   </dl>
                 </Card>
                 <Card className="px-5 py-4">
                   <SectionLabel>Device Information</SectionLabel>
                   <dl className="mt-3 space-y-2.5 text-xs">
-                    {[["Device ID", s.device?.deviceId, true], ["Player Version", s.device?.playerVersion], ["App Version", s.device?.appVersion], ["Model", s.device?.model], ["Firmware", s.device?.firmware], ["IP Address", s.device?.ip, true], ["Paired", formatDate(s.createdAt)]].map(([k, v, mono]) => (
-                      <div key={String(k)} className="flex justify-between"><dt className="text-slate-400">{k}</dt><dd className={mono ? "font-mono font-semibold text-slate-800" : "font-semibold text-slate-800"}>{v || "—"}</dd></div>
+                    {/* Device id and IP are masked on screen; the Super Admin (the only viewer of this page) can hover for the full value. */}
+                    {([["Device ID", maskMiddle(s.device?.deviceId), true, s.device?.deviceId], ["Player Version", s.device?.playerVersion], ["App Version", s.device?.appVersion], ["Model", s.device?.model], ["Firmware", s.device?.firmware], ["IP Address", maskIp(s.device?.ip), true, s.device?.ip], ["Paired", formatDate(s.createdAt)]] as [string, string | null | undefined, boolean?, (string | null)?][]).map(([k, v, mono, full]) => (
+                      <div key={k} className="flex justify-between"><dt className="text-slate-400">{k}</dt><dd className={mono ? "font-mono font-semibold text-slate-800" : "font-semibold text-slate-800"} title={full ?? undefined}>{v || "—"}</dd></div>
                     ))}
                   </dl>
                 </Card>
                 <Card className="px-5 py-4">
                   <SectionLabel>Tags</SectionLabel>
                   <div className="mt-3 flex flex-wrap gap-1.5">
-                    {s.tags.length ? s.tags.map((t) => <Badge key={t} tone="slate">{t}</Badge>) : <span className="text-xs text-slate-400">No tags. Customers can add tags from their portal.</span>}
+                    {(s.tags ?? []).length ? (s.tags ?? []).map((t) => <Badge key={t} tone="slate">{t}</Badge>) : <span className="text-xs text-slate-400">No tags. Customers can add tags from their portal.</span>}
                   </div>
                 </Card>
               </div>

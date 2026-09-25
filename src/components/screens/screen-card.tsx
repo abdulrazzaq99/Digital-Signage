@@ -11,7 +11,7 @@ function OrientationIcon({ o }: { o: Screen["orientation"] }) {
   return o === "LANDSCAPE" ? <span className="text-[10px]">↔</span> : <span className="text-[10px]">↕</span>;
 }
 
-export function ScreenCard({ screen, companyName, onRefresh, onUnpair }: { screen: Screen; companyName?: string; onRefresh?: () => void; onUnpair?: () => void }) {
+export function ScreenCard({ screen, companyName, onRefresh, onUnpair, busy }: { screen: Screen; companyName?: string; onRefresh?: () => void; onUnpair?: () => void; busy?: boolean }) {
   const status = screenStatusLabel(screen.status);
   const tone = statusTone(status);
   const thumb = screen.status === "ONLINE" ? screen.assignment?.thumbnailUrl : null;
@@ -25,8 +25,8 @@ export function ScreenCard({ screen, companyName, onRefresh, onUnpair }: { scree
             <span className="inline-flex items-center gap-1 rounded-md bg-white/95 px-2 py-0.5 text-[10px] font-medium text-slate-600 shadow-sm"><OrientationIcon o={screen.orientation} /> {label(screen.orientation)}</span>
             <DropdownMenu items={[
               { label: "View Details", icon: <MonitorSmartphone className="h-3.5 w-3.5" />, href: `/screens/${screen.id}` },
-              { label: "Refresh player", icon: <RefreshCw className="h-3.5 w-3.5" />, onSelect: onRefresh },
-              { label: "Unpair", icon: <Unlink className="h-3.5 w-3.5" />, tone: "danger", onSelect: onUnpair },
+              { label: "Refresh player", icon: <RefreshCw className="h-3.5 w-3.5" />, onSelect: onRefresh, disabled: busy },
+              { label: "Unpair", icon: <Unlink className="h-3.5 w-3.5" />, tone: "danger", onSelect: onUnpair, disabled: busy },
             ]} />
           </div>
         </div>

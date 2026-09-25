@@ -13,6 +13,7 @@ import { fmtClock, formatBytes, formatDateTime, label } from "@/lib/format";
 import { Download, Pencil, RefreshCw, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { CompanyGate } from "@/components/screens/query-guards";
 import { PreviewMediaModal, RemoveMediaModal, RenameModal } from "./media-modals";
 
 function Detail({ item, companyId }: { item: Media; companyId: string }) {
@@ -36,7 +37,7 @@ function Detail({ item, companyId }: { item: Media; companyId: string }) {
           <Button variant="secondary" onClick={() => download.mutate(item.id, { onSuccess: ({ url }) => window.open(url, "_blank", "noopener"), onError: (e) => toast.error(e) })} disabled={download.isPending || item.status !== "READY"}><Download className="h-3.5 w-3.5" /> Download</Button>
           {item.status === "FAILED" && <Button variant="secondary" onClick={() => retry.mutate(item.id, { onSuccess: () => toast.success("Processing restarted"), onError: (e) => toast.error(e) })} disabled={retry.isPending}><RefreshCw className="h-3.5 w-3.5" /> Retry</Button>}
           <Button variant="secondary" onClick={() => setRename(true)}><Pencil className="h-3.5 w-3.5" /> Rename</Button>
-          <Button variant="danger-outline" onClick={() => setDel(true)}><Trash2 className="h-3.5 w-3.5" /> Delete</Button>
+          <Button variant="danger-outline" onClick={() => setDel(true)} disabled={update.isPending}><Trash2 className="h-3.5 w-3.5" /> Delete</Button>
         </div>
       </div>
       <div className="grid gap-5 xl:grid-cols-[1fr_320px]">
@@ -48,12 +49,12 @@ function Detail({ item, companyId }: { item: Media; companyId: string }) {
               {([["File Name", item.name], ["Media Type", <Badge key="t" tone={typeTone(item.type)}>{mediaTypeLabel(item.type)}</Badge>], ["MIME", item.mimeType], ["File Size", formatBytes(item.sizeBytes)], specific, ["Upload Date", formatDateTime(item.createdAt)], ["Status", <Badge key="s" tone={statusTone(item.status)}>{label(item.status)}</Badge>]] as [string, React.ReactNode][]).map(([k, v]) => <div key={k} className="flex items-center justify-between gap-3"><dt className="text-slate-400">{k}</dt><dd className="truncate font-semibold text-slate-800">{v}</dd></div>)}
             </dl>
             {item.failureReason && <p className="mt-3 rounded-md bg-red-50 px-3 py-2 text-[11px] text-red-700">{item.failureReason}</p>}
-            {item.tags.length > 0 && <div className="mt-3 flex flex-wrap gap-1.5">{item.tags.map((t) => <Badge key={t} tone="slate">{t}</Badge>)}</div>}
+            {(item.tags ?? []).length > 0 && <div className="mt-3 flex flex-wrap gap-1.5">{(item.tags ?? []).map((t) => <Badge key={t} tone="slate">{t}</Badge>)}</div>}
           </Card>
           <Card className="px-5 py-4">
             <SectionLabel>Used By</SectionLabel>
-            {item.usedIn.length === 0 ? <p className="mt-3 text-xs text-slate-400">Not used in any playlist.</p> : (
-              <ul className="mt-3 space-y-2">{item.usedIn.map((u) => <li key={u.id} className="flex items-center justify-between rounded-lg border border-slate-100 bg-slate-50/60 px-3 py-2 text-xs"><span className="font-semibold text-slate-800">{u.name}</span><Badge tone="blue">Playlist</Badge></li>)}</ul>
+            {(item.usedIn ?? []).length === 0 ? <p className="mt-3 text-xs text-slate-400">Not used in any playlist.</p> : (
+              <ul className="mt-3 space-y-2">{(item.usedIn ?? []).map((u) => <li key={u.id} className="flex items-center justify-between rounded-lg border border-slate-100 bg-slate-50/60 px-3 py-2 text-xs"><span className="font-semibold text-slate-800">{u.name}</span><Badge tone="blue">Playlist</Badge></li>)}</ul>
             )}
           </Card>
         </div>
@@ -68,5 +69,6 @@ function Detail({ item, companyId }: { item: Media; companyId: string }) {
 export function MediaDetail({ id }: { id: string }) {
   const scope = useCompanyScope();
   const item = useMediaItem(id, { companyId: scope.companyId, enabled: !!scope.companyId });
-  return <QueryState query={item} skeleton={<div className="space-y-5"><Skeleton className="h-12" /><Skeleton className="h-72" /></div>}>{(m) => <Detail item={m} companyId={scope.companyId} />}</QueryState>;
+  const skeleton = <div className="space-y-5"><Skeleton className="h-12" /><Skeleton className="h-72" /></div>;
+  return <CompanyGate companyId={scope.companyId} skeleton={skeleton} what="this file"><QueryState query={item} skeleton={skeleton}>{(m) => <Detail item={m} companyId={scope.companyId} />}</QueryState></CompanyGate>;
 }

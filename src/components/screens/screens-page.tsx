@@ -13,6 +13,7 @@ import { useCompanyNames } from "@/lib/api/hooks/companies";
 import { SCREEN_STATUSES, screenStatusLabel, useScreenCommand, useScreens, useUnpairScreen } from "@/lib/api/hooks/screens";
 import type { Screen } from "@/lib/api/types";
 import { label, timeAgo } from "@/lib/format";
+import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { cn } from "@/lib/utils";
 import { Eye, LayoutGrid, List, Monitor, Plus, RefreshCw, Unlink, User } from "lucide-react";
 import Link from "next/link";
@@ -42,12 +43,13 @@ export function ScreensPage() {
   const toast = useToast();
   const { names } = useCompanyNames();
   const totals = useScreenTotals(companyId || undefined);
-  const screens = useScreens({ search: q || undefined, status: (status || undefined) as Screen["status"] | undefined, orientation: (orientation || undefined) as Screen["orientation"] | undefined, page }, { companyId: companyId || undefined });
+  const search = useDebouncedValue(q.trim(), 300);
+  const screens = useScreens({ search: search || undefined, status: (status || undefined) as Screen["status"] | undefined, orientation: (orientation || undefined) as Screen["orientation"] | undefined, page }, { companyId: companyId || undefined });
   const command = useScreenCommand();
   const unpair = useUnpairScreen();
 
-  const refresh = (s: Screen) => command.mutate({ id: s.id, command: "refresh" }, { onSuccess: () => toast.success("Refresh sent", s.name), onError: (e) => toast.error(e) });
-  const doUnpair = () => unpairTarget && unpair.mutate(unpairTarget.id, { onSuccess: () => { toast.success("Screen unpaired", unpairTarget.name); setUnpairTarget(null); }, onError: (e) => toast.error(e) });
+  const refresh = (s: Screen) => !command.isPending && command.mutate({ id: s.id, command: "refresh" }, { onSuccess: () => toast.success("Refresh sent", s.name), onError: (e) => toast.error(e) });
+  const doUnpair = () => unpairTarget && !unpair.isPending && unpair.mutate(unpairTarget.id, { onSuccess: () => { toast.success("Screen unpaired", unpairTarget.name); setUnpairTarget(null); }, onError: (e) => toast.error(e) });
   const reset = (fn: () => void) => { fn(); setPage(1); };
 
   return (
@@ -62,7 +64,7 @@ export function ScreensPage() {
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
-          <SearchInput placeholder="Search screens..." className="w-56" value={q} onChange={(e) => reset(() => setQ(e.target.value))} />
+          <SearchInput placeholder="Search screens..." className="w-56" maxLength={120} value={q} onChange={(e) => reset(() => setQ(e.target.value))} />
           <FilterSelect label="Status" options={SCREEN_STATUSES.map((s) => ({ value: s, label: screenStatusLabel(s) }))} value={status} onChange={(v) => reset(() => setStatus(v))} />
           <CompanyFilter value={companyId} onChange={(v) => reset(() => setCompanyId(v))} allLabel="Company" />
           <FilterSelect label="Orientation" options={[{ value: "LANDSCAPE", label: "Landscape" }, { value: "PORTRAIT", label: "Portrait" }]} value={orientation} onChange={(v) => reset(() => setOrientation(v))} />
@@ -81,7 +83,7 @@ export function ScreensPage() {
           <>
             {view === "grid" ? (
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                {data.map((s) => <ScreenCard key={s.id} screen={s} companyName={names[s.companyId]} onRefresh={() => refresh(s)} onUnpair={() => setUnpairTarget(s)} />)}
+                {data.map((s) => <ScreenCard key={s.id} screen={s} companyName={names[s.companyId]} onRefresh={() => refresh(s)} onUnpair={() => setUnpairTarget(s)} busy={command.isPending || unpair.isPending} />)}
               </div>
             ) : (
               <Card>
@@ -101,7 +103,7 @@ export function ScreensPage() {
                         <TD><StatusBadge status={screenStatusLabel(s.status)} /></TD>
                         <TD><StatusBadge status={label(s.syncState)} /></TD>
                         <TD className="text-xs text-slate-400 whitespace-nowrap">{timeAgo(s.lastSeenAt)}</TD>
-                        <TD className="text-right"><DropdownMenu items={[{ label: "View Details", icon: <Eye className="h-3.5 w-3.5" />, href: `/screens/${s.id}` }, { label: "Refresh player", icon: <RefreshCw className="h-3.5 w-3.5" />, onSelect: () => refresh(s) }, { label: "Unpair", icon: <Unlink className="h-3.5 w-3.5" />, tone: "danger", onSelect: () => setUnpairTarget(s) }]} /></TD>
+                        <TD className="text-right"><DropdownMenu items={[{ label: "View Details", icon: <Eye className="h-3.5 w-3.5" />, href: `/screens/${s.id}` }, { label: "Refresh player", icon: <RefreshCw className="h-3.5 w-3.5" />, onSelect: () => refresh(s), disabled: command.isPending }, { label: "Unpair", icon: <Unlink className="h-3.5 w-3.5" />, tone: "danger", onSelect: () => setUnpairTarget(s), disabled: unpair.isPending }]} /></TD>
                       </TR>
                     ))}
                   </tbody>
@@ -114,7 +116,7 @@ export function ScreensPage() {
       </QueryState>
 
       <AddScreenModal open={add} onClose={() => setAdd(false)} />
-      <Modal open={!!unpairTarget} onClose={() => setUnpairTarget(null)} width="max-w-md">
+      <Modal open={!!unpairTarget} onClose={() => !unpair.isPending && setUnpairTarget(null)} width="max-w-md">
         <ModalHeader title={`Unpair "${unpairTarget?.name}"?`} subtitle="The device stops receiving content and the licence slot is released." onClose={() => setUnpairTarget(null)} />
         <ModalFooter><Button variant="secondary" onClick={() => setUnpairTarget(null)}>Cancel</Button><Button variant="danger" onClick={doUnpair} disabled={unpair.isPending}>{unpair.isPending ? "Unpairing…" : "Unpair"}</Button></ModalFooter>
       </Modal>

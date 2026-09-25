@@ -7,6 +7,7 @@ import { usePlaylists } from "@/lib/api/hooks/playlists";
 import { screenStatusLabel } from "@/lib/api/hooks/screens";
 import type { Screen } from "@/lib/api/types";
 import { formatDuration } from "@/lib/format";
+import { QueryBlock } from "@/components/screens/query-guards";
 import { ChevronLeft, ChevronRight, Play } from "lucide-react";
 
 export const swatches = ["bg-blue-600", "bg-violet-600", "bg-emerald-600", "bg-amber-500", "bg-pink-500"];
@@ -50,18 +51,25 @@ export function MasterPreview({ count, caption, thumbnailUrl }: { count: number;
 }
 
 /** Playlist picker for the canvas content (layouts and template instances can be assigned through the API as well). */
-export function ContentPicker({ companyId, value, onChange }: { companyId: string; value: string; onChange: (id: string) => void }) {
-  const playlists = usePlaylists({ pageSize: 100 }, { companyId });
+export function ContentPicker({ companyId, value, onChange, error }: { companyId: string; value: string; onChange: (id: string) => void; error?: string }) {
+  const playlists = usePlaylists({ pageSize: 100 }, { companyId, enabled: !!companyId });
+  const usable = (playlists.data?.data ?? []).filter((p) => p.itemCount > 0);
   return (
     <Card>
       <CardHeader title="Canvas Content" subtitle="The playlist is split evenly across the member screens. Required before activation." />
       <div className="px-5 py-4">
-        {playlists.isPending ? <TableSkeleton rows={2} /> : (
-          <Select value={value} onChange={(e) => onChange(e.target.value)} className="max-w-md">
-            <option value="">Select a playlist…</option>
-            {(playlists.data?.data ?? []).filter((p) => p.itemCount > 0).map((p) => <option key={p.id} value={p.id}>{p.name} · {p.itemCount} items · {formatDuration(p.totalDurationSec)}</option>)}
-          </Select>
-        )}
+        {/* Loading, failure (with Retry) and "no playlists" are distinct, so a failed request never reads as an empty list. */}
+        <QueryBlock query={playlists} what="playlists" skeleton={<TableSkeleton rows={2} />}>
+          {usable.length === 0 ? <p className="text-xs text-slate-400">This company has no playlists with items yet. Create one and add media first.</p> : (
+            <>
+              <Select value={value} onChange={(e) => onChange(e.target.value)} className="max-w-md" aria-label="Canvas playlist" aria-invalid={error ? true : undefined}>
+                <option value="">Select a playlist…</option>
+                {usable.map((p) => <option key={p.id} value={p.id}>{p.name} · {p.itemCount} items · {formatDuration(p.totalDurationSec)}</option>)}
+              </Select>
+              {error && <p role="alert" className="mt-1 text-[11px] font-medium text-red-600">{error}</p>}
+            </>
+          )}
+        </QueryBlock>
       </div>
     </Card>
   );

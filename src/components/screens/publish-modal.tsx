@@ -6,7 +6,7 @@ import { Checkbox } from "@/components/ui/input";
 import { Modal, ModalHeader } from "@/components/ui/modal";
 import { SectionLabel } from "@/components/ui/card";
 import { Alert, Stepper, SuccessIcon } from "@/components/ui/misc";
-import { TableSkeleton } from "@/components/ui/query-state";
+import { ErrorState, TableSkeleton } from "@/components/ui/query-state";
 import { useGroups } from "@/lib/api/hooks/groups";
 import { usePlaylists, usePublishPlaylist } from "@/lib/api/hooks/playlists";
 import { screenStatusLabel, useScreens } from "@/lib/api/hooks/screens";
@@ -37,8 +37,10 @@ export function PublishModal({ open, onClose, companyId, defaultScreen, defaultG
   const playlists = usePlaylists({ pageSize: 100 }, { companyId, enabled: open });
   const publish = usePublishPlaylist(companyId);
 
-  const close = () => { onClose(); setTimeout(() => { setPhase("target"); setResult(null); setError(""); setPlaylist(null); }, 200); };
+  const close = () => { if (publish.isPending) return; onClose(); setTimeout(() => { setPhase("target"); setResult(null); setError(""); setPlaylist(null); }, 200); };
   const stepIndex = phase === "target" ? 1 : phase === "content" ? 2 : 3;
+  // The list being picked from; its failure shows an error with Retry rather than "no screens".
+  const targetQuery = mode === "group" ? groups : screens;
   const screenList = screens.data?.data ?? [];
   const groupList = groups.data?.data ?? [];
   const chosenGroup = groupList.find((g) => g.id === group);
@@ -47,7 +49,7 @@ export function PublishModal({ open, onClose, companyId, defaultScreen, defaultG
   const targetValid = mode === "single" ? !!single : mode === "multiple" ? multi.length > 0 : !!group;
 
   const go = async () => {
-    if (!playlist) return;
+    if (!playlist || publish.isPending) return;
     setError("");
     try {
       setResult(await publish.mutateAsync({ id: playlist.id, screenIds: mode === "single" ? [single] : mode === "multiple" ? multi : [], groupIds: mode === "group" ? [group] : [] }));
@@ -70,7 +72,7 @@ export function PublishModal({ open, onClose, companyId, defaultScreen, defaultG
             </div>
           </div>
           <div className="max-h-[280px] space-y-2 overflow-y-auto px-6 py-4">
-            {screens.isPending || groups.isPending ? <TableSkeleton rows={4} /> : mode === "group" ? (groupList.length ? groupList.map((g) => (
+            {targetQuery.isError ? <ErrorState error={targetQuery.error} onRetry={() => targetQuery.refetch()} className="p-4" /> : targetQuery.isPending ? <TableSkeleton rows={4} /> : mode === "group" ? (groupList.length ? groupList.map((g) => (
               <button key={g.id} type="button" onClick={() => setGroup(g.id)} disabled={g.screenCount === 0} className={cn("flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors disabled:opacity-50", group === g.id ? "border-blue-300 bg-blue-50/50" : "border-slate-200 hover:bg-slate-50")}>
                 <span className="flex h-8 w-12 items-center justify-center rounded bg-slate-100 text-slate-400"><Monitor className="h-4 w-4" /></span>
                 <span className="flex-1"><span className="block text-sm font-semibold text-slate-900">{g.name}</span><span className="block text-[11px] text-slate-400">{g.screenCount} screen{g.screenCount === 1 ? "" : "s"} · {g.onlineCount} online</span></span>
@@ -96,7 +98,7 @@ export function PublishModal({ open, onClose, companyId, defaultScreen, defaultG
         <div className="animate-fade-in">
           <div className="px-6 pt-5 text-xs text-slate-500">Choose the playlist to send to <span className="font-semibold text-slate-800">{targetLabel}</span>.</div>
           <div className="max-h-[300px] space-y-2 overflow-y-auto px-6 py-4">
-            {playlists.isPending ? <TableSkeleton rows={4} /> : (playlists.data?.data ?? []).length ? playlists.data!.data.map((p) => (
+            {playlists.isError ? <ErrorState error={playlists.error} onRetry={() => playlists.refetch()} className="p-4" /> : playlists.isPending ? <TableSkeleton rows={4} /> : (playlists.data?.data ?? []).length ? playlists.data!.data.map((p) => (
               <button key={p.id} type="button" onClick={() => setPlaylist(p)} disabled={p.itemCount === 0} className={cn("flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors disabled:opacity-50", playlist?.id === p.id ? "border-blue-400 bg-blue-50/50 ring-2 ring-blue-500/20" : "border-slate-200 hover:border-slate-300")}>
                 <span className="flex h-8 w-12 items-center justify-center rounded bg-slate-100 text-slate-400"><ListVideo className="h-4 w-4" /></span>
                 <span className="flex-1"><span className="block text-sm font-semibold text-slate-900">{p.name}</span><span className="block text-[11px] text-slate-400">{p.itemCount} item{p.itemCount === 1 ? "" : "s"} · {formatDuration(p.totalDurationSec)}{p.itemCount === 0 ? " · empty" : ""}</span></span>

@@ -2,14 +2,19 @@
 import { Button } from "@/components/ui/button";
 import { Badge, DotStatus } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { Input, Label, Select } from "@/components/ui/input";
+import { applyApiError, Field, fieldError, FormError, maskedRegister, SubmitButton, useZodForm } from "@/components/ui/form";
+import { Input, Select } from "@/components/ui/input";
 import { Modal, ModalFooter, ModalHeader } from "@/components/ui/modal";
 import { QueryState, Skeleton } from "@/components/ui/query-state";
 import { useToast } from "@/components/ui/toast";
+import { useAuth } from "@/components/auth/auth-provider";
+import { QueryNotice } from "@/components/screens/query-guards";
+import { SCREEN_LOCATION_MAX, SCREEN_NAME_MAX, screenSchema, toUpdateBody } from "@/components/screens/screen-form";
 import { useGroups } from "@/lib/api/hooks/groups";
 import { screenStatusLabel, useScreen, useScreenCommand, useUnpairScreen, useUpdateScreen } from "@/lib/api/hooks/screens";
 import type { Screen } from "@/lib/api/types";
-import { formatDateTime, label, timeAgo } from "@/lib/format";
+import { formatDateTime, isSuperAdmin, label, timeAgo } from "@/lib/format";
+import { maskIp, maskName, maskTags } from "@/lib/validation/masks";
 import { RefreshCw, Send, Unplug } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -23,24 +28,38 @@ function EditForm({ screen, companyId, onDone }: { screen: Screen; companyId?: s
   const groups = useGroups({ companyId });
   const update = useUpdateScreen(screen.id, companyId);
   const toast = useToast();
-  const [form, setForm] = useState({ name: screen.name, location: screen.location ?? "", groupId: screen.groups[0]?.id ?? "", orientation: screen.orientation, tags: screen.tags.join(", ") });
-  const save = async () => {
+  const form = useZodForm(screenSchema, { defaultValues: { name: screen.name, location: screen.location ?? "", groupId: (screen.groups ?? [])[0]?.id ?? "", orientation: screen.orientation, tags: (screen.tags ?? []).join(", ") } });
+  const save = form.handleSubmit(async (v) => {
+    const body = toUpdateBody(screen, v);
+    if (Object.keys(body).length === 0) { onDone(); return; }
     try {
-      await update.mutateAsync({ name: form.name.trim(), location: form.location.trim(), orientation: form.orientation, groupId: form.groupId, tags: form.tags.split(",").map((t) => t.trim()).filter(Boolean) });
+      await update.mutateAsync(body);
       toast.success("Screen updated");
       onDone();
-    } catch (e) { toast.error(e, "Couldn't save screen"); }
-  };
+    } catch (e) { applyApiError(form, e); }
+  });
   return (
     <Card className="animate-fade-in">
       <div className="border-b border-slate-100 px-5 py-3 text-sm font-semibold text-slate-900">Edit Screen</div>
-      <form onSubmit={(e) => { e.preventDefault(); save(); }} className="space-y-4 px-5 py-4">
-        <div><Label required>Screen Name</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required minLength={2} /></div>
-        <div><Label>Location</Label><Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} /></div>
-        <div><Label>Group</Label><Select value={form.groupId} onChange={(e) => setForm({ ...form, groupId: e.target.value })}><option value="">No group</option>{groups.data?.data.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}</Select></div>
-        <div><Label>Orientation</Label><Select value={form.orientation} onChange={(e) => setForm({ ...form, orientation: e.target.value as Screen["orientation"] })}><option value="LANDSCAPE">Landscape (16:9)</option><option value="PORTRAIT">Portrait (9:16)</option></Select></div>
-        <div><Label>Tags</Label><Input value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} placeholder="lobby, customer-facing" /></div>
-        <div className="flex gap-2"><Button type="submit" size="sm" disabled={update.isPending}>{update.isPending ? "Saving…" : "Save Changes"}</Button><Button type="button" size="sm" variant="secondary" onClick={onDone}>Cancel</Button></div>
+      <form onSubmit={save} noValidate className="space-y-4 px-5 py-4">
+        <FormError form={form} />
+        <Field label="Screen Name" required error={fieldError(form, "name")}><Input maxLength={SCREEN_NAME_MAX} {...maskedRegister(form, "name", maskName)} /></Field>
+        <Field label="Location" error={fieldError(form, "location")}><Input maxLength={SCREEN_LOCATION_MAX} placeholder="e.g. Main Lobby, Floor 1" {...maskedRegister(form, "location", maskName)} /></Field>
+        <div>
+          <Field label="Group" error={fieldError(form, "groupId")}>
+            <Select disabled={!groups.data} {...form.register("groupId")}>
+              {groups.data ? <option value="">No group</option> : (
+                // Keep the current group visible while the list loads or failed, so nothing looks unassigned.
+                <option value={(screen.groups ?? [])[0]?.id ?? ""}>{(screen.groups ?? [])[0]?.name ?? (groups.isError ? "Couldn't load groups" : "Loading groups…")}</option>
+              )}
+              {(groups.data?.data ?? []).map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
+            </Select>
+          </Field>
+          <QueryNotice query={groups} what="groups" />
+        </div>
+        <Field label="Orientation" error={fieldError(form, "orientation")}><Select {...form.register("orientation")}><option value="LANDSCAPE">Landscape (16:9)</option><option value="PORTRAIT">Portrait (9:16)</option></Select></Field>
+        <Field label="Tags" hint="Comma-separated · up to 20 tags of 40 characters" error={fieldError(form, "tags")}><Input placeholder="lobby, customer-facing" {...maskedRegister(form, "tags", maskTags)} /></Field>
+        <div className="flex gap-2"><SubmitButton form={form} size="sm">Save Changes</SubmitButton><Button type="button" size="sm" variant="secondary" onClick={onDone} disabled={form.formState.isSubmitting}>Cancel</Button></div>
       </form>
     </Card>
   );
@@ -52,11 +71,15 @@ export function ScreenDetail({ id, companyId, basePath = "/portal/screens" }: { 
   const screen = useScreen(id, { companyId });
   const command = useScreenCommand(companyId);
   const unpair = useUnpairScreen(companyId);
+  const superAdmin = isSuperAdmin(useAuth().user);
   const [editing, setEditing] = useState(false);
   const [confirmUnpair, setConfirmUnpair] = useState(false);
 
   const send = (cmd: "refresh" | "restart_player") => command.mutate({ id, command: cmd }, { onSuccess: () => toast.success(cmd === "refresh" ? "Refresh sent" : "Restart sent", "The player will act on it when it is online."), onError: (e) => toast.error(e) });
-  const doUnpair = () => unpair.mutate(id, { onSuccess: () => { toast.success("Screen unpaired", "The licence slot has been released."); router.replace(basePath); }, onError: (e) => toast.error(e) });
+  const doUnpair = async () => {
+    if (unpair.isPending) return;
+    try { await unpair.mutateAsync(id); toast.success("Screen unpaired", "The licence slot has been released."); router.replace(basePath); } catch (e) { toast.error(e); }
+  };
 
   return (
     <div className="space-y-4">
@@ -76,7 +99,7 @@ export function ScreenDetail({ id, companyId, basePath = "/portal/screens" }: { 
                       <Button size="sm" href={`${basePath}/${s.id}/publish`}><Send className="h-3.5 w-3.5" /> Publish Content</Button>
                       <Button size="sm" variant="secondary" onClick={() => setEditing((v) => !v)}>{editing ? "Cancel" : "Edit Screen"}</Button>
                       <Button size="sm" variant="secondary" onClick={() => send("refresh")} disabled={command.isPending}><RefreshCw className="h-3.5 w-3.5" /> Refresh</Button>
-                      <Button size="sm" variant="danger-outline" onClick={() => setConfirmUnpair(true)}><Unplug className="h-3.5 w-3.5" /> Unpair</Button>
+                      <Button size="sm" variant="danger-outline" onClick={() => setConfirmUnpair(true)} disabled={unpair.isPending}><Unplug className="h-3.5 w-3.5" /> Unpair</Button>
                     </div>
                   </div>
                 </div>
@@ -105,18 +128,18 @@ export function ScreenDetail({ id, companyId, basePath = "/portal/screens" }: { 
               <Card>
                 <div className="border-b border-slate-100 px-5 py-3 text-sm font-semibold text-slate-900">Screen Info</div>
                 <dl className="divide-y divide-slate-100 px-5 text-xs">
-                  <div className="flex justify-between py-2.5"><dt className="text-slate-400">Group</dt><dd className="font-semibold text-slate-800">{s.groups.map((g) => g.name).join(", ") || "—"}</dd></div>
+                  <div className="flex justify-between py-2.5"><dt className="text-slate-400">Group</dt><dd className="font-semibold text-slate-800">{(s.groups ?? []).map((g) => g.name).join(", ") || "—"}</dd></div>
                   <div className="flex justify-between py-2.5"><dt className="text-slate-400">Orientation</dt><dd className="font-semibold text-slate-800">{label(s.orientation)}</dd></div>
                   <div className="flex justify-between py-2.5"><dt className="text-slate-400">Last Seen</dt><dd className="font-semibold text-slate-800">{timeAgo(s.lastSeenAt)}</dd></div>
                   <div className="flex justify-between py-2.5"><dt className="text-slate-400">Manifest</dt><dd className="font-semibold text-slate-800">v{s.manifestVersion} <span className="font-normal text-slate-400">(ack v{s.ackVersion})</span></dd></div>
-                  <div className="flex items-center justify-between gap-3 py-2.5"><dt className="text-slate-400">Tags</dt><dd className="flex flex-wrap justify-end gap-1">{s.tags.length ? s.tags.map((t) => <Badge key={t} tone="blue">{t}</Badge>) : <span className="text-slate-400">—</span>}</dd></div>
+                  <div className="flex items-center justify-between gap-3 py-2.5"><dt className="text-slate-400">Tags</dt><dd className="flex flex-wrap justify-end gap-1">{(s.tags ?? []).length ? (s.tags ?? []).map((t) => <Badge key={t} tone="blue">{t}</Badge>) : <span className="text-slate-400">—</span>}</dd></div>
                 </dl>
               </Card>
               <Card>
                 <div className="border-b border-slate-100 px-5 py-3 text-sm font-semibold text-slate-900">Device Info</div>
                 <dl className="divide-y divide-slate-100 px-5 text-xs">
                   {[["Device", s.device?.model], ["Player", s.device?.playerVersion], ["Resolution", s.device?.resolution], ["Firmware", s.device?.firmware]].map(([k, v]) => <div key={k} className="flex justify-between py-2.5"><dt className="text-slate-400">{k}</dt><dd className="font-semibold text-slate-800">{v || "—"}</dd></div>)}
-                  <div className="flex justify-between py-2.5"><dt className="text-slate-400">IP Address</dt><dd className="font-mono text-[11px] font-semibold text-slate-800">{s.device?.ip || "—"}</dd></div>
+                  <div className="flex justify-between py-2.5"><dt className="text-slate-400">IP Address</dt><dd className="font-mono text-[11px] font-semibold text-slate-800" title={superAdmin ? s.device?.ip ?? undefined : undefined}>{maskIp(s.device?.ip)}</dd></div>
                 </dl>
                 <div className="border-t border-slate-100 px-5 py-3"><Button size="sm" variant="secondary" className="w-full" onClick={() => send("restart_player")} disabled={command.isPending}>Restart Player</Button></div>
               </Card>

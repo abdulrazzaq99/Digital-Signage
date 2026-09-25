@@ -11,6 +11,7 @@ import { errorMessage, formatDuration } from "@/lib/format";
 import { ChevronRight, ListVideo, Monitor, Send } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { QueryNotice } from "@/components/screens/query-guards";
 import { BackLinkButton, PortalStepper } from "./portal-stepper";
 import { PublishOutcome } from "./publish-target";
 
@@ -30,8 +31,9 @@ export function ScreenPublish({ id, companyId, basePath = "/portal/screens" }: {
   const back = groupId ? `${basePath}?tab=groups` : `${basePath}/${id}`;
   const target = groupId ? { name: group.data?.name ?? "…", sub: `${group.data?.screenCount ?? 0} screens` } : { name: screen.data?.name ?? "…", sub: screen.data?.location ?? "" };
 
+  const targetQuery = groupId ? group : screen;
   const go = async () => {
-    if (!pick) return;
+    if (!pick || publish.isPending) return;
     setError("");
     try {
       setResult(await publish.mutateAsync(groupId ? { id: pick.id, screenIds: [], groupIds: [groupId] } : { id: pick.id, screenIds: [id], groupIds: [] }));
@@ -49,6 +51,7 @@ export function ScreenPublish({ id, companyId, basePath = "/portal/screens" }: {
           <div className="border-b border-slate-100 px-5 py-3 text-sm font-semibold text-slate-900">Choose Playlist</div>
           <div className="space-y-3 px-5 py-4">
             <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600"><Monitor className="h-3.5 w-3.5 text-slate-400" /> Publishing to: <span className="font-semibold text-slate-800">{target.name}</span></div>
+            <QueryNotice query={targetQuery} what={groupId ? "the group" : "the screen"} />
             <QueryState query={playlists} skeleton={<TableSkeleton rows={4} />} empty={<EmptyState icon={<ListVideo className="h-5 w-5" />} title="No playlists yet" body="Create a playlist with at least one media item first." action={<Button href={basePath.replace("/screens", "/playlists")}>Go to Playlists</Button>} />}>
               {({ data }) => (
                 <ul className="space-y-1.5">
@@ -78,7 +81,7 @@ export function ScreenPublish({ id, companyId, basePath = "/portal/screens" }: {
               <div className="flex justify-between gap-6 py-3"><dt className="text-slate-400">Action</dt><dd className="font-semibold text-slate-900">Publish immediately</dd></div>
             </dl>
             {error && <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{error}</p>}
-            <div className="flex gap-2"><Button variant="secondary" onClick={() => setStep(1)} disabled={publish.isPending}>← Back</Button><Button className="flex-1" onClick={go} disabled={publish.isPending}><Send className="h-3.5 w-3.5" /> {publish.isPending ? "Publishing…" : "Publish Now"}</Button></div>
+            <div className="flex gap-2"><Button variant="secondary" onClick={() => setStep(1)} disabled={publish.isPending}>← Back</Button><Button className="flex-1" onClick={go} disabled={publish.isPending || !targetQuery.data}><Send className="h-3.5 w-3.5" /> {publish.isPending ? "Publishing…" : "Publish Now"}</Button></div>
           </div>
         </Card>
       )}

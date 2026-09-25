@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { SuccessIcon } from "@/components/ui/misc";
-import { TableSkeleton } from "@/components/ui/query-state";
+import { ErrorState, TableSkeleton } from "@/components/ui/query-state";
 import { useGroups } from "@/lib/api/hooks/groups";
 import { useScreens } from "@/lib/api/hooks/screens";
 import type { PublishResult, Screen } from "@/lib/api/types";
@@ -48,12 +48,12 @@ export function PublishTarget({ subject, companyId, onBack, onDone, onPublish }:
 
   const all: Screen[] = screens.data?.data ?? [];
   const group = target?.kind === "group" ? groups.data?.data.find((g) => g.id === target.id) : undefined;
-  const affected = target?.kind === "screen" ? all.filter((s) => s.id === target.id) : all.filter((s) => group?.screenIds.includes(s.id));
+  const affected = target?.kind === "screen" ? all.filter((s) => s.id === target.id) : all.filter((s) => (group?.screenIds ?? []).includes(s.id));
   const targetName = target?.kind === "screen" ? affected[0]?.name : group?.name;
   const Radio = ({ on }: { on: boolean }) => <span className={cn("flex h-4 w-4 items-center justify-center rounded-full border", on ? "border-blue-600" : "border-slate-300")}>{on && <span className="h-2 w-2 rounded-full bg-blue-600" />}</span>;
 
   const publish = async () => {
-    if (!target) return;
+    if (!target || pending) return;
     setPending(true);
     setError("");
     try {
@@ -90,15 +90,19 @@ export function PublishTarget({ subject, companyId, onBack, onDone, onPublish }:
       <BackLinkButton label="Back" onClick={onBack} />
       <div><h1 className="text-xl font-bold tracking-tight text-slate-900">Publish — {subject}</h1><p className="text-xs text-slate-400">Choose a screen or group to publish to.</p></div>
       <Card className="p-4">
-        {screens.isPending || groups.isPending ? <TableSkeleton rows={4} /> : (
-          <>
+        {/* Each list shows its own loading / error-with-Retry, so a failed request never reads as "no screens". */}
+        <>
             <div className="text-[9px] font-semibold uppercase tracking-wider text-slate-400">Screens</div>
+            {screens.isError ? <ErrorState error={screens.error} onRetry={() => screens.refetch()} className="mt-2 p-4" /> : screens.isPending ? <div className="mt-2"><TableSkeleton rows={3} /></div> : <>
             <ul className="mt-2 space-y-1.5">{all.map((s) => { const on = target?.kind === "screen" && target.id === s.id; return <li key={s.id}><button type="button" onClick={() => setTarget({ kind: "screen", id: s.id })} className={cn("flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left", on ? "border-blue-300 bg-blue-50/40" : "border-slate-200 hover:bg-slate-50")}><span className={cn("h-2 w-2 rounded-full", s.status === "ONLINE" ? "bg-green-500" : s.status === "OFFLINE" ? "bg-slate-300" : "bg-red-500")} /><span className="flex-1"><span className="block text-xs font-semibold text-slate-900">{s.name}</span><span className="block text-[10px] text-slate-400">{s.location ?? "—"}</span></span><Radio on={on} /></button></li>; })}</ul>
             {all.length === 0 && <p className="mt-2 text-xs text-slate-400">No screens paired yet.</p>}
+            </>}
             <div className="mt-4 text-[9px] font-semibold uppercase tracking-wider text-slate-400">Groups</div>
+            {groups.isError ? <ErrorState error={groups.error} onRetry={() => groups.refetch()} className="mt-2 p-4" /> : groups.isPending ? <div className="mt-2"><TableSkeleton rows={2} /></div> : <>
             <ul className="mt-2 space-y-1.5">{(groups.data?.data ?? []).map((g) => { const on = target?.kind === "group" && target.id === g.id; return <li key={g.id}><button type="button" onClick={() => setTarget({ kind: "group", id: g.id })} disabled={g.screenCount === 0} className={cn("flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left disabled:opacity-50", on ? "border-blue-300 bg-blue-50/40" : "border-slate-200 hover:bg-slate-50")}><span className="flex-1"><span className="block text-xs font-semibold text-slate-900">{g.name}</span><span className="block text-[10px] text-slate-400">{g.screenCount} screens</span></span><Radio on={on} /></button></li>; })}</ul>
-          </>
-        )}
+            {(groups.data?.data ?? []).length === 0 && <p className="mt-2 text-xs text-slate-400">No screen groups yet.</p>}
+            </>}
+        </>
       </Card>
       <div className="flex gap-2"><Button variant="secondary" onClick={onBack}>Cancel</Button><Button onClick={() => setPhase("confirm")} disabled={!target}>Review</Button></div>
     </div>
