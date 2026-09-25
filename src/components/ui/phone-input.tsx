@@ -6,7 +6,7 @@
  */
 import { Check, ChevronDown, Search } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type Ref } from "react";
-import { COUNTRIES, countryByCode, defaultCountry, formatNational, splitPhone, toE164, type CountryCode } from "@/lib/phone";
+import { clampDigits, COUNTRIES, countryByCode, defaultCountry, formatNational, splitPhone, toE164, type CountryCode } from "@/lib/phone";
 import { cn } from "@/lib/utils";
 
 export interface PhoneInputProps {
@@ -61,8 +61,11 @@ export function PhoneInput({ value, onChange, onBlur, defaultCountry: fallback, 
         value={country}
         disabled={disabled}
         onChange={(c) => {
+          // A number too long for the new country is trimmed to its maximum.
+          const d = clampDigits(c, digits);
           setCountry(c);
-          emit(c, digits);
+          setDigits(d);
+          emit(c, d);
         }}
       />
       <input
@@ -80,12 +83,13 @@ export function PhoneInput({ value, onChange, onBlur, defaultCountry: fallback, 
           const raw = e.target.value;
           if (raw.trim().startsWith("+")) {
             const parsed = splitPhone(raw.replace(/[^\d+]/g, ""), country);
+            const pd = clampDigits(parsed.country, parsed.national);
             setCountry(parsed.country);
-            setDigits(parsed.national.slice(0, 17));
-            emit(parsed.country, parsed.national);
+            setDigits(pd);
+            emit(parsed.country, pd);
             return;
           }
-          const d = raw.replace(/\D/g, "").slice(0, 17);
+          const d = clampDigits(country, raw);
           setDigits(d);
           emit(country, d);
         }}

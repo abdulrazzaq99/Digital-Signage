@@ -3,7 +3,7 @@
  * so every phone field validates against the chosen country's real numbering rules and stores the
  * number in international E.164 form (+923001234567), which the API expects.
  */
-import { AsYouType, getCountries, getCountryCallingCode, isValidPhoneNumber, parsePhoneNumberFromString, type CountryCode } from "libphonenumber-js";
+import { AsYouType, getCountries, getCountryCallingCode, isValidPhoneNumber, parsePhoneNumberFromString, validatePhoneNumberLength, type CountryCode } from "libphonenumber-js";
 
 export type { CountryCode };
 
@@ -39,9 +39,19 @@ export function defaultCountry(fallback: CountryCode = "GB"): CountryCode {
 
 /** Splits a stored E.164 number into its country and national digits for editing. */
 export function splitPhone(e164: string | null | undefined, fallback: CountryCode): { country: CountryCode; national: string } {
-  const parsed = e164 ? parsePhoneNumberFromString(e164) : undefined;
+  if (!e164) return { country: fallback, national: "" };
+  const digits = e164.replace(/\D/g, "");
+  if (e164.trim().startsWith("+")) {
+    // An over-long paste (+1 212 555 0123 999) doesn't parse; drop trailing digits until the
+    // country is recognised, so the code is never mistaken for part of the number.
+    for (let n = digits.length; n >= 4; n--) {
+      const parsed = parsePhoneNumberFromString(`+${digits.slice(0, n)}`);
+      if (parsed?.country) return { country: parsed.country, national: parsed.nationalNumber };
+    }
+  }
+  const parsed = parsePhoneNumberFromString(e164);
   if (parsed?.country) return { country: parsed.country, national: parsed.nationalNumber };
-  return { country: fallback, national: e164 ? e164.replace(/^\+\d{1,3}/, "").replace(/\D/g, "") : "" };
+  return { country: fallback, national: digits };
 }
 
 /** Digits typed for a country → E.164 (+CC…), or "" when nothing was typed. A leading trunk 0 is dropped. */
@@ -62,6 +72,17 @@ export function formatNational(country: CountryCode, digits: string): string {
   if (digits.startsWith("0")) return new AsYouType(country).input(digits);
   const dial = getCountryCallingCode(country);
   return new AsYouType().input(`+${dial}${digits}`).replace(new RegExp(`^\\+${dial}\\s?`), "");
+}
+
+/**
+ * Drops digits past the longest number the country's plan allows (10 for the US and UK), so typing
+ * or pasting can't overflow the field or break its formatting. Countries with variable-length
+ * numbers keep what their plan permits.
+ */
+export function clampDigits(country: CountryCode, digits: string): string {
+  let d = digits.replace(/\D/g, "").slice(0, 17);
+  while (d && validatePhoneNumberLength(d, country) === "TOO_LONG") d = d.slice(0, -1);
+  return d;
 }
 
 /** True for a number that is valid in its country (E.164 input). */

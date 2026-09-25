@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { COUNTRIES, countryByCode, displayPhone, flagOf, formatNational, isValidPhone, splitPhone, toE164 } from "./phone";
+import { clampDigits, COUNTRIES, countryByCode, displayPhone, flagOf, formatNational, isValidPhone, splitPhone, toE164 } from "./phone";
 
 describe("phone helpers", () => {
   it("lists every country with a flag and dialling code", () => {
@@ -18,6 +18,8 @@ describe("phone helpers", () => {
   it("splits a stored number back into country and national digits", () => {
     expect(splitPhone("+923001234567", "GB")).toEqual({ country: "PK", national: "3001234567" });
     expect(splitPhone("", "AE")).toEqual({ country: "AE", national: "" });
+    // An over-long paste keeps its country instead of being misread.
+    expect(splitPhone("+1 (212) 555-0123 999", "GB")).toEqual({ country: "US", national: "2125550123" });
   });
 
   it("validates against the country's numbering plan", () => {
@@ -27,6 +29,13 @@ describe("phone helpers", () => {
     expect(isValidPhone("+447700900123")).toBe(false);
     expect(isValidPhone("+92300")).toBe(false);
     expect(isValidPhone("not a number")).toBe(false);
+  });
+
+  it("never lets a number grow past the country's longest length", () => {
+    expect(clampDigits("US", "21255501234")).toBe("2125550123");
+    expect(clampDigits("GB", "740012345678")).toBe("7400123456");
+    expect(clampDigits("US", "212-555-0123")).toBe("2125550123");
+    expect(formatNational("US", clampDigits("US", "21255501234"))).toBe("212 555 0123");
   });
 
   it("formats for typing and display", () => {
