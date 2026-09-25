@@ -17,9 +17,9 @@ describe("user form", () => {
     expect(issues(userSchema.safeParse({ ...base, password: "qa.person123" })).password).toMatch(/email name/);
   });
   it("create omits blanks; update clears with null and never sends own role/status", () => {
-    const v = userSchema.parse({ ...base, email: " QA.Person@Example.com ", phone: "020 7946 0000" });
-    expect(createUserBody(v)).toEqual({ email: "qa.person@example.com", name: "QA Person", role: "EDITOR", phone: "02079460000" });
-    expect(updateUserBody(v, false)).toEqual({ name: "QA Person", title: null, phone: "02079460000", role: "EDITOR", isActive: true });
-    expect(updateUserBody(v, true)).toEqual({ name: "QA Person", title: null, phone: "02079460000" });
+    const v = userSchema.parse({ ...base, email: " QA.Person@Example.com ", phone: "+442079460000" });
+    expect(createUserBody(v)).toEqual({ email: "qa.person@example.com", name: "QA Person", role: "EDITOR", phone: "+442079460000" });
+    expect(updateUserBody(v, false)).toEqual({ name: "QA Person", title: null, phone: "+442079460000", role: "EDITOR", isActive: true });
+    expect(updateUserBody(v, true)).toEqual({ name: "QA Person", title: null, phone: "+442079460000" });
   });
 });

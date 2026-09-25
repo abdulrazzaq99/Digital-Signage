@@ -3,7 +3,7 @@ import { useAuth } from "@/components/auth/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { applyApiError, Field, FormError, maskedRegister, SubmitButton, useZodForm } from "@/components/ui/form";
+import { applyApiError, Field, FormError, FormPhone, maskedRegister, SubmitButton, useZodForm } from "@/components/ui/form";
 import { Input, PasswordInput } from "@/components/ui/input";
 import { Alert, Avatar } from "@/components/ui/misc";
 import { EmptyState, QueryState, Skeleton } from "@/components/ui/query-state";
@@ -15,7 +15,7 @@ import { useLicense } from "@/lib/api/hooks/licenses";
 import { useUsers } from "@/lib/api/hooks/users";
 import type { User } from "@/lib/api/types";
 import { formatDate, label, roleLabel, timeAgo } from "@/lib/format";
-import { formatPhone, maskEmail, maskName, maskPhone } from "@/lib/validation/masks";
+import { formatPhone, maskEmail, maskName } from "@/lib/validation/masks";
 import { applyPasswordError, PASSWORD_HINT, passwordChangeDefaults, passwordChangeSchema, profileBody, profileDefaults, profileSchema } from "@/components/settings/account-schemas";
 import { cn } from "@/lib/utils";
 import { Pencil, Plus } from "lucide-react";
@@ -69,7 +69,7 @@ function ProfileTab() {
         <Field label="Full Name" required error={e.name?.message}><Input autoComplete="name" maxLength={120} {...maskedRegister(form, "name", maskName)} /></Field>
         <Field label="Email Address" hint="Contact your account manager to change your email address."><Input value={user.email} disabled readOnly className="bg-slate-50 text-slate-400" /></Field>
         <Field label="Job Title" error={e.title?.message}><Input autoComplete="organization-title" maxLength={80} {...form.register("title")} /></Field>
-        <Field label="Phone Number" error={e.phone?.message}><Input type="tel" inputMode="tel" autoComplete="tel" placeholder="+44 20 7946 0000" maxLength={20} {...maskedRegister(form, "phone", maskPhone)} /></Field>
+        <Field label="Phone Number" error={e.phone?.message}><FormPhone form={form} name="phone" /></Field>
         <SubmitButton form={form} size="sm">Save Changes</SubmitButton>
       </form>
       <div className="border-t border-slate-100 pt-5">

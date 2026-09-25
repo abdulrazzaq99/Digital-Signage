@@ -1,6 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { applyApiError, Field, FormError, maskedRegister, SubmitButton, useZodForm } from "@/components/ui/form";
+import { applyApiError, Field, FormError, FormPhone, maskedRegister, SubmitButton, useZodForm } from "@/components/ui/form";
 import { Input, Select } from "@/components/ui/input";
 import { Modal, ModalFooter, ModalHeader } from "@/components/ui/modal";
 import { SectionLabel } from "@/components/ui/card";
@@ -11,7 +11,7 @@ import { LICENSE_STATES, useUpdateLicense } from "@/lib/api/hooks/licenses";
 import type { Company } from "@/lib/api/types";
 import { label } from "@/lib/format";
 import { TIME_ZONES } from "@/lib/validation/fields";
-import { maskInteger, maskName, maskPhone } from "@/lib/validation/masks";
+import { maskInteger, maskName } from "@/lib/validation/masks";
 import { Trash2 } from "lucide-react";
 import { COMPANY_STATUSES, companyDefaults, companySchema, createCompanyBody, deleteCompanySchema, updateCompanyBody } from "./company-schema";
 
@@ -60,7 +60,7 @@ function CompanyForm({ company, onClose, onSaved }: { company?: Company | null; 
             <Field label="Plan" error={e.plan?.message}><Input placeholder="e.g. Platform Pro" autoComplete="off" maxLength={60} {...register("plan")} /></Field>
             <Field label="Website" error={e.website?.message}><Input type="url" inputMode="url" placeholder="https://" autoComplete="url" autoCapitalize="off" maxLength={2048} {...register("website")} /></Field>
             <Field label="Industry" error={e.industry?.message}><Input placeholder="Retail" autoComplete="off" maxLength={80} {...register("industry")} /></Field>
-            <Field label="Phone" error={e.phone?.message}><Input type="tel" inputMode="tel" placeholder="+44 20 7946 0000" autoComplete="tel" maxLength={20} {...maskedRegister(form, "phone", maskPhone)} /></Field>
+            <Field label="Phone" error={e.phone?.message}><FormPhone form={form} name="phone" autoComplete="off" /></Field>
             <Field label="Timezone" required error={e.timezone?.message}><Select {...register("timezone")}>{zones.map((tz) => <option key={tz} value={tz}>{tz}</option>)}</Select></Field>
           </div>
         </div>

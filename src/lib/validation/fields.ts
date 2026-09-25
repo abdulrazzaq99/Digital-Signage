@@ -6,6 +6,7 @@
  * Form values are strings (inputs), so optional fields accept "" and numbers are parsed from text.
  */
 import { z } from "zod";
+import { isValidPhone } from "@/lib/phone";
 import { COMMON_PASSWORDS } from "./common-passwords";
 
 /** Trimmed, required text between `min` and `max` characters. */
@@ -22,16 +23,16 @@ export const optionalText = (max: number) => z.string().trim().max(max, `Must be
 export const email = () => z.string().trim().toLowerCase().min(1, "Required").max(254, "Must be at most 254 characters").pipe(z.email("Enter a valid email address"));
 export const optionalEmail = () => z.union([z.literal(""), email()]);
 
-const PHONE = /^(\+[1-9]\d{6,14}|0\d{6,14})$/;
-/** Digits with an optional leading +, as the API stores it. */
+/** Digits with a leading +, as the API stores it (PhoneInput already produces this). */
 export const phoneDigits = (v: string) => v.replace(/[\s\-().]/g, "");
+/** An E.164 number (from PhoneInput) that is valid for its country's numbering plan. */
 export const phone = () =>
   z
     .string()
     .trim()
     .min(1, "Required")
     .max(40)
-    .refine((v) => PHONE.test(phoneDigits(v)), "Enter a valid phone number, e.g. +44 20 7946 0000");
+    .refine((v) => isValidPhone(phoneDigits(v)), "Enter a valid phone number for the selected country");
 export const optionalPhone = () => z.union([z.literal(""), phone()]);
 
 export const isHttpUrl = (v: string) => {

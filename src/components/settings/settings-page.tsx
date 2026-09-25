@@ -2,7 +2,7 @@
 import { useAuth } from "@/components/auth/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { applyApiError, Field, FormError, maskedRegister, SubmitButton, useZodForm } from "@/components/ui/form";
+import { applyApiError, Field, FormError, FormPhone, maskedRegister, SubmitButton, useZodForm } from "@/components/ui/form";
 import { Input, Label, PasswordInput, Select, Toggle } from "@/components/ui/input";
 import { Alert, Avatar, PageHeader } from "@/components/ui/misc";
 import { useToast } from "@/components/ui/toast";
@@ -10,7 +10,7 @@ import { useChangePassword, useUpdateProfile } from "@/lib/api/hooks/auth";
 import { roleLabel } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { TIME_ZONES } from "@/lib/validation/fields";
-import { maskInteger, maskName, maskPhone } from "@/lib/validation/masks";
+import { maskInteger, maskName } from "@/lib/validation/masks";
 import { Info } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -98,7 +98,7 @@ function ProfileTab() {
               <Input autoComplete="organization-title" maxLength={80} {...register("title")} />
             </Field>
             <Field label="Phone Number" error={formState.errors.phone?.message}>
-              <Input type="tel" inputMode="tel" autoComplete="tel" placeholder="+44 20 7946 0000" maxLength={20} {...maskedRegister(form, "phone", maskPhone)} />
+              <FormPhone form={form} name="phone" />
             </Field>
           </div>
           <SubmitButton form={form}>Save Changes</SubmitButton>

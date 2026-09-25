@@ -5,7 +5,6 @@
 import { z } from "zod";
 import type { Schemas, User } from "@/lib/api/types";
 import { email, optionalPhone, optionalText, password, passwordUsesEmail, phoneDigits, text } from "@/lib/validation/fields";
-import { formatPhone } from "@/lib/validation/masks";
 
 export const userSchema = z
   .object({
@@ -29,7 +28,7 @@ export const userDefaults = (u?: User): UserFormValues => ({
   email: u?.email ?? "",
   role: u?.role ?? "EDITOR",
   title: u?.title ?? "",
-  phone: u?.phone ? formatPhone(u.phone) : "",
+  phone: u?.phone ?? "",
   password: "",
   isActive: u ? u.status !== "SUSPENDED" : true,
 });

@@ -1,3 +1,5 @@
+import { displayPhone } from "@/lib/phone";
+
 /**
  * Input masks: pure string → string functions applied on every keystroke, so a field can only
  * ever hold characters its rule allows. Display masks at the bottom hide sensitive values.
@@ -50,12 +52,5 @@ export const maskIp = (v: string | null | undefined) => {
   return v.split(":").map((p, i) => (i < 2 ? p : "•")).join(":");
 };
 
-/** +442079460000 → +44 20 7946 0000 style grouping for display (best effort, no country rules). */
-export const formatPhone = (v: string | null | undefined) => {
-  if (!v) return "—";
-  const plus = v.startsWith("+");
-  const d = v.replace(/\D/g, "");
-  if (d.length < 7) return v;
-  const groups = plus ? [d.slice(0, 2), d.slice(2, 4), d.slice(4, 8), d.slice(8)] : [d.slice(0, 3), d.slice(3, 7), d.slice(7)];
-  return (plus ? "+" : "") + groups.filter(Boolean).join(" ");
-};
+/** Stored number → "🇬🇧 +44 20 7946 0000", grouped by the country's own rules. */
+export const formatPhone = (v: string | null | undefined) => displayPhone(v);

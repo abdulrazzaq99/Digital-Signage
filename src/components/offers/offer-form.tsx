@@ -3,7 +3,7 @@ import { OfferBody } from "@/components/portal/offer-detail";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { applyApiError, Field, FormError, maskedRegister, SubmitButton, useZodForm } from "@/components/ui/form";
+import { applyApiError, Field, FormError, FormPhone, maskedRegister, SubmitButton, useZodForm } from "@/components/ui/form";
 import { Input, Select, Textarea } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import { Alert, BackLink, SuccessIcon } from "@/components/ui/misc";
@@ -12,7 +12,7 @@ import { useToast } from "@/components/ui/toast";
 import { useCreateOffer, useOffer, usePublishOffer, useUpdateOffer } from "@/lib/api/hooks/offers";
 import type { Offer, Schemas } from "@/lib/api/types";
 import { toDateInput } from "@/lib/format";
-import { maskName, maskPhone } from "@/lib/validation/masks";
+import { maskName } from "@/lib/validation/masks";
 import { AlertTriangle, ArrowLeft, Check, Eye, Info, Save, Send } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -117,7 +117,7 @@ function Form({ offer, mode }: { offer?: Offer; mode: "create" | "edit" | "previ
               <Field label="Name" required error={errors.contactName?.message}><Input placeholder="Account manager" maxLength={120} autoComplete="off" {...maskedRegister(form, "contactName", maskName)} /></Field>
               <Field label="Role" error={errors.contactRole?.message}><Input maxLength={80} {...register("contactRole")} /></Field>
               <Field label="Email" error={errors.contactEmail?.message}><Input type="email" inputMode="email" autoCapitalize="off" maxLength={254} placeholder="name@company.com" {...register("contactEmail")} /></Field>
-              <Field label="Phone" error={errors.contactPhone?.message}><Input type="tel" inputMode="tel" maxLength={20} placeholder="+44 20 7946 0000" {...maskedRegister(form, "contactPhone", maskPhone)} /></Field>
+              <Field label="Phone" error={errors.contactPhone?.message}><FormPhone form={form} name="contactPhone" autoComplete="off" /></Field>
               <Field label="Hours" className="sm:col-span-2" error={errors.contactHours?.message}><Input maxLength={120} placeholder="Mon–Fri 9:00–17:00" {...register("contactHours")} /></Field>
             </div>
           </Card>

@@ -2,7 +2,7 @@
 import { useAuth } from "@/components/auth/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { applyApiError, Field, FormError, maskedRegister, SubmitButton, useZodForm } from "@/components/ui/form";
+import { applyApiError, Field, FormError, FormPhone, maskedRegister, SubmitButton, useZodForm } from "@/components/ui/form";
 import { Checkbox, Input, PasswordInput, Select } from "@/components/ui/input";
 import { Avatar, Drawer } from "@/components/ui/misc";
 import { ErrorState, Skeleton } from "@/components/ui/query-state";
@@ -10,7 +10,7 @@ import { useToast } from "@/components/ui/toast";
 import { COMPANY_ROLES, useCreateUser, useDeleteUser, useUpdateUser, useUsers } from "@/lib/api/hooks/users";
 import type { User } from "@/lib/api/types";
 import { formatDateTime, label, timeAgo } from "@/lib/format";
-import { maskName, maskPhone } from "@/lib/validation/masks";
+import { maskName } from "@/lib/validation/masks";
 import { RefreshCw, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import { Controller } from "react-hook-form";
@@ -67,7 +67,7 @@ function Form({ user, companyId, onClose }: { user?: User; companyId?: string | 
         </div>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Job Title" error={formState.errors.title?.message}><Input autoComplete="off" maxLength={80} {...register("title")} /></Field>
-          <Field label="Phone" error={formState.errors.phone?.message}><Input type="tel" inputMode="tel" autoComplete="off" placeholder="+44 20 7946 0000" maxLength={20} {...maskedRegister(form, "phone", maskPhone)} /></Field>
+          <Field label="Phone" error={formState.errors.phone?.message}><FormPhone form={form} name="phone" autoComplete="off" /></Field>
         </div>
         {!user && (
           <Field label={<>Temporary password <span className="font-normal text-slate-400">(optional)</span></>} hint="Leave blank to create the user as invited. Otherwise 8–128 characters with a letter and a number." error={formState.errors.password?.message}>

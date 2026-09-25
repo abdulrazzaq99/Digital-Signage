@@ -35,7 +35,7 @@ describe("offer schema", () => {
   });
 
   it("validates contact email and phone", () => {
-    expect(issues({ contactEmail: "nope", contactPhone: "12" })).toEqual(["contactEmail: Enter a valid email address", "contactPhone: Enter a valid phone number, e.g. +44 20 7946 0000"]);
+    expect(issues({ contactEmail: "nope", contactPhone: "12" })).toEqual(["contactEmail: Enter a valid email address", "contactPhone: Enter a valid phone number for the selected country"]);
   });
 });
 

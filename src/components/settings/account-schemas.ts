@@ -6,7 +6,6 @@ import type { UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 import { applyApiError } from "@/components/ui/form";
 import { ApiError } from "@/lib/api/client";
-import { formatPhone } from "@/lib/validation/masks";
 import { email, intText, optionalPhone, optionalText, password, passwordInput, passwordUsesEmail, phoneDigits, text, timezone } from "@/lib/validation/fields";
 
 export const profileSchema = z.object({ name: text(120, 2), title: optionalText(80), phone: optionalPhone() });
@@ -16,7 +15,7 @@ export type ProfileValues = z.input<typeof profileSchema>;
 export const profileDefaults = (u: { name?: string | null; title?: string | null; phone?: string | null } | null | undefined): ProfileValues => ({
   name: u?.name ?? "",
   title: u?.title ?? "",
-  phone: u?.phone ? formatPhone(u.phone) : "",
+  phone: u?.phone ?? "",
 });
 
 /** PATCH /users/me body: blanks clear the stored value (null), phones are sent as digits. */

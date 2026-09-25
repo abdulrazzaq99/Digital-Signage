@@ -17,8 +17,10 @@ describe("client field rules (mirror the API)", () => {
     expect(valid(email(), "a@")).toBe(false);
   });
 
-  it("phone accepts formatted numbers; optional allows blank", () => {
-    expect(valid(phone(), "+44 20 7946 0000")).toBe(true);
+  it("phone must be valid for its country; optional allows blank", () => {
+    expect(valid(phone(), "+442079460000")).toBe(true);
+    expect(valid(phone(), "+923001234567")).toBe(true);
+    expect(valid(phone(), "+4420")).toBe(false);
     expect(valid(phone(), "12")).toBe(false);
     expect(valid(optionalPhone(), "")).toBe(true);
   });
@@ -76,6 +78,6 @@ describe("input masks", () => {
     expect(maskEmail("sarah.mitchell@acmecorp.com")).toBe("s***@acmecorp.com");
     expect(maskMiddle("device-8f3a2b91c4d5e6f7")).toBe("devi…e6f7");
     expect(maskIp("192.168.1.101")).toBe("192.168.•.•");
-    expect(formatPhone("+442079460000")).toBe("+44 20 7946 0000");
+    expect(formatPhone("+442079460000")).toBe("🇬🇧 +44 20 7946 0000");
   });
 });

@@ -5,7 +5,6 @@
 import { z } from "zod";
 import type { Company, Schemas } from "@/lib/api/types";
 import { intText, optionalPhone, optionalText, optionalUrl, phoneDigits, text, timezone } from "@/lib/validation/fields";
-import { formatPhone } from "@/lib/validation/masks";
 
 export const COMPANY_STATUSES = ["ACTIVE", "INACTIVE", "SUSPENDED"] as const;
 export const LICENSE_STATE_VALUES = ["ACTIVE", "SUSPENDED", "DISABLED", "EXPIRED"] as const;
@@ -33,7 +32,7 @@ export const companyDefaults = (c?: Company | null): CompanyFormValues => ({
   plan: c?.plan ?? "",
   website: c?.website ?? "",
   industry: c?.industry ?? "",
-  phone: c?.phone ? formatPhone(c.phone) : "",
+  phone: c?.phone ?? "",
   timezone: c?.timezone ?? "UTC",
   screenLimit: String(c?.license?.screenLimit ?? 10),
   licenseState: c?.license?.state ?? "ACTIVE",

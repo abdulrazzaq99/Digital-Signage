@@ -7,13 +7,14 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle } from "lucide-react";
 import { cloneElement, isValidElement, useId, type ReactElement, type ReactNode } from "react";
-import { useForm, type FieldValues, type Path, type UseFormProps, type UseFormReturn } from "react-hook-form";
+import { Controller, useForm, type FieldValues, type Path, type UseFormProps, type UseFormReturn } from "react-hook-form";
 import type { z } from "zod";
 import { ApiError } from "@/lib/api/client";
 import { errorMessage } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Button, type ButtonProps } from "./button";
 import { Label } from "./input";
+import { PhoneInput, type PhoneInputProps } from "./phone-input";
 
 /** react-hook-form with the zod schema as resolver. Validates on blur, then on every change once touched. */
 export function useZodForm<TIn extends FieldValues, TOut extends FieldValues>(schema: z.ZodType<TOut, TIn>, options?: Omit<UseFormProps<TIn, unknown, TOut>, "resolver">) {
@@ -108,4 +109,15 @@ export function fieldError<T extends FieldValues, O extends FieldValues>(form: U
   let node: unknown = form.formState.errors;
   for (const p of parts) node = (node as Record<string, unknown> | undefined)?.[p];
   return (node as { message?: string } | undefined)?.message;
+}
+
+/** A form's phone field: country picker + number, stored as E.164. Use inside <Field> like any input. */
+export function FormPhone<T extends FieldValues, O extends FieldValues>({ form, name, ...rest }: { form: UseFormReturn<T, unknown, O>; name: Path<T> } & Omit<PhoneInputProps, "value" | "onChange" | "onBlur" | "ref" | "name">) {
+  return (
+    <Controller
+      control={form.control}
+      name={name}
+      render={({ field }) => <PhoneInput {...rest} value={field.value as string} onChange={field.onChange} onBlur={field.onBlur} ref={field.ref} name={field.name} />}
+    />
+  );
 }

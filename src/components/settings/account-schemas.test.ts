@@ -35,7 +35,7 @@ describe("profile", () => {
     const v = profileSchema.parse({ name: "  Ann Lee ", title: " ", phone: "+44 20 7946 0000" });
     expect(profileBody(v)).toEqual({ name: "Ann Lee", title: null, phone: "+442079460000" });
   });
-  it("shows a stored phone grouped", () => expect(profileDefaults({ name: "A", phone: "+442079460000" }).phone).toBe("+44 20 7946 0000"));
+  it("loads a stored phone as E.164 for the phone field", () => expect(profileDefaults({ name: "A", phone: "+442079460000" }).phone).toBe("+442079460000"));
 });
 
 describe("general settings", () => {
