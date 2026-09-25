@@ -36,7 +36,7 @@ export function Sidebar({ config, collapsed, mobileOpen, onClose }: { config: Sh
           <LayoutDashboard className="h-4 w-4" />
         </div>
         <span className={cn("min-w-0", collapsed && "lg:hidden")}><span className="block truncate text-sm font-bold text-slate-900">{config.brand.name}</span>{config.brand.subtitle && <span className="block text-[10px] leading-3 text-slate-400">{config.brand.subtitle}</span>}</span>
-        {onClose && <button onClick={onClose} className="ml-auto flex h-7 w-7 items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 lg:hidden" aria-label="Close menu"><X className="h-4 w-4" /></button>}
+        {onClose && <button onClick={onClose} className="ml-auto flex h-10 w-10 sm:h-7 sm:w-7 items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 lg:hidden" aria-label="Close menu"><X className="h-4 w-4" /></button>}
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-3">
@@ -105,7 +105,7 @@ export function Sidebar({ config, collapsed, mobileOpen, onClose }: { config: Sh
           onClick={async () => { await logout(); router.replace("/login"); }}
           title="Sign out"
           aria-label="Sign out"
-          className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-700", collapsed && "lg:hidden")}
+          className={cn("flex h-10 w-10 shrink-0 sm:h-7 sm:w-7 items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-700", collapsed && "lg:hidden")}
         >
           <LogOut className="h-3.5 w-3.5" />
         </button>

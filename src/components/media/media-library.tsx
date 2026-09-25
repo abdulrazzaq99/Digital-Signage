@@ -68,7 +68,7 @@ export function MediaLibrary() {
           <FilterSelect label="All Statuses" options={["READY", "PROCESSING", "FAILED"].map((s) => ({ value: s, label: label(s) }))} value={status} onChange={(v) => { setStatus(v); setPage(1); }} />
           <span className="text-xs text-slate-400">{media.data?.meta?.total ?? 0} files</span>
         </div>
-        <div className="flex rounded-lg border border-slate-200 bg-white p-0.5"><button onClick={() => setView("grid")} className={cn("flex h-7 w-7 items-center justify-center rounded-md", view === "grid" ? "bg-blue-50 text-blue-600" : "text-slate-400")} aria-label="Grid view"><LayoutGrid className="h-3.5 w-3.5" /></button><button onClick={() => setView("list")} className={cn("flex h-7 w-7 items-center justify-center rounded-md", view === "list" ? "bg-blue-50 text-blue-600" : "text-slate-400")} aria-label="List view"><List className="h-3.5 w-3.5" /></button></div>
+        <div className="flex rounded-lg border border-slate-200 bg-white p-0.5"><button onClick={() => setView("grid")} className={cn("flex h-10 w-10 sm:h-7 sm:w-7 items-center justify-center rounded-md", view === "grid" ? "bg-blue-50 text-blue-600" : "text-slate-400")} aria-label="Grid view"><LayoutGrid className="h-3.5 w-3.5" /></button><button onClick={() => setView("list")} className={cn("flex h-10 w-10 sm:h-7 sm:w-7 items-center justify-center rounded-md", view === "list" ? "bg-blue-50 text-blue-600" : "text-slate-400")} aria-label="List view"><List className="h-3.5 w-3.5" /></button></div>
       </div>
 
       <CompanyGate companyId={companyId} skeleton={<CardGridSkeleton count={10} className="xl:grid-cols-5" />} what="its media library">

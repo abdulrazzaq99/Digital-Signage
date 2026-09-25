@@ -124,7 +124,7 @@ export function DropdownMenu({ items, align = "right", trigger, className }: { i
   }, [open]);
   return (
     <div ref={ref} className={cn("relative inline-block", className)}>
-      <button type="button" onClick={() => setOpen((v) => !v)} className="flex h-7 w-7 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-400 hover:bg-slate-50 hover:text-slate-600" aria-label="Actions">
+      <button type="button" onClick={() => setOpen((v) => !v)} className="flex h-10 w-10 sm:h-7 sm:w-7 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-400 hover:bg-slate-50 hover:text-slate-600" aria-label="Actions">
         {trigger ?? <MoreHorizontal className="h-3.5 w-3.5" />}
       </button>
       {open && (

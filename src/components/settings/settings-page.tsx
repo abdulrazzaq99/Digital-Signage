@@ -160,7 +160,7 @@ export function SettingsPage() {
   return (
     <div className="space-y-5">
       <PageHeader title="Settings" subtitle="Manage your platform configuration, profile and security." />
-      <div className="inline-flex rounded-lg border border-slate-200 bg-slate-100 p-1">{(["general", "profile", "security"] as Tab[]).map((t) => <button key={t} type="button" onClick={() => setTab(t)} className={cn("h-7 rounded-md px-4 text-xs font-medium capitalize transition-colors", tab === t ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-800")}>{t}</button>)}</div>
+      <div className="inline-flex rounded-lg border border-slate-200 bg-slate-100 p-1">{(["general", "profile", "security"] as Tab[]).map((t) => <button key={t} type="button" onClick={() => setTab(t)} className={cn("h-9 sm:h-7 rounded-md px-4 text-xs font-medium capitalize transition-colors", tab === t ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-800")}>{t}</button>)}</div>
 
       <div className="max-w-[760px] space-y-4">
         {tab === "general" && <GeneralTab />}

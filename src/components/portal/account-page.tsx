@@ -129,7 +129,7 @@ function UsersTab() {
                     <TD><Badge tone={roleTone(u.role)}>{label(u.role)}</Badge></TD>
                     <TD><Badge tone={statusTone(u.status)} dot>{label(u.status)}</Badge></TD>
                     <TD className="text-xs text-slate-400 whitespace-nowrap">{timeAgo(u.lastLoginAt)}</TD>
-                    <TD className="text-right"><button type="button" onClick={() => setDrawer({ mode: "edit", id: u.id, user: u })} className="flex h-7 w-7 items-center justify-center rounded-md border border-slate-200 text-slate-400 hover:text-slate-700" aria-label="Edit"><Pencil className="h-3.5 w-3.5" /></button></TD>
+                    <TD className="text-right"><button type="button" onClick={() => setDrawer({ mode: "edit", id: u.id, user: u })} className="flex h-10 w-10 sm:h-7 sm:w-7 items-center justify-center rounded-md border border-slate-200 text-slate-400 hover:text-slate-700" aria-label="Edit"><Pencil className="h-3.5 w-3.5" /></button></TD>
                   </TR>
                 ))}
               </tbody>
@@ -149,7 +149,7 @@ export function AccountPage() {
   const tabs: [Tab, string][] = [["profile", "Profile"], ["company", "Company Settings"], ...(canManageUsers ? [["users", "Users"] as [Tab, string]] : [])];
   return (
     <div className="space-y-5">
-      <div className="inline-flex rounded-lg border border-slate-200 bg-slate-100 p-1">{tabs.map(([k, l]) => <button key={k} type="button" onClick={() => setTab(k)} className={cn("h-7 rounded-md px-4 text-xs font-medium transition-colors", tab === k ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-800")}>{l}</button>)}</div>
+      <div className="inline-flex rounded-lg border border-slate-200 bg-slate-100 p-1">{tabs.map(([k, l]) => <button key={k} type="button" onClick={() => setTab(k)} className={cn("h-9 sm:h-7 rounded-md px-4 text-xs font-medium transition-colors", tab === k ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-800")}>{l}</button>)}</div>
       {tab === "profile" && <ProfileTab />}
       {tab === "company" && (companyId ? <CompanyTab companyId={companyId} /> : <EmptyState title="No company linked" body="This account isn't linked to a company." className="max-w-[520px]" />)}
       {tab === "users" && canManageUsers && <UsersTab />}
