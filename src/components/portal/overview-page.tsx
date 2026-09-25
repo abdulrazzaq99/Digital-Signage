@@ -20,7 +20,7 @@ import { useState } from "react";
 import { PublishOutcome } from "./publish-target";
 
 function kindStyle(a: ActivityEntry): { icon: React.ReactNode; cls: string } {
-  const [kind, verb] = a.action.split(".");
+  const [kind, verb] = (a.action ?? "").split(".");
   if (verb?.includes("publish")) return { icon: <Send className="h-3.5 w-3.5" />, cls: "bg-blue-50 text-blue-600" };
   if (kind === "screen" && verb?.includes("offline")) return { icon: <MonitorOff className="h-3.5 w-3.5" />, cls: "bg-red-50 text-red-600" };
   if (kind === "screen") return { icon: <Link2 className="h-3.5 w-3.5" />, cls: "bg-green-50 text-green-600" };
@@ -39,7 +39,7 @@ function QuickPublish() {
   const playlists = usePlaylists({ pageSize: 20 });
   const publish = usePublishPlaylist();
   const reset = () => { setStep(1); setScreen(null); setPlaylist(null); setResult(null); setError(""); };
-  const go = () => { if (!screen || !playlist) return; setError(""); publish.mutate({ id: playlist.id, screenIds: [screen.id], groupIds: [] }, { onSuccess: (r) => { setResult(r); setStep(4); }, onError: (e) => setError(errorMessage(e)) }); };
+  const go = () => { if (!screen || !playlist || publish.isPending) return; setError(""); publish.mutate({ id: playlist.id, screenIds: [screen.id], groupIds: [] }, { onSuccess: (r) => { setResult(r); setStep(4); }, onError: (e) => setError(errorMessage(e)) }); };
   return (
     <Card className="self-start">
       <CardHeader title="Quick Publish" />
@@ -72,7 +72,7 @@ function QuickPublish() {
           <div className="animate-fade-in">
             <p className="mb-2 text-[11px] text-slate-400">Publishing to <span className="font-semibold text-slate-700">{screen.name}</span></p>
             <QueryState query={playlists} skeleton={<TableSkeleton rows={3} />} empty={<p className="text-xs text-slate-400">No playlists yet. <Link href="/portal/playlists" className="text-blue-600 hover:underline">Create one →</Link></p>}>
-              {({ data }) => <ul className="space-y-1.5">{data.filter((p) => p.itemCount > 0).map((p) => <li key={p.id}><button onClick={() => { setPlaylist(p); setStep(3); }} className="flex w-full items-center gap-3 rounded-lg border border-slate-200 px-3 py-2 text-left transition-colors hover:border-blue-300 hover:bg-blue-50/40"><span className="flex h-7 w-11 items-center justify-center rounded bg-slate-100 text-slate-400"><ListVideo className="h-3.5 w-3.5" /></span><span className="flex-1"><span className="block text-xs font-semibold text-slate-900">{p.name}</span><span className="block text-[10px] text-slate-400">{p.itemCount} items · {formatDuration(p.totalDurationSec)}</span></span><ChevronRight className="h-3.5 w-3.5 text-slate-300" /></button></li>)}</ul>}
+              {({ data }) => <ul className="space-y-1.5">{data.every((p) => !p.itemCount) ? <li className="text-xs text-slate-400">Your playlists are empty. <Link href="/portal/playlists" className="text-blue-600 hover:underline">Add content →</Link></li> : data.filter((p) => p.itemCount > 0).map((p) => <li key={p.id}><button onClick={() => { setPlaylist(p); setStep(3); }} className="flex w-full items-center gap-3 rounded-lg border border-slate-200 px-3 py-2 text-left transition-colors hover:border-blue-300 hover:bg-blue-50/40"><span className="flex h-7 w-11 items-center justify-center rounded bg-slate-100 text-slate-400"><ListVideo className="h-3.5 w-3.5" /></span><span className="flex-1"><span className="block text-xs font-semibold text-slate-900">{p.name}</span><span className="block text-[10px] text-slate-400">{p.itemCount} items · {formatDuration(p.totalDurationSec)}</span></span><ChevronRight className="h-3.5 w-3.5 text-slate-300" /></button></li>)}</ul>}
             </QueryState>
             <button onClick={() => setStep(1)} className="mt-3 text-[11px] font-medium text-slate-500 hover:text-slate-800">‹ Change screen</button>
           </div>
@@ -117,19 +117,19 @@ export function OverviewPage() {
 
   return (
     <div className="space-y-5">
-      <div><h1 className="text-xl font-bold tracking-tight text-slate-900">Welcome back, {user?.name.split(" ")[0]}.</h1><p className="mt-0.5 text-sm text-slate-400">{company.data?.name ?? "…"}{license.data ? ` · ${license.data.paired} of ${license.data.screenLimit} screen licences used` : ""}</p></div>
+      <div><h1 className="text-xl font-bold tracking-tight text-slate-900">Welcome back{user?.name ? `, ${user.name.split(" ")[0]}` : ""}.</h1><p className="mt-0.5 text-sm text-slate-400">{company.data?.name ?? (company.isError ? "" : "…")}{license.data ? ` · ${license.data.paired} of ${license.data.screenLimit} screen licences used` : ""}</p></div>
       {license.data?.overLimit && <Alert tone="amber">Your account is over its licence limit ({license.data.paired} paired, {license.data.screenLimit} licensed). Pairing is blocked until it is raised.</Alert>}
-      {license.data && license.data.state !== "ACTIVE" && <Alert tone="red">Your licence is {license.data.state.toLowerCase()}. Publishing and pairing are unavailable — contact your account manager.</Alert>}
+      {license.data && license.data.state !== "ACTIVE" && <Alert tone="red">Your licence is {(license.data.state ?? "").toLowerCase()}. Publishing and pairing are unavailable — contact your account manager.</Alert>}
 
       <div className="grid gap-4 sm:grid-cols-3">
         {[
-          { value: screens.isPending ? undefined : all.length, label: "Total Screens", icon: <Monitor className="h-4 w-4" />, cls: "border-slate-200", ic: "bg-blue-50 text-blue-600" },
-          { value: screens.isPending ? undefined : online, label: "Online", icon: <Monitor className="h-4 w-4" />, cls: "border-slate-200", ic: "bg-green-50 text-green-600" },
-          { value: screens.isPending ? undefined : offline, label: "Offline", icon: <MonitorOff className="h-4 w-4" />, cls: offline > 0 ? "border-red-200" : "border-slate-200", ic: "bg-red-50 text-red-600" },
+          { value: screens.isPending || screens.isError ? undefined : all.length, label: "Total Screens", icon: <Monitor className="h-4 w-4" />, cls: "border-slate-200", ic: "bg-blue-50 text-blue-600" },
+          { value: screens.isPending || screens.isError ? undefined : online, label: "Online", icon: <Monitor className="h-4 w-4" />, cls: "border-slate-200", ic: "bg-green-50 text-green-600" },
+          { value: screens.isPending || screens.isError ? undefined : offline, label: "Offline", icon: <MonitorOff className="h-4 w-4" />, cls: offline > 0 ? "border-red-200" : "border-slate-200", ic: "bg-red-50 text-red-600" },
         ].map((s) => (
           <Card key={s.label} className={cn("flex items-center gap-4 px-5 py-4", s.cls)}>
             <span className={cn("flex h-9 w-9 items-center justify-center rounded-lg", s.ic)}>{s.icon}</span>
-            <div>{s.value === undefined ? <Skeleton className="h-7 w-10" /> : <div className="text-2xl font-bold tracking-tight text-slate-900">{s.value}</div>}<div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">{s.label}</div></div>
+            <div>{s.value === undefined ? (screens.isError ? <div className="text-2xl font-bold tracking-tight text-slate-300" title="Couldn't load screens">—</div> : <Skeleton className="h-7 w-10" />) : <div className="text-2xl font-bold tracking-tight text-slate-900">{s.value}</div>}<div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">{s.label}</div></div>
           </Card>
         ))}
       </div>

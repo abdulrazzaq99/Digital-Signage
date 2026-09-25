@@ -9,6 +9,7 @@ import { useToast } from "@/components/ui/toast";
 import { OFFER_STATUSES, offerTone, useOffers, usePublishOffer } from "@/lib/api/hooks/offers";
 import type { Offer } from "@/lib/api/types";
 import { formatDate, label } from "@/lib/format";
+import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { Calendar, Eye, EyeOff, FileEdit, Pencil, Tag, Trash2, Users } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -30,10 +31,11 @@ export function OffersPage({ tab }: { tab: "manage" | "marketplace" }) {
   const [page, setPage] = useState(1);
   const [unpub, setUnpub] = useState<Offer | null>(null);
   const [del, setDel] = useState<Offer | null>(null);
-  const offers = useOffers({ search: q || undefined, status: (status || undefined) as Offer["status"] | undefined, page }, { enabled: tab === "manage" });
+  const search = useDebouncedValue(q.trim(), 300);
+  const offers = useOffers({ search: search || undefined, status: (status || undefined) as Offer["status"] | undefined, page }, { enabled: tab === "manage" });
   const totals = useOfferTotals();
   const publish = usePublishOffer();
-  const doPublish = (o: Offer) => publish.mutate(o.id, { onSuccess: () => toast.success("Offer published", o.title), onError: (e) => toast.error(e) });
+  const doPublish = (o: Offer) => !publish.isPending && publish.mutate(o.id, { onSuccess: () => toast.success("Offer published", o.title), onError: (e) => toast.error(e) });
 
   if (tab === "marketplace") {
     return (
@@ -49,7 +51,7 @@ export function OffersPage({ tab }: { tab: "manage" | "marketplace" }) {
       <div className="grid gap-4 sm:grid-cols-4">
         {[["Total Offers", totals.total, "border-blue-100 bg-blue-50/50 text-blue-600"], ["Published", totals.published, "border-green-100 bg-green-50/50 text-green-600"], ["Draft", totals.draft, "border-slate-200 bg-white text-slate-700"], ["Unpublished / Expired", totals.other, "border-amber-100 bg-amber-50/50 text-amber-600"]].map(([l, v, c]) => <div key={String(l)} className={`rounded-xl border px-4 py-3 ${c}`}><div className="text-2xl font-bold">{v}</div><div className="text-xs font-medium opacity-80">{l}</div></div>)}
       </div>
-      <div className="flex flex-wrap items-center justify-between gap-3"><SearchInput placeholder="Search offers..." className="w-64" value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} /><FilterSelect label="All statuses" options={OFFER_STATUSES.map((s) => ({ value: s, label: label(s) }))} value={status} onChange={(v) => { setStatus(v); setPage(1); }} /></div>
+      <div className="flex flex-wrap items-center justify-between gap-3"><SearchInput placeholder="Search offers..." aria-label="Search offers" maxLength={120} className="w-64" value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} /><FilterSelect label="All statuses" options={OFFER_STATUSES.map((s) => ({ value: s, label: label(s) }))} value={status} onChange={(v) => { setStatus(v); setPage(1); }} /></div>
       <QueryState query={offers} skeleton={<TableSkeleton rows={5} />} empty={<EmptyState icon={<Tag className="h-5 w-5" />} title={q || status ? "No offers match" : "No offers yet"} body="Create an offer and publish it to the customer Marketplace." />}>
         {({ data, meta }) => (
           <>
@@ -64,7 +66,7 @@ export function OffersPage({ tab }: { tab: "manage" | "marketplace" }) {
                     <div className="mt-1 text-[11px] text-slate-400">{o.category}</div>
                     <div className="mt-1.5 flex flex-wrap items-center gap-3 text-[10px] text-slate-400"><span className="flex items-center gap-1"><Eye className="h-3 w-3" />{o.stats?.totalViews ?? 0} views</span><span className="flex items-center gap-1"><Users className="h-3 w-3" />{o.stats?.uniqueViewers ?? 0} unique</span><span className="flex items-center gap-1">{o.publishedAt ? <><Calendar className="h-3 w-3" />{formatDate(o.publishedAt)} published</> : <><FileEdit className="h-3 w-3" />Not published</>}</span></div>
                   </div>
-                  <DropdownMenu items={[{ label: "View Details", icon: <Eye className="h-3.5 w-3.5" />, href: `/offers/${o.id}` }, { label: "Edit Offer", icon: <Pencil className="h-3.5 w-3.5" />, href: `/offers/${o.id}/edit` }, o.status === "PUBLISHED" ? { label: "Unpublish", icon: <EyeOff className="h-3.5 w-3.5" />, onSelect: () => setUnpub(o) } : { label: "Publish", icon: <Eye className="h-3.5 w-3.5" />, onSelect: () => doPublish(o) }, { label: "Delete", icon: <Trash2 className="h-3.5 w-3.5" />, tone: "danger", onSelect: () => setDel(o) }]} />
+                  <DropdownMenu items={[{ label: "View Details", icon: <Eye className="h-3.5 w-3.5" />, href: `/offers/${o.id}` }, { label: "Edit Offer", icon: <Pencil className="h-3.5 w-3.5" />, href: `/offers/${o.id}/edit` }, o.status === "PUBLISHED" ? { label: "Unpublish", icon: <EyeOff className="h-3.5 w-3.5" />, onSelect: () => setUnpub(o) } : { label: publish.isPending && publish.variables === o.id ? "Publishing…" : "Publish", icon: <Eye className="h-3.5 w-3.5" />, disabled: publish.isPending, onSelect: () => doPublish(o) }, { label: "Delete", icon: <Trash2 className="h-3.5 w-3.5" />, tone: "danger", onSelect: () => setDel(o) }]} />
                 </div>
               ))}
             </div>

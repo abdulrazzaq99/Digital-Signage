@@ -11,6 +11,7 @@ import { useCompanyNames } from "@/lib/api/hooks/companies";
 import { offerTone, useOffer, useOfferStats, usePublishOffer } from "@/lib/api/hooks/offers";
 import type { Offer } from "@/lib/api/types";
 import { formatDate, formatDateTime, label } from "@/lib/format";
+import { formatPhone } from "@/lib/validation/masks";
 import { Eye, EyeOff, Pencil, Trash2, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -37,20 +38,20 @@ function Detail({ offer }: { offer: Offer }) {
           <p className="mt-4 text-sm font-medium text-slate-700">{offer.summary}</p>
           <p className="mt-2 whitespace-pre-line text-sm leading-6 text-slate-600">{offer.description}</p>
           <SectionLabel className="mt-6">Contact Information</SectionLabel>
-          <ul className="mt-2 space-y-0.5 text-xs text-slate-700">{[offer.contact.name, offer.contact.role, offer.contact.email, offer.contact.phone, offer.contact.hours].filter(Boolean).map((c) => <li key={c}>{c}</li>)}</ul>
+          <ul className="mt-2 space-y-0.5 text-xs text-slate-700">{[offer.contact?.name, offer.contact?.role, offer.contact?.email, offer.contact?.phone ? formatPhone(offer.contact.phone) : undefined, offer.contact?.hours].filter(Boolean).map((c, i) => <li key={i}>{c}</li>)}</ul>
           <SectionLabel className="mt-5">Buying Instructions</SectionLabel>
           <p className="mt-2 whitespace-pre-line text-xs leading-5 text-slate-700">{offer.instructions}</p>
-          {offer.included.length > 0 && <><SectionLabel className="mt-5">What&apos;s included</SectionLabel><ul className="mt-2 list-disc space-y-0.5 pl-4 text-xs text-slate-700">{offer.included.map((i) => <li key={i}>{i}</li>)}</ul></>}
-          {offer.steps.length > 0 && <><SectionLabel className="mt-5">Steps</SectionLabel><ol className="mt-2 list-decimal space-y-0.5 pl-4 text-xs text-slate-700">{offer.steps.map((s) => <li key={s}>{s}</li>)}</ol></>}
+          {(offer.included ?? []).length > 0 && <><SectionLabel className="mt-5">What&apos;s included</SectionLabel><ul className="mt-2 list-disc space-y-0.5 pl-4 text-xs text-slate-700">{(offer.included ?? []).map((item, i) => <li key={i}>{item}</li>)}</ul></>}
+          {(offer.steps ?? []).length > 0 && <><SectionLabel className="mt-5">Steps</SectionLabel><ol className="mt-2 list-decimal space-y-0.5 pl-4 text-xs text-slate-700">{(offer.steps ?? []).map((s, i) => <li key={i}>{s}</li>)}</ol></>}
         </div>
         <div className="space-y-4">
           <Card><CardHeader title="Statistics" /><div className="grid grid-cols-2 divide-x divide-slate-100 px-2 py-4 text-center"><div><Eye className="mx-auto h-4 w-4 text-blue-500" /><div className="mt-1 text-lg font-bold text-slate-900">{stats.data?.totalViews ?? offer.stats?.totalViews ?? 0}</div><div className="text-[10px] text-slate-400">Total Views</div></div><div><Users className="mx-auto h-4 w-4 text-violet-500" /><div className="mt-1 text-lg font-bold text-slate-900">{stats.data?.uniqueViewers ?? offer.stats?.uniqueViewers ?? 0}</div><div className="text-[10px] text-slate-400">Unique Viewers</div></div></div>
-            {stats.data && stats.data.byCompany.length > 0 && <ul className="divide-y divide-slate-100 border-t border-slate-100 px-5 py-2 text-xs">{stats.data.byCompany.map((c) => <li key={c.companyId ?? "none"} className="flex justify-between py-1.5"><span className="text-slate-600">{c.companyId ? names[c.companyId] ?? "Company" : "Platform"}</span><span className="font-semibold text-slate-800">{c.views}</span></li>)}</ul>}
+            {stats.data && (stats.data.byCompany ?? []).length > 0 && <ul className="divide-y divide-slate-100 border-t border-slate-100 px-5 py-2 text-xs">{(stats.data.byCompany ?? []).map((c) => <li key={c.companyId ?? "none"} className="flex justify-between py-1.5"><span className="text-slate-600">{c.companyId ? names[c.companyId] ?? "Company" : "Platform"}</span><span className="font-semibold text-slate-800">{c.views}</span></li>)}</ul>}
             {stats.data?.lastViewedAt && <div className="border-t border-slate-100 px-5 py-2 text-[10px] text-slate-400">Last viewed {formatDateTime(stats.data.lastViewedAt)}</div>}
           </Card>
           <Card><CardHeader title="Details" /><dl className="divide-y divide-slate-100 px-5 text-xs">{[["Category", offer.category], ["Status", label(offer.status)], ["Created", formatDate(offer.createdAt)], ["Published", offer.publishedAt ? formatDate(offer.publishedAt) : "—"], ["Last Updated", formatDate(offer.updatedAt)], ["Start Date", offer.startsAt ? formatDate(offer.startsAt) : "—"], ["End Date", offer.endsAt ? formatDate(offer.endsAt) : "—"]].map(([k, v]) => <div key={k} className="flex justify-between py-2.5"><dt className="text-slate-400">{k}</dt><dd className="font-semibold text-slate-800">{v}</dd></div>)}</dl></Card>
           <Button href={`/offers/${offer.id}/edit`} className="w-full"><Pencil className="h-3.5 w-3.5" /> Edit Offer</Button>
-          {offer.status === "PUBLISHED" ? <Button variant="secondary" className="w-full" onClick={() => setUnpub(true)}><EyeOff className="h-3.5 w-3.5" /> Unpublish</Button> : <Button variant="success" className="w-full" onClick={doPublish} disabled={publish.isPending}><Eye className="h-3.5 w-3.5" /> {publish.isPending ? "Publishing…" : "Publish"}</Button>}
+          {offer.status === "PUBLISHED" ? <Button variant="secondary" className="w-full" onClick={() => setUnpub(true)} disabled={publish.isPending}><EyeOff className="h-3.5 w-3.5" /> Unpublish</Button> : <Button variant="success" className="w-full" onClick={doPublish} disabled={publish.isPending}><Eye className="h-3.5 w-3.5" /> {publish.isPending ? "Publishing…" : "Publish"}</Button>}
           <Button variant="secondary" className="w-full" href={`/offers/${offer.id}/preview`}><Eye className="h-3.5 w-3.5" /> Customer Preview</Button>
           <Button variant="danger-outline" className="w-full" onClick={() => setDel(true)}><Trash2 className="h-3.5 w-3.5" /> Delete Offer</Button>
         </div>

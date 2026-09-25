@@ -4,9 +4,10 @@ import { cn } from "@/lib/utils";
 /** Client-side preview of a template by category. The real render (a PNG in storage) is produced by the API. */
 export function PortalTemplateArt({ template, values, className }: { template: Pick<Template, "name" | "category" | "fields">; values?: Record<string, string>; className?: string }) {
   const v = (k: string, fallback = "") => values?.[k] ?? fallback;
-  const cat = template.category.toLowerCase();
-  const keys = template.fields.map((f) => f.key);
-  const first = (...names: string[]) => { const k = names.find((n) => keys.includes(n)) ?? keys[0]; return k ? v(k, template.fields.find((f) => f.key === k)?.label ?? "") : ""; };
+  const cat = (template.category ?? "").toLowerCase();
+  const fields = template.fields ?? [];
+  const keys = fields.map((f) => f.key);
+  const first = (...names: string[]) => { const k = names.find((n) => keys.includes(n)) ?? keys[0]; return k ? v(k, fields.find((f) => f.key === k)?.label ?? "") : ""; };
   if (cat.includes("retail")) return (
     <div className={cn("relative flex aspect-video flex-col justify-center overflow-hidden rounded-lg bg-gradient-to-br from-slate-950 via-slate-900 to-red-950 p-[7%] text-white", className)}>
       <div className="text-[0.55em] font-bold tracking-[0.2em] text-red-500">{first("headline", "kicker")}</div>

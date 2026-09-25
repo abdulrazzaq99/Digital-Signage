@@ -7,6 +7,8 @@ import { QueryState, Skeleton } from "@/components/ui/query-state";
 import { categoryTone, useOffer, useRecordOfferView } from "@/lib/api/hooks/offers";
 import type { Offer } from "@/lib/api/types";
 import { formatDate } from "@/lib/format";
+import { phoneDigits } from "@/lib/validation/fields";
+import { formatPhone } from "@/lib/validation/masks";
 import { Check, Clock, Mail, Phone } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -16,7 +18,10 @@ import { BackLinkButton } from "./portal-stepper";
 /** Customer-facing offer body, shared with the admin marketplace preview. */
 export function OfferBody({ offer }: { offer: Offer }) {
   const [contact, setContact] = useState(false);
-  const paragraphs = offer.description.split(/\n{2,}/).filter(Boolean);
+  const paragraphs = (offer.description ?? "").split(/\n{2,}/).filter(Boolean);
+  const included = offer.included ?? [];
+  const steps = offer.steps ?? [];
+  const c = offer.contact;
   return (
     <>
       <OfferCover offer={offer} className="aspect-[12/5] rounded-xl" />
@@ -24,12 +29,12 @@ export function OfferBody({ offer }: { offer: Offer }) {
       <h1 className="text-xl font-bold tracking-tight text-slate-900">{offer.title}</h1>
       <p className="text-sm font-medium text-slate-700">{offer.summary}</p>
       {paragraphs.map((p, i) => <p key={i} className="text-sm leading-6 text-slate-600">{p}</p>)}
-      {offer.included.length > 0 && <Card className="bg-slate-50/60 px-5 py-4"><div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">What&apos;s included</div><ul className="mt-2 grid gap-2 sm:grid-cols-2">{offer.included.map((i) => <li key={i} className="flex items-center gap-2 text-xs text-slate-700"><Check className="h-3.5 w-3.5 text-green-500" />{i}</li>)}</ul></Card>}
-      <div><div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">How to get started</div>{offer.steps.length > 0 ? <ol className="mt-2 space-y-2">{offer.steps.map((s, i) => <li key={i} className="flex items-start gap-3 text-xs text-slate-700"><span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-50 text-[10px] font-semibold text-blue-600">{i + 1}</span><span className="pt-0.5">{s}</span></li>)}</ol> : <p className="mt-2 text-xs leading-5 text-slate-700">{offer.instructions}</p>}</div>
+      {included.length > 0 && <Card className="bg-slate-50/60 px-5 py-4"><div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">What&apos;s included</div><ul className="mt-2 grid gap-2 sm:grid-cols-2">{included.map((i) => <li key={i} className="flex items-center gap-2 text-xs text-slate-700"><Check className="h-3.5 w-3.5 text-green-500" />{i}</li>)}</ul></Card>}
+      <div><div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">How to get started</div>{steps.length > 0 ? <ol className="mt-2 space-y-2">{steps.map((s, i) => <li key={i} className="flex items-start gap-3 text-xs text-slate-700"><span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-50 text-[10px] font-semibold text-blue-600">{i + 1}</span><span className="pt-0.5">{s}</span></li>)}</ol> : <p className="mt-2 text-xs leading-5 text-slate-700">{offer.instructions}</p>}</div>
       <Card className="px-5 py-4">
         <div className="text-sm font-semibold text-slate-900">Interested in this offer?</div><p className="mt-0.5 text-[11px] text-slate-400">Contact your account manager to get started. There&apos;s no obligation.</p>
         <Button className="mt-3" size="sm" onClick={() => setContact((v) => !v)}><Phone className="h-3.5 w-3.5" /> {contact ? "Hide Contact Details" : "View Contact Details"}</Button>
-        {contact && <div className="mt-4 flex items-start gap-3 border-t border-slate-100 pt-4 animate-fade-in"><Avatar name={offer.contact.name} size="md" className="bg-blue-600" /><div><div className="text-sm font-semibold text-slate-900">{offer.contact.name}</div>{offer.contact.role && <div className="text-[11px] text-slate-400">{offer.contact.role}</div>}{offer.contact.email && <a href={`mailto:${offer.contact.email}`} className="mt-2 flex items-center gap-1.5 text-xs text-blue-600 hover:underline"><Mail className="h-3 w-3" />{offer.contact.email}</a>}{offer.contact.phone && <a href={`tel:${offer.contact.phone}`} className="mt-1 flex items-center gap-1.5 text-xs text-blue-600 hover:underline"><Phone className="h-3 w-3" />{offer.contact.phone}</a>}{offer.contact.hours && <div className="mt-1 text-[11px] text-slate-500">{offer.contact.hours}</div>}</div></div>}
+        {contact && c && <div className="mt-4 flex items-start gap-3 border-t border-slate-100 pt-4 animate-fade-in"><Avatar name={c.name || "Contact"} size="md" className="bg-blue-600" /><div><div className="text-sm font-semibold text-slate-900">{c.name || "Your account manager"}</div>{c.role && <div className="text-[11px] text-slate-400">{c.role}</div>}{c.email && <a href={`mailto:${c.email}`} className="mt-2 flex items-center gap-1.5 text-xs text-blue-600 hover:underline"><Mail className="h-3 w-3" />{c.email}</a>}{c.phone && <a href={`tel:${phoneDigits(c.phone)}`} className="mt-1 flex items-center gap-1.5 text-xs text-blue-600 hover:underline"><Phone className="h-3 w-3" />{formatPhone(c.phone)}</a>}{c.hours && <div className="mt-1 text-[11px] text-slate-500">{c.hours}</div>}</div></div>}
       </Card>
     </>
   );

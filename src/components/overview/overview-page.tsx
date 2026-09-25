@@ -7,6 +7,7 @@ import { counts, useCompanies } from "@/lib/api/hooks/companies";
 import { useLicenses } from "@/lib/api/hooks/licenses";
 import { useScreens } from "@/lib/api/hooks/screens";
 import type { ActivityEntry, Company } from "@/lib/api/types";
+import { maskEmailsIn } from "@/components/activity/redact";
 import { formatDateTime, label, timeAgo } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { AlertTriangle, Building2, ChevronRight, FileBadge, ListVideo, Monitor, MonitorOff, Plus, RefreshCw, Upload, UploadCloud, Wifi } from "lucide-react";
@@ -32,7 +33,7 @@ function SegBar({ online, syncing, offline, className }: { online: number; synci
 
 /** Icon for an activity entry from its action prefix (`screen.paired`, `playlist.published`, …). */
 function activityIcon(a: ActivityEntry) {
-  const [kind, verb] = a.action.split(".");
+  const [kind, verb] = (a.action ?? "").split(".");
   if (kind === "screen") return verb?.includes("offline") ? { icon: <MonitorOff className="h-3.5 w-3.5" />, cls: "bg-red-50 text-red-600", alert: true } : { icon: <Monitor className="h-3.5 w-3.5" />, cls: "bg-green-50 text-green-600", alert: false };
   if (kind === "playlist" || kind === "layout" || kind === "template_instance") return { icon: <ListVideo className="h-3.5 w-3.5" />, cls: "bg-blue-50 text-blue-600", alert: false };
   if (kind === "media") return { icon: <UploadCloud className="h-3.5 w-3.5" />, cls: "bg-blue-50 text-blue-600", alert: false };
@@ -49,7 +50,9 @@ function useTotals() {
   const offline = useScreens({ status: "OFFLINE", pageSize: 1 });
   const error = useScreens({ status: "ERROR", pageSize: 1 });
   const n = (q: { data?: { meta?: { total: number } } }) => q.data?.meta?.total;
-  return { companies: n(companies), screens: n(screens), online: n(online), offline: n(offline), error: n(error), pending: companies.isPending || screens.isPending };
+  // A failed figure shows "—" (with a retry) instead of a skeleton that never resolves.
+  const all = [companies, screens, online, offline, error];
+  return { companies: n(companies), screens: n(screens), online: n(online), offline: n(offline), error: n(error), pending: companies.isPending || screens.isPending, failed: all.some((q) => q.isError), retry: () => all.forEach((q) => q.isError && void q.refetch()) };
 }
 
 export function OverviewPage() {
@@ -72,7 +75,7 @@ export function OverviewPage() {
     { value: totals.screens, label: "Total Screens", sub: "Across all tenants", icon: <Monitor className="h-4 w-4" />, bg: "bg-blue-50 text-blue-600" },
     { value: totals.online, label: "Screens Online", sub: `${availability}% availability`, icon: <Wifi className="h-4 w-4" />, bg: "bg-green-50 text-green-600" },
     { value: totals.offline, label: "Screens Offline", sub: "No recent heartbeat", icon: <MonitorOff className="h-4 w-4" />, bg: "bg-red-50 text-red-600" },
-    { value: totals.companies, label: "Companies", sub: `${licenses.data?.data.filter((l) => l.state === "ACTIVE").length ?? "…"} active licences`, icon: <Building2 className="h-4 w-4" />, bg: "bg-blue-50 text-blue-600" },
+    { value: totals.companies, label: "Companies", sub: `${licenses.isError ? "—" : licenses.data?.data?.filter((l) => l.state === "ACTIVE").length ?? "…"} active licences`, icon: <Building2 className="h-4 w-4" />, bg: "bg-blue-50 text-blue-600" },
   ];
 
   return (
@@ -81,7 +84,7 @@ export function OverviewPage() {
         {stats.map((s) => (
           <Card key={s.label} className="px-5 py-4">
             <div className={`mb-3 flex h-8 w-8 items-center justify-center rounded-lg ${s.bg}`}>{s.icon}</div>
-            {s.value === undefined ? <Skeleton className="h-8 w-16" /> : <div className="text-2xl font-bold tracking-tight text-slate-900">{s.value}</div>}
+            {s.value === undefined ? (totals.failed ? <button type="button" onClick={totals.retry} className="text-2xl font-bold tracking-tight text-slate-400" title="Couldn't load. Click to retry">—</button> : <Skeleton className="h-8 w-16" />) : <div className="text-2xl font-bold tracking-tight text-slate-900">{s.value}</div>}
             <div className="text-sm font-medium text-slate-700">{s.label}</div>
             <div className="text-xs text-slate-400">{s.sub}</div>
           </Card>
@@ -171,7 +174,7 @@ export function OverviewPage() {
                 {rows.map(({ a, icon, cls, alert }) => (
                   <li key={a.id} className="flex items-center gap-3 px-5 py-3">
                     <span className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", cls)}>{icon}</span>
-                    <div className="min-w-0 flex-1"><div className="truncate text-sm font-medium text-slate-900">{a.summary}</div><div className="text-[11px] text-slate-400">{a.company?.name ?? a.actor?.name ?? "Platform"} · <span title={formatDateTime(a.createdAt)}>{timeAgo(a.createdAt)}</span></div></div>
+                    <div className="min-w-0 flex-1"><div className="truncate text-sm font-medium text-slate-900">{maskEmailsIn(a.summary ?? "")}</div><div className="text-[11px] text-slate-400">{a.company?.name ?? a.actor?.name ?? "Platform"} · <span title={formatDateTime(a.createdAt)}>{timeAgo(a.createdAt)}</span></div></div>
                     <span className={cn("h-2 w-2 rounded-full", alert ? "bg-red-500" : "bg-green-500")} />
                   </li>
                 ))}

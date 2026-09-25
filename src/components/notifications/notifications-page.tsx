@@ -2,18 +2,24 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { applyApiError, Field, FormError, SubmitButton, useZodForm } from "@/components/ui/form";
 import { Checkbox, Input, Label, PillTabs, SearchInput, Textarea } from "@/components/ui/input";
 import { Modal, ModalFooter, ModalHeader } from "@/components/ui/modal";
-import { Alert, Drawer, PageHeader, Pagination } from "@/components/ui/misc";
-import { EmptyState, QueryState } from "@/components/ui/query-state";
+import { Drawer, PageHeader, Pagination } from "@/components/ui/misc";
+import { EmptyState, QueryState, Skeleton } from "@/components/ui/query-state";
 import { useToast } from "@/components/ui/toast";
-import { useCompanyNames } from "@/lib/api/hooks/companies";
+import { useCompanies, useCompanyNames } from "@/lib/api/hooks/companies";
 import { useNotifications, useSendNotification } from "@/lib/api/hooks/notifications";
 import type { Notification } from "@/lib/api/types";
-import { errorMessage, formatDateTime, timeAgo } from "@/lib/format";
+import { errorMessage, formatDateTime, fromDateTimeInput, timeAgo, toDateTimeInput } from "@/lib/format";
+import { useDebouncedValue } from "@/lib/use-debounced-value";
+import { dateInput, notInPast, optionalDeepLink, text } from "@/lib/validation/fields";
+import { maskMiddle } from "@/lib/validation/masks";
 import { cn } from "@/lib/utils";
 import { AlertTriangle, Bell, Building2, Clock, Eye, FileBadge, MonitorOff, Plus, RefreshCw, Rocket, Send, Ticket, X } from "lucide-react";
 import { useState } from "react";
+import { useWatch } from "react-hook-form";
+import { z } from "zod";
 
 /** Icon by keyword in the title; notifications are free text so this is presentation only. */
 function kindOf(n: Notification): { icon: React.ReactNode; cls: string; label: string } {
@@ -26,34 +32,73 @@ function kindOf(n: Notification): { icon: React.ReactNode; cls: string; label: s
   if (t.includes("company") || t.includes("welcome")) return { icon: <Building2 className="h-3.5 w-3.5" />, cls: "bg-blue-50 text-blue-600", label: "Company" };
   return { icon: <Rocket className="h-3.5 w-3.5" />, cls: "bg-blue-50 text-blue-600", label: "Platform" };
 }
-const audienceLabel = (a: Notification["audience"], names: Record<string, string>) => a.kind === "all" ? "All customers" : a.kind === "companies" ? a.companyIds.map((id) => names[id] ?? "Company").join(", ") : `${a.userIds.length} user${a.userIds.length === 1 ? "" : "s"}`;
+const audienceLabel = (a: Notification["audience"] | null | undefined, names: Record<string, string>) => !a ? "—" : a.kind === "all" ? "All customers" : a.kind === "companies" ? (a.companyIds ?? []).map((id) => names[id] ?? "Company").join(", ") || "—" : `${(a.userIds ?? []).length} user${(a.userIds ?? []).length === 1 ? "" : "s"}`;
 const isToday = (iso: string) => new Date(iso).toDateString() === new Date().toDateString();
+
+const AUDIENCE = ["kind", "companyIds"];
+const notificationSchema = z
+  .object({
+    title: text(120, 2),
+    body: text(500, 2),
+    kind: z.enum(["all", "companies"]),
+    companyIds: z.array(z.string()),
+    deepLink: optionalDeepLink(),
+    scheduledAt: dateInput(false).refine(notInPast, "The send time can't be in the past"),
+  })
+  .superRefine((v, ctx) => { if (v.kind === "companies" && v.companyIds.length === 0) ctx.addIssue({ code: "custom", path: ["companyIds"], message: "Choose at least one company" }); }, { when: (p) => !p.issues.some((i) => AUDIENCE.includes(String(i.path?.[0]))) });
+const EMPTY = { title: "", body: "", kind: "all" as const, companyIds: [] as string[], deepLink: "", scheduledAt: "" };
 
 function ComposeModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const toast = useToast();
-  const { companies } = useCompanyNames();
+  const companies = useCompanies({ pageSize: 100 }, { enabled: open });
   const send = useSendNotification();
-  const [f, setF] = useState({ title: "", body: "", kind: "all" as "all" | "companies", companyIds: [] as string[], deepLink: "", scheduledAt: "" });
-  const [error, setError] = useState("");
-  const close = () => { onClose(); setF({ title: "", body: "", kind: "all", companyIds: [], deepLink: "", scheduledAt: "" }); setError(""); };
-  const submit = () => {
-    setError("");
-    send.mutate({ title: f.title.trim(), body: f.body.trim(), audience: f.kind === "all" ? { kind: "all" } : { kind: "companies", companyIds: f.companyIds }, deepLink: f.deepLink.trim() || undefined, scheduledAt: f.scheduledAt ? new Date(f.scheduledAt).toISOString() : undefined }, { onSuccess: (n) => { toast.success(n.scheduledAt && !n.sentAt ? "Notification scheduled" : "Notification sent", n.title); close(); }, onError: (e) => setError(errorMessage(e)) });
-  };
-  const valid = f.title.trim().length > 0 && f.body.trim().length > 0 && (f.kind === "all" || f.companyIds.length > 0);
+  const form = useZodForm(notificationSchema, { defaultValues: EMPTY });
+  const { register, formState, setValue, control } = form;
+  const [kind = "all", companyIds = [], scheduledAt = "", body = ""] = useWatch({ control, name: ["kind", "companyIds", "scheduledAt", "body"] });
+  const busy = formState.isSubmitting || send.isPending;
+  // Closing (or resetting) while the request is in flight would lose the result, so it waits.
+  const close = () => { if (busy) return; onClose(); form.reset(EMPTY); };
+  const submit = form.handleSubmit(async (v) => {
+    try {
+      const n = await send.mutateAsync({
+        title: v.title,
+        body: v.body,
+        audience: v.kind === "all" ? { kind: "all" } : { kind: "companies", companyIds: v.companyIds },
+        ...(v.deepLink ? { deepLink: v.deepLink } : {}),
+        ...(v.scheduledAt ? { scheduledAt: fromDateTimeInput(v.scheduledAt)! } : {}),
+      });
+      toast.success(n.scheduledAt && !n.sentAt ? "Notification scheduled" : "Notification sent", n.title);
+      onClose();
+      form.reset(EMPTY);
+    } catch (e) {
+      applyApiError(form, e, { "audience.companyIds": "companyIds" });
+    }
+  });
+  const toggleCompany = (id: string, on: boolean) => setValue("companyIds", on ? [...companyIds, id] : companyIds.filter((x) => x !== id), { shouldValidate: formState.isSubmitted, shouldDirty: true });
   return (
     <Modal open={open} onClose={close} width="max-w-[520px]">
       <ModalHeader title="Send Notification" subtitle="Delivered as a push notification to the selected customers' apps." onClose={close} />
-      <div className="space-y-4 px-6 py-5">
-        <div><Label required>Title</Label><Input value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} maxLength={120} placeholder="e.g. Scheduled maintenance tonight" /></div>
-        <div><Label required>Message</Label><Textarea rows={3} value={f.body} onChange={(e) => setF({ ...f, body: e.target.value })} maxLength={1000} /></div>
-        <div><Label>Audience</Label><PillTabs options={[{ value: "all" as const, label: "All customers" }, { value: "companies" as const, label: "Specific companies" }]} value={f.kind} onChange={(v) => setF({ ...f, kind: v })} />
-          {f.kind === "companies" && <ul className="mt-2 max-h-40 space-y-1 overflow-y-auto rounded-lg border border-slate-200 p-2">{companies.map((c) => <li key={c.id}><label className="flex items-center gap-2 text-xs text-slate-700"><Checkbox checked={f.companyIds.includes(c.id)} onChange={(v) => setF({ ...f, companyIds: v ? [...f.companyIds, c.id] : f.companyIds.filter((x) => x !== c.id) })} />{c.name}</label></li>)}</ul>}
+      <form onSubmit={submit} noValidate>
+        <div className="space-y-4 px-6 py-5">
+          <FormError form={form} />
+          <Field label="Title" required error={formState.errors.title?.message}><Input maxLength={120} placeholder="e.g. Scheduled maintenance tonight" autoFocus {...register("title")} /></Field>
+          <Field label="Message" required error={formState.errors.body?.message} hint={`${body.length}/500`}><Textarea rows={3} maxLength={500} {...register("body")} /></Field>
+          <div><Label>Audience</Label><PillTabs options={[{ value: "all" as const, label: "All customers" }, { value: "companies" as const, label: "Specific companies" }]} value={kind} onChange={(v) => setValue("kind", v, { shouldValidate: formState.isSubmitted })} />
+            {kind === "companies" && (
+              companies.isPending ? <div className="mt-2 space-y-1.5 rounded-lg border border-slate-200 p-2">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-5" />)}</div>
+              : companies.isError ? <div role="alert" className="mt-2 flex items-center justify-between gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700"><span>Couldn&apos;t load companies. {errorMessage(companies.error)}</span><Button type="button" size="sm" variant="secondary" onClick={() => companies.refetch()}><RefreshCw className="h-3.5 w-3.5" /> Retry</Button></div>
+              : (companies.data?.data ?? []).length === 0 ? <p className="mt-2 rounded-lg border border-slate-200 px-3 py-2 text-xs text-slate-400">No companies yet.</p>
+              : <ul className={cn("mt-2 max-h-40 space-y-1 overflow-y-auto rounded-lg border p-2", formState.errors.companyIds ? "border-red-400" : "border-slate-200")}>{(companies.data?.data ?? []).map((c) => <li key={c.id}><label className="flex items-center gap-2 text-xs text-slate-700"><Checkbox checked={companyIds.includes(c.id)} onChange={(v) => toggleCompany(c.id, v)} />{c.name}</label></li>)}</ul>
+            )}
+            {kind === "companies" && formState.errors.companyIds?.message && <p role="alert" className="mt-1 text-[11px] font-medium text-red-600">{formState.errors.companyIds.message}</p>}
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Deep link" error={formState.errors.deepLink?.message} hint="An app path like /portal/offers or an https URL"><Input maxLength={500} autoCapitalize="off" spellCheck={false} placeholder="/portal/offers" {...register("deepLink")} /></Field>
+            <Field label="Schedule for" error={formState.errors.scheduledAt?.message} hint="Leave blank to send now"><Input type="datetime-local" min={toDateTimeInput(new Date().toISOString())} {...register("scheduledAt")} /></Field>
+          </div>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2"><div><Label>Deep link</Label><Input value={f.deepLink} onChange={(e) => setF({ ...f, deepLink: e.target.value })} placeholder="/portal/offers" /></div><div><Label>Schedule for</Label><Input type="datetime-local" value={f.scheduledAt} onChange={(e) => setF({ ...f, scheduledAt: e.target.value })} /></div></div>
-        {error && <Alert tone="red">{error}</Alert>}
-      </div>
-      <ModalFooter><Button variant="secondary" onClick={close}>Cancel</Button><Button onClick={submit} disabled={!valid || send.isPending}><Send className="h-3.5 w-3.5" /> {send.isPending ? "Sending…" : f.scheduledAt ? "Schedule" : "Send Now"}</Button></ModalFooter>
+        <ModalFooter><Button type="button" variant="secondary" onClick={close} disabled={busy}>Cancel</Button><SubmitButton form={form} disabled={busy} pendingText={scheduledAt ? "Scheduling…" : "Sending…"}><Send className="h-3.5 w-3.5" /> {scheduledAt ? "Schedule" : "Send Now"}</SubmitButton></ModalFooter>
+      </form>
     </Modal>
   );
 }
@@ -65,14 +110,16 @@ export function NotificationsPage() {
   const [compose, setCompose] = useState(false);
   const notifications = useNotifications({ page });
   const { names } = useCompanyNames();
-  const list = (notifications.data?.data ?? []).filter((n) => `${n.title} ${n.body}`.toLowerCase().includes(q.toLowerCase()));
+  const search = useDebouncedValue(q.trim().toLowerCase(), 300);
+  // The API has no search parameter for notifications, so this filters the loaded page only.
+  const list = (notifications.data?.data ?? []).filter((n) => `${n.title ?? ""} ${n.body ?? ""}`.toLowerCase().includes(search));
   const groups: [string, Notification[]][] = [["Today", list.filter((n) => isToday(n.createdAt))], ["Earlier", list.filter((n) => !isToday(n.createdAt))]];
 
   return (
     <div className="space-y-5">
       <PageHeader title="Notifications" subtitle="Push notifications sent to customers, and their delivery status." action={<Button onClick={() => setCompose(true)}><Plus className="h-4 w-4" /> Send Notification</Button>} />
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <SearchInput placeholder="Search notifications..." className="w-60" value={q} onChange={(e) => setQ(e.target.value)} />
+        <SearchInput placeholder="Search this page..." aria-label="Search notifications on this page" maxLength={120} className="w-60" value={q} onChange={(e) => setQ(e.target.value)} />
         <span className="text-xs text-slate-400">{notifications.data?.meta?.total ?? 0} sent</span>
       </div>
       <QueryState query={notifications} empty={<EmptyState icon={<Bell className="h-5 w-5" />} title="No notifications yet" body="Send platform announcements and alerts to customers." action={<Button onClick={() => setCompose(true)}><Plus className="h-4 w-4" /> Send Notification</Button>} />}>
@@ -114,7 +161,7 @@ export function NotificationsPage() {
             <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
               <div className="rounded-lg border border-slate-200 bg-slate-50/60 px-4 py-3 text-xs leading-5 text-slate-700">{open.body}</div>
               <dl className="divide-y divide-slate-100 text-xs">
-                {([["Created", formatDateTime(open.createdAt)], ["Scheduled", open.scheduledAt ? formatDateTime(open.scheduledAt) : "Immediately"], ["Sent", open.sentAt ? formatDateTime(open.sentAt) : "Pending"], ["Audience", audienceLabel(open.audience, names)], ["Deep link", open.deepLink ?? "—"], ["Provider ref", open.providerId ?? "—"]] as [string, string][]).map(([k2, v]) => <div key={k2} className="flex justify-between gap-4 py-2.5"><dt className="text-slate-400">{k2}</dt><dd className="truncate font-semibold text-slate-800">{v}</dd></div>)}
+                {([["Created", formatDateTime(open.createdAt)], ["Scheduled", open.scheduledAt ? formatDateTime(open.scheduledAt) : "Immediately"], ["Sent", open.sentAt ? formatDateTime(open.sentAt) : "Pending"], ["Audience", audienceLabel(open.audience, names)], ["Deep link", open.deepLink ?? "—"], ["Provider ref", maskMiddle(open.providerId)]] as [string, string][]).map(([k2, v]) => <div key={k2} className="flex justify-between gap-4 py-2.5"><dt className="text-slate-400">{k2}</dt><dd className="truncate font-semibold text-slate-800">{v}</dd></div>)}
               </dl>
             </div>
             <div className="border-t border-slate-100 px-5 py-4">{open.deepLink ? <Button className="w-full" href={open.deepLink}><Eye className="h-3.5 w-3.5" /> Open link</Button> : <Button variant="secondary" className="w-full" onClick={() => setOpen(null)}>Close</Button>}</div>

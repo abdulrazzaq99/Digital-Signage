@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { Clock, Tag } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { useDebouncedValue } from "@/lib/use-debounced-value";
 
 export { categoryTone as catTone };
 
@@ -24,17 +25,18 @@ export function OfferCover({ offer, className }: { offer: Offer; className?: str
 export function OffersPage({ basePath = "/portal/offers" }: { basePath?: string } = {}) {
   const [cat, setCat] = useState("All");
   const [q, setQ] = useState("");
+  const search = useDebouncedValue(q.trim().toLowerCase(), 200);
   const offers = useOffers({ status: "PUBLISHED", pageSize: 100 });
   const all = offers.data?.data ?? [];
   const categories = ["All", ...new Set(all.map((o) => o.category))];
-  const list = all.filter((o) => (cat === "All" || o.category === cat) && o.title.toLowerCase().includes(q.toLowerCase()));
+  const list = all.filter((o) => (cat === "All" || o.category === cat) && (o.title ?? "").toLowerCase().includes(search));
   const expiring = all.filter(endingSoon).length;
   const count = (c: string) => all.filter((o) => o.category === c).length;
 
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap gap-2"><span className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700"><span className="h-1.5 w-1.5 rounded-full bg-green-500" />{all.length} active offers</span>{expiring > 0 && <span className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700"><Clock className="h-3 w-3" />{expiring} offer{expiring > 1 ? "s" : ""} expiring soon</span>}</div>
-      <div className="flex flex-wrap items-center gap-2"><SearchInput placeholder="Search offers..." className="w-56" value={q} onChange={(e) => setQ(e.target.value)} />{categories.map((c) => <button key={c} onClick={() => setCat(c)} className={cn("flex h-8 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition-colors", cat === c ? "border-blue-600 bg-blue-600 text-white" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50")}>{c}{c !== "All" && <span className={cn("text-[10px]", cat === c ? "text-white/70" : "text-slate-400")}>{count(c)}</span>}</button>)}</div>
+      <div className="flex flex-wrap items-center gap-2"><SearchInput placeholder="Search offers..." aria-label="Search offers" maxLength={120} className="w-56" value={q} onChange={(e) => setQ(e.target.value)} />{categories.map((c) => <button key={c} onClick={() => setCat(c)} className={cn("flex h-8 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition-colors", cat === c ? "border-blue-600 bg-blue-600 text-white" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50")}>{c}{c !== "All" && <span className={cn("text-[10px]", cat === c ? "text-white/70" : "text-slate-400")}>{count(c)}</span>}</button>)}</div>
       <QueryState query={offers} skeleton={<CardGridSkeleton />} empty={<EmptyState icon={<Tag className="h-5 w-5" />} title="No offers right now" body="Check back soon — new promotions appear here as they are published." />}>
         {() => list.length === 0 ? <EmptyState title="No offers match" body="Try another search or category." /> : (
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">

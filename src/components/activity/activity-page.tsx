@@ -10,10 +10,15 @@ import { TD, TH, THead, TR, Table } from "@/components/ui/table";
 import { useActivity } from "@/lib/api/hooks/activity";
 import type { ActivityEntry } from "@/lib/api/types";
 import { formatDateTime, label } from "@/lib/format";
+import { useDebouncedValue } from "@/lib/use-debounced-value";
+import { maskMiddle } from "@/lib/validation/masks";
 import { Activity, Eye, Info, X } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { maskEmailsIn, metaText } from "./redact";
 
+/** "screen.paired" → "Screen Paired"; tolerates a missing action. */
+const actionLabel = (a: string | null | undefined) => label((a ?? "").replace(/\./g, "_"));
 const tone = (s: string) => (s === "SUCCESS" ? "green" : s === "PENDING" ? "amber" : "red");
 const RESOURCE_TYPES = ["company", "user", "license", "screen", "screen_group", "media", "playlist", "schedule", "layout", "template", "template_instance", "offer", "campaign", "winner", "notification", "canvas"];
 const PERIODS: { value: string; label: string; days?: number }[] = [{ value: "", label: "All Time" }, { value: "1", label: "Last 24 hours", days: 1 }, { value: "7", label: "Last 7 days", days: 7 }, { value: "30", label: "Last 30 days", days: 30 }];
@@ -37,7 +42,8 @@ export function ActivityPage() {
   // The period start is captured when the filter changes, not on every render, so the query key stays stable.
   const [from, setFrom] = useState<string | undefined>(undefined);
   const changePeriod = (v: string) => { setPeriod(v); const days = PERIODS.find((p) => p.value === v)?.days; setFrom(days ? new Date(Date.now() - days * 86_400_000).toISOString() : undefined); };
-  const activity = useActivity({ search: q || undefined, status: (status || undefined) as "SUCCESS" | "PENDING" | "FAILED" | undefined, resourceType: resourceType || undefined, companyId: companyId || undefined, from, page });
+  const search = useDebouncedValue(q.trim(), 300);
+  const activity = useActivity({ search: search || undefined, status: (status || undefined) as "SUCCESS" | "PENDING" | "FAILED" | undefined, resourceType: resourceType || undefined, companyId: companyId || undefined, from, page });
   const reset = (fn: () => void) => { fn(); setPage(1); };
 
   return (
@@ -45,7 +51,7 @@ export function ActivityPage() {
       <PageHeader title="Activity" subtitle="Audit log of platform actions across all tenants." />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
-          <SearchInput placeholder="Search activity..." className="w-60" value={q} onChange={(e) => reset(() => setQ(e.target.value))} />
+          <SearchInput placeholder="Search activity..." aria-label="Search activity" maxLength={120} className="w-60" value={q} onChange={(e) => reset(() => setQ(e.target.value))} />
           <FilterSelect label="All Types" options={RESOURCE_TYPES.map((t) => ({ value: t, label: label(t) }))} value={resourceType} onChange={(v) => reset(() => setResourceType(v))} />
           <CompanyFilter value={companyId} onChange={(v) => reset(() => setCompanyId(v))} />
           <FilterSelect label="All Statuses" options={["SUCCESS", "PENDING", "FAILED"].map((s) => ({ value: s, label: label(s) }))} value={status} onChange={(v) => reset(() => setStatus(v))} />
@@ -62,10 +68,10 @@ export function ActivityPage() {
                 <tbody>
                   {data.map((a) => (
                     <TR key={a.id} className="cursor-pointer" onClick={() => setOpen(a)}>
-                      <TD><div className="text-sm font-semibold text-slate-900">{label(a.action.replace(/\./g, "_"))}</div><div className="max-w-[280px] truncate text-[11px] text-slate-400">{a.summary}</div></TD>
+                      <TD><div className="text-sm font-semibold text-slate-900">{actionLabel(a.action)}</div><div className="max-w-[280px] truncate text-[11px] text-slate-400">{maskEmailsIn(a.summary ?? "")}</div></TD>
                       <TD className="whitespace-nowrap"><div className="text-xs font-medium text-slate-800">{a.actor?.name ?? "System"}</div><div className="text-[10px] text-slate-400">{a.actor ? label(a.actor.role) : "Automated"}</div></TD>
                       <TD className="text-xs font-medium text-slate-800 whitespace-nowrap">{a.company?.name ?? <span className="text-slate-400">Platform</span>}</TD>
-                      <TD className="whitespace-nowrap"><div className="text-xs font-medium text-slate-800">{label(a.resourceType)}</div><div className="max-w-[140px] truncate font-mono text-[10px] text-slate-400">{a.resourceId ?? "—"}</div></TD>
+                      <TD className="whitespace-nowrap"><div className="text-xs font-medium text-slate-800">{label(a.resourceType)}</div><div className="max-w-[140px] truncate font-mono text-[10px] text-slate-400">{maskMiddle(a.resourceId)}</div></TD>
                       <TD><Badge tone={tone(a.status)} dot>{label(a.status)}</Badge></TD>
                       <TD className="text-xs text-slate-500 whitespace-nowrap">{formatDateTime(a.createdAt)}</TD>
                       <TD onClick={(e) => e.stopPropagation()}><DropdownMenu items={[{ label: "View Details", icon: <Eye className="h-3.5 w-3.5" />, onSelect: () => setOpen(a) }, ...(resourceHref(a) ? [{ label: `Open ${label(a.resourceType)}`, icon: <Eye className="h-3.5 w-3.5" />, href: resourceHref(a) }] : [])]} /></TD>
@@ -82,13 +88,13 @@ export function ActivityPage() {
       <Drawer open={!!open} onClose={() => setOpen(null)}>
         {open && (
           <>
-            <div className="flex items-start justify-between border-b border-slate-100 px-5 py-4"><div><div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">{open.action}</div><div className="text-sm font-semibold text-slate-900">{label(open.action.replace(/\./g, "_"))}</div><div className="text-[11px] text-slate-400">{open.summary}</div></div><button onClick={() => setOpen(null)} className="flex h-6 w-6 items-center justify-center rounded-md border border-slate-200 text-slate-400" aria-label="Close"><X className="h-3.5 w-3.5" /></button></div>
+            <div className="flex items-start justify-between border-b border-slate-100 px-5 py-4"><div><div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">{open.action ?? "—"}</div><div className="text-sm font-semibold text-slate-900">{actionLabel(open.action)}</div><div className="text-[11px] text-slate-400">{maskEmailsIn(open.summary ?? "")}</div></div><button onClick={() => setOpen(null)} className="flex h-6 w-6 items-center justify-center rounded-md border border-slate-200 text-slate-400" aria-label="Close"><X className="h-3.5 w-3.5" /></button></div>
             <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
               <dl className="divide-y divide-slate-100 text-xs">
-                {([["Action", open.action], ["Performed By", open.actor ? <span key="b">{open.actor.name} <span className="font-normal text-slate-400">· {label(open.actor.role)}</span></span> : "System"], ["Company", open.company?.name ?? "Platform"], ["Resource Type", label(open.resourceType)], ["Resource ID", <span key="r" className="font-mono">{open.resourceId ?? "—"}</span>], ["Status", <Badge key="s" tone={tone(open.status)} dot>{label(open.status)}</Badge>], ["Date & Time", formatDateTime(open.createdAt)]] as [string, React.ReactNode][]).map(([k, v]) => <div key={k} className="flex items-center justify-between gap-4 py-2.5"><dt className="shrink-0 text-slate-400">{k}</dt><dd className="truncate text-right font-semibold text-slate-800">{v}</dd></div>)}
+                {([["Action", open.action ?? "—"], ["Performed By", open.actor ? <span key="b">{open.actor.name} <span className="font-normal text-slate-400">· {label(open.actor.role)}</span></span> : "System"], ["Company", open.company?.name ?? "Platform"], ["Resource Type", label(open.resourceType)], ["Resource ID", <span key="r" className="font-mono">{maskMiddle(open.resourceId)}</span>], ["Status", <Badge key="s" tone={tone(open.status)} dot>{label(open.status)}</Badge>], ["Date & Time", formatDateTime(open.createdAt)]] as [string, React.ReactNode][]).map(([k, v]) => <div key={k} className="flex items-center justify-between gap-4 py-2.5"><dt className="shrink-0 text-slate-400">{k}</dt><dd className="truncate text-right font-semibold text-slate-800">{v}</dd></div>)}
               </dl>
-              {open.meta != null && typeof open.meta === "object" && Object.keys(open.meta as object).length > 0 && (
-                <div><div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Details</div><dl className="mt-2 divide-y divide-slate-100 rounded-lg border border-slate-200 bg-slate-50/60 px-3 text-xs">{Object.entries(open.meta as Record<string, unknown>).map(([k, v]) => <div key={k} className="flex justify-between gap-4 py-2"><dt className="text-slate-400">{label(k)}</dt><dd className="truncate text-right font-medium text-slate-800">{Array.isArray(v) ? v.join(", ") : typeof v === "object" ? JSON.stringify(v) : String(v)}</dd></div>)}</dl></div>
+              {open.meta != null && typeof open.meta === "object" && !Array.isArray(open.meta) && Object.keys(open.meta as object).length > 0 && (
+                <div><div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Details</div><dl className="mt-2 divide-y divide-slate-100 rounded-lg border border-slate-200 bg-slate-50/60 px-3 text-xs">{Object.entries(open.meta as Record<string, unknown>).map(([k, v]) => <div key={k} className="flex justify-between gap-4 py-2"><dt className="text-slate-400">{label(k)}</dt><dd className="truncate text-right font-medium text-slate-800" title={metaText(k, v)}>{metaText(k, v)}</dd></div>)}</dl></div>
               )}
               <Alert tone="blue" className="border-slate-200 bg-slate-50 text-slate-500" icon={<Info className="h-3.5 w-3.5 shrink-0" />}>Activity history is read-only and cannot be modified.</Alert>
             </div>

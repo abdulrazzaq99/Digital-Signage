@@ -1,5 +1,6 @@
 "use client";
 import { CompanyFilter } from "@/components/admin/company-scope";
+import { useAuth } from "@/components/auth/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -10,7 +11,9 @@ import { TD, TH, THead, TR, Table } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
 import { CAMPAIGN_STATUSES, campaignTone, useActivateCampaign, useCampaigns, useDeactivateCampaign, useRedeemWinner, useWinners } from "@/lib/api/hooks/campaigns";
 import type { Campaign, Winner } from "@/lib/api/types";
-import { formatDate, formatDateTime, label } from "@/lib/format";
+import { formatDate, formatDateTime, isSuperAdmin, label } from "@/lib/format";
+import { useDebouncedValue } from "@/lib/use-debounced-value";
+import { maskEmail } from "@/lib/validation/masks";
 import { Check, Eye, Lock, Pencil, Power, Star, Ticket, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -19,6 +22,7 @@ import { ScratchShell, prizeTone } from "./scratch-shell";
 export function WinnerDrawer({ winner, onClose }: { winner: Winner | null; onClose: () => void }) {
   const toast = useToast();
   const redeem = useRedeemWinner();
+  const { user } = useAuth();
   const [confirming, setConfirming] = useState(false);
   const [done, setDone] = useState<Winner | null>(null);
   const w = done?.id === winner?.id ? done : winner;
@@ -30,7 +34,7 @@ export function WinnerDrawer({ winner, onClose }: { winner: Winner | null; onClo
         <>
           <div className="flex items-start justify-between border-b border-slate-100 px-5 py-4"><div><div className="text-sm font-semibold text-slate-900">Winner Detail</div><div className="text-[11px] text-slate-400">Prize redemption management</div></div><button onClick={close} className="flex h-6 w-6 items-center justify-center rounded-md border border-slate-200 text-slate-400" aria-label="Close"><X className="h-3.5 w-3.5" /></button></div>
           <div className="flex-1 space-y-5 overflow-y-auto px-5 py-5">
-            <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50/60 px-4 py-3"><Avatar name={w.user.name} size="lg" className="bg-blue-600" /><div><div className="text-sm font-semibold text-slate-900">{w.user.name}</div><div className="text-[11px] text-slate-400">{w.user.email}</div><div className="text-[11px] text-slate-400">{w.company?.name ?? "—"}</div></div></div>
+            <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50/60 px-4 py-3"><Avatar name={w.user.name} size="lg" className="bg-blue-600" /><div><div className="text-sm font-semibold text-slate-900">{w.user.name}</div><div className="text-[11px] text-slate-400">{isSuperAdmin(user) ? w.user.email : maskEmail(w.user.email)}</div><div className="text-[11px] text-slate-400">{w.company?.name ?? "—"}</div></div></div>
             <dl className="divide-y divide-slate-100 text-xs">{([["Campaign", w.campaign.title], ["Prize Won", <span key="p" className="text-blue-600">{w.prize.name}{w.prize.value ? ` · ${w.prize.value}` : ""}</span>], ["Won At", formatDateTime(w.wonAt)], ["Company", w.company?.name ?? "—"], ["Redemption", <Badge key="r" tone={w.redemption === "REDEEMED" ? "green" : "amber"} dot>{label(w.redemption)}</Badge>], ...(w.redeemedAt ? [["Redeemed At", formatDateTime(w.redeemedAt)]] : [])] as [string, React.ReactNode][]).map(([k, v]) => <div key={k} className="flex items-center justify-between py-2.5"><dt className="text-slate-400">{k}</dt><dd className="font-semibold text-slate-800">{v}</dd></div>)}</dl>
             {done?.id === w.id ? (
               <div className="flex gap-3 rounded-lg border border-green-200 bg-green-50 px-4 py-3 animate-fade-in"><span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-green-500 text-white"><Check className="h-3.5 w-3.5" /></span><div><div className="text-xs font-semibold text-green-800">Prize Redeemed</div><div className="text-[11px] text-green-700">Recorded on the server; it cannot be redeemed twice.</div></div></div>
@@ -62,19 +66,22 @@ export function CampaignsPage({ tab }: { tab: "campaigns" | "winners" }) {
   const [page, setPage] = useState(1);
   const [winner, setWinner] = useState<Winner | null>(null);
   const [wf, setWf] = useState({ campaignId: "", companyId: "", redemption: "", search: "", page: 1 });
-  const campaigns = useCampaigns({ status: status === "All" ? undefined : status, search: q || undefined, page }, { enabled: tab === "campaigns" });
+  const search = useDebouncedValue(q.trim(), 300);
+  const winnerSearch = useDebouncedValue(wf.search.trim(), 300);
+  const campaigns = useCampaigns({ status: status === "All" ? undefined : status, search: search || undefined, page }, { enabled: tab === "campaigns" });
   const allCampaigns = useCampaigns({ pageSize: 100 }, { enabled: tab === "winners" });
-  const winners = useWinners({ campaignId: wf.campaignId || undefined, companyId: wf.companyId || undefined, redemption: (wf.redemption || undefined) as "PENDING" | "REDEEMED" | undefined, search: wf.search || undefined, page: wf.page }, { enabled: tab === "winners" });
+  const winners = useWinners({ campaignId: wf.campaignId || undefined, companyId: wf.companyId || undefined, redemption: (wf.redemption || undefined) as "PENDING" | "REDEEMED" | undefined, search: winnerSearch || undefined, page: wf.page }, { enabled: tab === "winners" });
   const activate = useActivateCampaign();
   const deactivate = useDeactivateCampaign();
-  const toggle = (c: Campaign) => (c.status === "ACTIVE" ? deactivate : activate).mutate(c.id, { onSuccess: (r) => toast.success(r.status === "ACTIVE" ? "Campaign activated" : "Campaign deactivated", r.title), onError: (e) => toast.error(e) });
+  const toggling = activate.isPending || deactivate.isPending;
+  const toggle = (c: Campaign) => !toggling && (c.status === "ACTIVE" ? deactivate : activate).mutate(c.id, { onSuccess: (r) => toast.success(r.status === "ACTIVE" ? "Campaign activated" : "Campaign deactivated", r.title), onError: (e) => toast.error(e) });
 
   if (tab === "winners") {
     return (
       <ScratchShell tab="winners">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2">
-            <SearchInput placeholder="Search winners..." className="w-56" value={wf.search} onChange={(e) => setWf({ ...wf, search: e.target.value, page: 1 })} />
+            <SearchInput placeholder="Search winners..." aria-label="Search winners" maxLength={120} className="w-56" value={wf.search} onChange={(e) => setWf({ ...wf, search: e.target.value, page: 1 })} />
             <FilterSelect label="All Campaigns" options={(allCampaigns.data?.data ?? []).map((c) => ({ value: c.id, label: c.title }))} value={wf.campaignId} onChange={(v) => setWf({ ...wf, campaignId: v, page: 1 })} />
             <CompanyFilter value={wf.companyId} onChange={(v) => setWf({ ...wf, companyId: v, page: 1 })} />
             <FilterSelect label="All Statuses" options={[{ value: "PENDING", label: "Pending" }, { value: "REDEEMED", label: "Redeemed" }]} value={wf.redemption} onChange={(v) => setWf({ ...wf, redemption: v, page: 1 })} />
@@ -87,7 +94,7 @@ export function CampaignsPage({ tab }: { tab: "campaigns" | "winners" }) {
               <Card>
                 <Table>
                   <THead><tr><TH>User</TH><TH>Company</TH><TH>Campaign</TH><TH>Prize</TH><TH>Won At</TH><TH>Redemption</TH></tr></THead>
-                  <tbody>{data.map((w) => <TR key={w.id} className="cursor-pointer" onClick={() => setWinner(w)}><TD><div className="flex items-center gap-3"><Avatar name={w.user.name} size="sm" className="bg-blue-600" /><div><div className="text-sm font-semibold text-slate-900">{w.user.name}</div><div className="text-[11px] text-slate-400">{w.user.email}</div></div></div></TD><TD className="text-xs font-medium text-slate-800">{w.company?.name ?? "—"}</TD><TD className="text-xs">{w.campaign.title}</TD><TD><Badge tone={prizeTone(w.prize.name)}>{w.prize.name}</Badge></TD><TD className="text-xs text-slate-500 whitespace-nowrap">{formatDateTime(w.wonAt)}</TD><TD><Badge tone={w.redemption === "REDEEMED" ? "green" : "amber"} dot>{label(w.redemption)}</Badge></TD></TR>)}</tbody>
+                  <tbody>{data.map((w) => <TR key={w.id} className="cursor-pointer" onClick={() => setWinner(w)}><TD><div className="flex items-center gap-3"><Avatar name={w.user.name} size="sm" className="bg-blue-600" /><div><div className="text-sm font-semibold text-slate-900">{w.user.name}</div><div className="text-[11px] text-slate-400" title="Open the winner to see the full email">{maskEmail(w.user.email)}</div></div></div></TD><TD className="text-xs font-medium text-slate-800">{w.company?.name ?? "—"}</TD><TD className="text-xs">{w.campaign.title}</TD><TD><Badge tone={prizeTone(w.prize.name)}>{w.prize.name}</Badge></TD><TD className="text-xs text-slate-500 whitespace-nowrap">{formatDateTime(w.wonAt)}</TD><TD><Badge tone={w.redemption === "REDEEMED" ? "green" : "amber"} dot>{label(w.redemption)}</Badge></TD></TR>)}</tbody>
                 </Table>
               </Card>
               {meta && meta.totalPages > 1 && <Pagination page={meta.page} pages={meta.totalPages} onChange={(p) => setWf({ ...wf, page: p })} summary={`${meta.total} winners`} />}
@@ -101,14 +108,14 @@ export function CampaignsPage({ tab }: { tab: "campaigns" | "winners" }) {
 
   return (
     <ScratchShell tab="campaigns">
-      <div className="flex flex-wrap items-center gap-3"><SearchInput placeholder="Search campaigns..." className="w-64" value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} /><PillTabs options={[{ value: "All" as const, label: "All" }, ...CAMPAIGN_STATUSES.map((s) => ({ value: s, label: label(s) }))]} value={status} onChange={(v) => { setStatus(v); setPage(1); }} /></div>
+      <div className="flex flex-wrap items-center gap-3"><SearchInput placeholder="Search campaigns..." aria-label="Search campaigns" maxLength={120} className="w-64" value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} /><PillTabs options={[{ value: "All" as const, label: "All" }, ...CAMPAIGN_STATUSES.map((s) => ({ value: s, label: label(s) }))]} value={status} onChange={(v) => { setStatus(v); setPage(1); }} /></div>
       <QueryState query={campaigns} empty={<EmptyState icon={<Ticket className="h-5 w-5" />} title={q || status !== "All" ? "No campaigns match" : "No campaigns yet"} body="Create a campaign with prizes and activate it for customers." action={<Button href="/scratch-win/new">Create Campaign</Button>} />}>
         {({ data, meta }) => (
           <>
             <Card>
               <Table>
                 <THead><tr><TH>Campaign</TH><TH>Status</TH><TH>Start Date</TH><TH>End Date</TH><TH className="text-right">Attempts</TH><TH className="text-right">Winners</TH><TH className="text-right">Actions</TH></tr></THead>
-                <tbody>{data.map((c) => <TR key={c.id}><TD><Link href={`/scratch-win/${c.id}`} className="flex items-center gap-3"><span className="flex h-8 w-12 items-center justify-center overflow-hidden rounded bg-indigo-900 text-indigo-300">{c.artworkUrl ? <img src={c.artworkUrl} alt="" className="h-full w-full object-cover" /> : <Ticket className="h-3.5 w-3.5" />}</span><span><span className="block text-sm font-semibold text-slate-900">{c.title}</span><span className="block text-[11px] text-slate-400">{c.prizes.length} prize{c.prizes.length === 1 ? "" : "s"}</span></span></Link></TD><TD><Badge tone={campaignTone(c.status)} dot>{label(c.status)}</Badge></TD><TD className="text-xs">{formatDate(c.startsAt)}</TD><TD className="text-xs">{formatDate(c.endsAt)}</TD><TD className="text-right text-xs font-semibold text-slate-800">{c.attempts ?? 0}</TD><TD className={`text-right text-xs font-semibold ${c.winners ? "text-green-600" : "text-slate-800"}`}>{c.winners ?? 0}</TD><TD className="text-right"><DropdownMenu items={[{ label: "View", icon: <Eye className="h-3.5 w-3.5" />, href: `/scratch-win/${c.id}` }, { label: "Edit", icon: <Pencil className="h-3.5 w-3.5" />, href: `/scratch-win/${c.id}/edit` }, { label: c.status === "ACTIVE" ? "Deactivate" : "Activate", icon: <Power className="h-3.5 w-3.5" />, tone: c.status === "ACTIVE" ? "danger" : "default", onSelect: () => toggle(c) }]} /></TD></TR>)}</tbody>
+                <tbody>{data.map((c) => <TR key={c.id}><TD><Link href={`/scratch-win/${c.id}`} className="flex items-center gap-3"><span className="flex h-8 w-12 items-center justify-center overflow-hidden rounded bg-indigo-900 text-indigo-300">{c.artworkUrl ? <img src={c.artworkUrl} alt="" className="h-full w-full object-cover" /> : <Ticket className="h-3.5 w-3.5" />}</span><span><span className="block text-sm font-semibold text-slate-900">{c.title}</span><span className="block text-[11px] text-slate-400">{(c.prizes ?? []).length} prize{(c.prizes ?? []).length === 1 ? "" : "s"}</span></span></Link></TD><TD><Badge tone={campaignTone(c.status)} dot>{label(c.status)}</Badge></TD><TD className="text-xs">{formatDate(c.startsAt)}</TD><TD className="text-xs">{formatDate(c.endsAt)}</TD><TD className="text-right text-xs font-semibold text-slate-800">{c.attempts ?? 0}</TD><TD className={`text-right text-xs font-semibold ${c.winners ? "text-green-600" : "text-slate-800"}`}>{c.winners ?? 0}</TD><TD className="text-right"><DropdownMenu items={[{ label: "View", icon: <Eye className="h-3.5 w-3.5" />, href: `/scratch-win/${c.id}` }, { label: "Edit", icon: <Pencil className="h-3.5 w-3.5" />, href: `/scratch-win/${c.id}/edit` }, { label: c.status === "ACTIVE" ? "Deactivate" : "Activate", icon: <Power className="h-3.5 w-3.5" />, tone: c.status === "ACTIVE" ? "danger" : "default", disabled: toggling, onSelect: () => toggle(c) }]} /></TD></TR>)}</tbody>
               </Table>
             </Card>
             {meta && meta.totalPages > 1 && <Pagination page={meta.page} pages={meta.totalPages} onChange={setPage} summary={`${meta.total} campaigns`} />}

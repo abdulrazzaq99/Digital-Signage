@@ -58,7 +58,7 @@ function Campaign({ campaign }: { campaign: Campaign }) {
           </div>
           <div className="px-5 py-4">
             <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Prizes up for grabs</div>
-            <ul className="mt-2 space-y-2">{c.prizes.map((p) => <li key={p.id} className="flex items-center justify-between text-xs"><span className="flex items-center gap-2 text-slate-700"><span className={cn("h-1.5 w-1.5 rounded-full", p.remaining > 0 ? "bg-blue-600" : "bg-slate-300")} />{p.name}{p.remaining === 0 && <span className="text-[10px] text-slate-400">(all claimed)</span>}</span><span className="font-semibold text-slate-900">{p.value ?? ""}</span></li>)}</ul>
+            <ul className="mt-2 space-y-2">{(c.prizes ?? []).map((p) => <li key={p.id} className="flex items-center justify-between text-xs"><span className="flex items-center gap-2 text-slate-700"><span className={cn("h-1.5 w-1.5 rounded-full", p.remaining > 0 ? "bg-blue-600" : "bg-slate-300")} />{p.name}{p.remaining === 0 && <span className="text-[10px] text-slate-400">(all claimed)</span>}</span><span className="font-semibold text-slate-900">{p.value ?? ""}</span></li>)}</ul>
             <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-4"><span className="text-[11px] text-slate-500"><span className="font-semibold text-slate-800">{c.maxAttempts}</span> attempt{c.maxAttempts === 1 ? "" : "s"} per eligible account</span><Button size="sm" onClick={play}><Play className="h-3.5 w-3.5 fill-current" /> Play Now</Button></div>
           </div>
         </Card>
