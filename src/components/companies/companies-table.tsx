@@ -12,6 +12,7 @@ import { formatDate, label } from "@/lib/format";
 import { Building2, Eye, Pencil, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { CompanyFormModal, DeleteCompanyModal } from "./company-modals";
 
 const STATUSES: ("All" | Company["status"])[] = ["All", "ACTIVE", "SUSPENDED", "INACTIVE"];
@@ -23,7 +24,8 @@ export function CompaniesTable() {
   const [create, setCreate] = useState(false);
   const [edit, setEdit] = useState<Company | null>(null);
   const [del, setDel] = useState<Company | null>(null);
-  const companies = useCompanies({ search: q || undefined, status: status === "All" ? undefined : status, page });
+  const search = useDebouncedValue(q.trim(), 300);
+  const companies = useCompanies({ search: search || undefined, status: status === "All" ? undefined : status, page });
 
   return (
     <div className="space-y-5">
@@ -31,7 +33,7 @@ export function CompaniesTable() {
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3">
-          <SearchInput placeholder="Search companies..." className="w-60" value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} />
+          <SearchInput placeholder="Search companies..." aria-label="Search companies" maxLength={100} className="w-60" value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} />
           <PillTabs options={STATUSES.map((s) => ({ value: s, label: s === "All" ? "All" : label(s) }))} value={status} onChange={(v) => { setStatus(v); setPage(1); }} />
         </div>
         <span className="text-xs text-slate-400">{companies.data?.meta?.total ?? 0} companies</span>

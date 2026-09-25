@@ -1,20 +1,36 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { Input, Label } from "@/components/ui/input";
+import { applyApiError, Field, FormError, SubmitButton, useZodForm } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { Alert } from "@/components/ui/misc";
 import { useForgotPassword } from "@/lib/api/hooks/auth";
 import { errorMessage } from "@/lib/format";
+import { email } from "@/lib/validation/fields";
+import { maskEmail } from "@/lib/validation/masks";
 import { ArrowLeft, Mail } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { z } from "zod";
+
+const forgotSchema = z.object({ email: email() });
 
 export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState("");
-  const [sent, setSent] = useState(false);
+  const [sentTo, setSentTo] = useState<string | null>(null);
   const forgot = useForgotPassword();
-  const send = () => forgot.mutate({ email }, { onSuccess: () => setSent(true) });
+  const resend = useForgotPassword();
+  const form = useZodForm(forgotSchema, { defaultValues: { email: "" } });
+  const { register, formState } = form;
 
-  if (sent) {
+  const submit = form.handleSubmit(async (v) => {
+    try {
+      await forgot.mutateAsync({ email: v.email });
+      setSentTo(v.email);
+    } catch (e) {
+      applyApiError(form, e);
+    }
+  });
+
+  if (sentTo) {
     return (
       <div className="space-y-6">
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-600">
@@ -23,19 +39,21 @@ export default function ForgotPasswordPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">Check your inbox</h1>
           <p className="mt-1.5 text-sm text-slate-500">
-            We sent a password reset link to <span className="font-semibold text-slate-900">{email || "company@example.com"}</span>. It may take a few minutes to arrive.
+            We sent a password reset link to <span className="font-semibold text-slate-900">{maskEmail(sentTo)}</span>. It may take a few minutes to arrive.
           </p>
         </div>
+        {resend.isError && <Alert tone="red">{errorMessage(resend.error)}</Alert>}
+        {resend.isSuccess && <Alert tone="green">We sent another link.</Alert>}
         <Button href="/login" size="lg" className="w-full">Back to Sign In</Button>
         <p className="text-center text-xs text-slate-500">
-          Didn&apos;t receive it? <button type="button" onClick={send} disabled={forgot.isPending} className="font-medium text-blue-600 hover:underline">Resend email</button>
+          Didn&apos;t receive it? <button type="button" onClick={() => resend.mutate({ email: sentTo })} disabled={resend.isPending} className="font-medium text-blue-600 hover:underline disabled:opacity-50">{resend.isPending ? "Sending…" : "Resend email"}</button>
         </p>
       </div>
     );
   }
 
   return (
-    <form onSubmit={(e) => { e.preventDefault(); send(); }} className="space-y-6">
+    <form onSubmit={submit} noValidate className="space-y-6">
       <Link href="/login" className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-800">
         <ArrowLeft className="h-3.5 w-3.5" /> Back to Sign In
       </Link>
@@ -43,12 +61,11 @@ export default function ForgotPasswordPage() {
         <h1 className="text-2xl font-bold tracking-tight text-slate-900">Forgot your password?</h1>
         <p className="mt-1.5 text-sm text-slate-500">Enter your email address and we&apos;ll send you a link to reset your password.</p>
       </div>
-      {forgot.isError && <Alert tone="red">{errorMessage(forgot.error)}</Alert>}
-      <div>
-        <Label>Email address</Label>
-        <Input type="email" placeholder="you@company.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
-      </div>
-      <Button type="submit" size="lg" className="w-full" disabled={forgot.isPending}>{forgot.isPending ? "Sending…" : "Send Reset Link"}</Button>
+      <FormError form={form} />
+      <Field label="Email address" required error={formState.errors.email?.message}>
+        <Input type="email" inputMode="email" placeholder="you@company.com" autoComplete="email" autoCapitalize="off" maxLength={254} {...register("email")} />
+      </Field>
+      <SubmitButton form={form} size="lg" className="w-full" pendingText="Sending…">Send Reset Link</SubmitButton>
       <p className="text-center text-xs text-slate-500">
         Don&apos;t have an account? <a href="#" className="font-medium text-blue-600 hover:underline">Request access</a>
       </p>

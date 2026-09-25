@@ -3,7 +3,8 @@ import { useAuth } from "@/components/auth/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { Input, Label } from "@/components/ui/input";
+import { applyApiError, Field, FormError, maskedRegister, SubmitButton, useZodForm } from "@/components/ui/form";
+import { Input, PasswordInput } from "@/components/ui/input";
 import { Alert, Avatar } from "@/components/ui/misc";
 import { EmptyState, QueryState, Skeleton } from "@/components/ui/query-state";
 import { TD, TH, THead, TR, Table } from "@/components/ui/table";
@@ -13,7 +14,9 @@ import { useCompany } from "@/lib/api/hooks/companies";
 import { useLicense } from "@/lib/api/hooks/licenses";
 import { useUsers } from "@/lib/api/hooks/users";
 import type { User } from "@/lib/api/types";
-import { errorMessage, formatDate, label, roleLabel, timeAgo } from "@/lib/format";
+import { formatDate, label, roleLabel, timeAgo } from "@/lib/format";
+import { formatPhone, maskEmail, maskName, maskPhone } from "@/lib/validation/masks";
+import { applyPasswordError, PASSWORD_HINT, passwordChangeDefaults, passwordChangeSchema, profileBody, profileDefaults, profileSchema } from "@/components/settings/account-schemas";
 import { cn } from "@/lib/utils";
 import { Pencil, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -30,37 +33,54 @@ function ProfileTab() {
   const toast = useToast();
   const update = useUpdateProfile();
   const changePw = useChangePassword();
-  const [f, setF] = useState({ name: user?.name ?? "", title: user?.title ?? "", phone: user?.phone ?? "" });
   const [changingPw, setChangingPw] = useState(false);
-  const [pw, setPw] = useState({ current: "", next: "", confirm: "" });
-  const [pwError, setPwError] = useState("");
-  const save = () => update.mutate({ name: f.name.trim(), title: f.title.trim() || null, phone: f.phone.trim() || null }, { onSuccess: () => toast.success("Profile updated"), onError: (e) => toast.error(e) });
-  const savePw = () => {
-    setPwError("");
-    if (pw.next !== pw.confirm) { setPwError("New passwords do not match."); return; }
-    changePw.mutate({ currentPassword: pw.current, newPassword: pw.next }, { onSuccess: async () => { toast.success("Password updated", "Please sign in again with your new password."); await logout(); router.replace("/login"); }, onError: (e) => setPwError(errorMessage(e)) });
-  };
+  const form = useZodForm(profileSchema, { defaultValues: profileDefaults(user) });
+  const pwForm = useZodForm(passwordChangeSchema(user?.email), { defaultValues: passwordChangeDefaults });
+  const save = form.handleSubmit(async (v) => {
+    try {
+      await update.mutateAsync(profileBody(v));
+      toast.success("Profile updated");
+      form.reset(v);
+    } catch (e) {
+      applyApiError(form, e);
+    }
+  });
+  const savePw = pwForm.handleSubmit(async (v) => {
+    try {
+      await changePw.mutateAsync({ currentPassword: v.currentPassword, newPassword: v.newPassword });
+    } catch (e) {
+      applyPasswordError(pwForm, e);
+      return;
+    }
+    toast.success("Password updated", "Please sign in again with your new password.");
+    await logout();
+    router.replace("/login");
+  });
+  const togglePw = () => { if (changingPw) pwForm.reset(passwordChangeDefaults); setChangingPw((v) => !v); };
   if (!user) return null;
+  const e = form.formState.errors;
+  const pe = pwForm.formState.errors;
   return (
     <div className="max-w-[520px] space-y-6 animate-fade-in">
       <div className="flex items-center gap-4"><Avatar name={user.name} size="lg" /><div><div className="text-sm font-semibold text-slate-900">{user.name}</div><div className="text-[11px] text-slate-400">{roleLabel(user)} · {user.email}</div></div></div>
-      <form onSubmit={(e) => { e.preventDefault(); save(); }} className="space-y-4 border-t border-slate-100 pt-5">
+      <form onSubmit={save} noValidate className="space-y-4 border-t border-slate-100 pt-5">
         <div className="text-sm font-semibold text-slate-900">Personal Information</div>
-        <div><Label required>Full Name</Label><Input value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} minLength={2} required /></div>
-        <div><Label>Email Address</Label><Input value={user.email} disabled className="bg-slate-50 text-slate-400" /><p className="mt-1 text-[10px] text-slate-400">Contact your account manager to change your email address.</p></div>
-        <div><Label>Job Title</Label><Input value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} /></div>
-        <div><Label>Phone Number</Label><Input value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} /></div>
-        <Button type="submit" size="sm" disabled={update.isPending}>{update.isPending ? "Saving…" : "Save Changes"}</Button>
+        <FormError form={form} />
+        <Field label="Full Name" required error={e.name?.message}><Input autoComplete="name" maxLength={120} {...maskedRegister(form, "name", maskName)} /></Field>
+        <Field label="Email Address" hint="Contact your account manager to change your email address."><Input value={user.email} disabled readOnly className="bg-slate-50 text-slate-400" /></Field>
+        <Field label="Job Title" error={e.title?.message}><Input autoComplete="organization-title" maxLength={80} {...form.register("title")} /></Field>
+        <Field label="Phone Number" error={e.phone?.message}><Input type="tel" inputMode="tel" autoComplete="tel" placeholder="+44 20 7946 0000" maxLength={20} {...maskedRegister(form, "phone", maskPhone)} /></Field>
+        <SubmitButton form={form} size="sm">Save Changes</SubmitButton>
       </form>
       <div className="border-t border-slate-100 pt-5">
-        <div className="flex items-center justify-between"><div><div className="text-sm font-semibold text-slate-900">Security</div><div className="text-[11px] text-slate-400">Update your password. All sessions are signed out afterwards.</div></div><Button variant="secondary" size="sm" onClick={() => setChangingPw((v) => !v)}>{changingPw ? "Cancel" : "Change Password"}</Button></div>
+        <div className="flex items-center justify-between"><div><div className="text-sm font-semibold text-slate-900">Security</div><div className="text-[11px] text-slate-400">Update your password. All sessions are signed out afterwards.</div></div><Button type="button" variant="secondary" size="sm" disabled={pwForm.formState.isSubmitting} onClick={togglePw}>{changingPw ? "Cancel" : "Change Password"}</Button></div>
         {changingPw && (
-          <form onSubmit={(e) => { e.preventDefault(); savePw(); }} className="mt-4 space-y-4 animate-fade-in">
-            <div><Label required>Current Password</Label><Input type="password" value={pw.current} onChange={(e) => setPw({ ...pw, current: e.target.value })} required /></div>
-            <div><Label required>New Password</Label><Input type="password" value={pw.next} onChange={(e) => setPw({ ...pw, next: e.target.value })} minLength={8} required /><p className="mt-1 text-[10px] text-slate-400">Minimum 8 characters.</p></div>
-            <div><Label required>Confirm New Password</Label><Input type="password" value={pw.confirm} onChange={(e) => setPw({ ...pw, confirm: e.target.value })} required /></div>
-            {pwError && <Alert tone="red">{pwError}</Alert>}
-            <Button type="submit" size="sm" disabled={changePw.isPending}>{changePw.isPending ? "Updating…" : "Update Password"}</Button>
+          <form onSubmit={savePw} noValidate className="mt-4 space-y-4 animate-fade-in">
+            <FormError form={pwForm} />
+            <Field label="Current Password" required error={pe.currentPassword?.message}><PasswordInput autoComplete="current-password" maxLength={128} {...pwForm.register("currentPassword")} /></Field>
+            <Field label="New Password" required hint={PASSWORD_HINT} error={pe.newPassword?.message}><PasswordInput autoComplete="new-password" maxLength={128} {...pwForm.register("newPassword")} /></Field>
+            <Field label="Confirm New Password" required error={pe.confirm?.message}><PasswordInput autoComplete="new-password" maxLength={128} {...pwForm.register("confirm")} /></Field>
+            <SubmitButton form={pwForm} size="sm" pendingText="Updating…">Update Password</SubmitButton>
           </form>
         )}
       </div>
@@ -76,10 +96,11 @@ function CompanyTab({ companyId }: { companyId: string }) {
       {(c) => (
         <div className="max-w-[520px] space-y-6 animate-fade-in">
           <div><div className="text-sm font-semibold text-slate-900">Company Information</div><div className="text-[11px] text-slate-400">Managed by the platform team. Contact support to request changes.</div></div>
-          <dl className="grid grid-cols-2 gap-4 text-xs">{([["Company Name", c.name], ["Website", c.website || "—"], ["Industry", c.industry || "—"], ["Phone", c.phone || "—"], ["Timezone", c.timezone]] as [string, string][]).map(([k, v]) => <div key={k}><dt className="text-[9px] font-semibold uppercase tracking-wider text-slate-400">{k}</dt><dd className="mt-0.5 font-medium text-slate-800">{v}</dd></div>)}</dl>
+          <dl className="grid grid-cols-2 gap-4 text-xs">{([["Company Name", c.name], ["Website", c.website || "—"], ["Industry", c.industry || "—"], ["Phone", c.phone ? formatPhone(c.phone) : "—"], ["Timezone", c.timezone]] as [string, string][]).map(([k, v]) => <div key={k}><dt className="text-[9px] font-semibold uppercase tracking-wider text-slate-400">{k}</dt><dd className="mt-0.5 font-medium text-slate-800">{v}</dd></div>)}</dl>
           <div className="border-t border-slate-100 pt-5">
             <div className="text-sm font-semibold text-slate-900">Account Details</div>
-            <dl className="mt-4 grid grid-cols-2 gap-4 text-xs">{([["Account ID", c.code], ["Plan", c.plan || "—"], ["Customer Since", formatDate(c.createdAt)], ["Account Status", label(c.status)], ["Licence", license.data ? `${label(license.data.state)} · ${license.data.paired} of ${license.data.screenLimit} screens` : "…"], ["Licence Expiry", license.data?.expiresAt ? formatDate(license.data.expiresAt) : "No expiry"]] as [string, string][]).map(([k, v]) => <div key={k}><dt className="text-[9px] font-semibold uppercase tracking-wider text-slate-400">{k}</dt><dd className="mt-0.5 font-medium text-slate-800">{v}</dd></div>)}</dl>
+            <dl className="mt-4 grid grid-cols-2 gap-4 text-xs">{([["Account ID", c.code], ["Plan", c.plan || "—"], ["Customer Since", formatDate(c.createdAt)], ["Account Status", label(c.status)], ["Licence", license.data ? `${label(license.data.state)} · ${license.data.paired} of ${license.data.screenLimit} screens` : license.isError ? "Couldn't load" : "…"], ["Licence Expiry", license.data ? (license.data.expiresAt ? formatDate(license.data.expiresAt) : "No expiry") : license.isError ? "Couldn't load" : "…"]] as [string, string][]).map(([k, v]) => <div key={k}><dt className="text-[9px] font-semibold uppercase tracking-wider text-slate-400">{k}</dt><dd className="mt-0.5 font-medium text-slate-800">{v}</dd></div>)}</dl>
+            {license.isError && <p className="mt-3 text-[11px] text-red-600">Couldn&apos;t load licence details. <button type="button" onClick={() => license.refetch()} className="font-medium underline">Retry</button></p>}
             {license.data?.overLimit && <Alert tone="amber" className="mt-4">More screens are paired than your licence allows. Pairing is blocked until the limit is raised.</Alert>}
           </div>
         </div>
@@ -94,7 +115,7 @@ function UsersTab() {
   const [drawer, setDrawer] = useState<UserDrawerState>(null);
   return (
     <div className="space-y-4 animate-fade-in">
-      <div className="flex flex-wrap items-center justify-between gap-3"><span className="text-xs text-slate-400">{users.data?.meta?.total ?? users.data?.data.length ?? 0} users</span><Button size="sm" onClick={() => setDrawer({ mode: "create" })}><Plus className="h-3.5 w-3.5" /> Add User</Button></div>
+      <div className="flex flex-wrap items-center justify-between gap-3"><span className="text-xs text-slate-400">{users.data?.meta?.total ?? users.data?.data?.length ?? 0} users</span><Button size="sm" onClick={() => setDrawer({ mode: "create" })}><Plus className="h-3.5 w-3.5" /> Add User</Button></div>
       <QueryState query={users} empty={<EmptyState title="No users yet" />}>
         {({ data }) => (
           <Card>
@@ -104,11 +125,11 @@ function UsersTab() {
                 {data.map((u) => (
                   <TR key={u.id}>
                     <TD><div className="flex items-center gap-3"><Avatar name={u.name} size="sm" /><span className="flex items-center gap-2 text-sm font-semibold text-slate-900 whitespace-nowrap">{u.name}{u.id === me?.id && <Badge tone="blue">You</Badge>}</span></div></TD>
-                    <TD className="text-xs whitespace-nowrap">{u.email}</TD>
+                    <TD className="text-xs whitespace-nowrap" title={u.id === me?.id ? u.email : undefined}>{u.id === me?.id ? u.email : maskEmail(u.email)}</TD>
                     <TD><Badge tone={roleTone(u.role)}>{label(u.role)}</Badge></TD>
                     <TD><Badge tone={statusTone(u.status)} dot>{label(u.status)}</Badge></TD>
                     <TD className="text-xs text-slate-400 whitespace-nowrap">{timeAgo(u.lastLoginAt)}</TD>
-                    <TD className="text-right"><button onClick={() => setDrawer({ mode: "edit", id: u.id })} className="flex h-7 w-7 items-center justify-center rounded-md border border-slate-200 text-slate-400 hover:text-slate-700" aria-label="Edit"><Pencil className="h-3.5 w-3.5" /></button></TD>
+                    <TD className="text-right"><button type="button" onClick={() => setDrawer({ mode: "edit", id: u.id, user: u })} className="flex h-7 w-7 items-center justify-center rounded-md border border-slate-200 text-slate-400 hover:text-slate-700" aria-label="Edit"><Pencil className="h-3.5 w-3.5" /></button></TD>
                   </TR>
                 ))}
               </tbody>
@@ -128,9 +149,9 @@ export function AccountPage() {
   const tabs: [Tab, string][] = [["profile", "Profile"], ["company", "Company Settings"], ...(canManageUsers ? [["users", "Users"] as [Tab, string]] : [])];
   return (
     <div className="space-y-5">
-      <div className="inline-flex rounded-lg border border-slate-200 bg-slate-100 p-1">{tabs.map(([k, l]) => <button key={k} onClick={() => setTab(k)} className={cn("h-7 rounded-md px-4 text-xs font-medium transition-colors", tab === k ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-800")}>{l}</button>)}</div>
+      <div className="inline-flex rounded-lg border border-slate-200 bg-slate-100 p-1">{tabs.map(([k, l]) => <button key={k} type="button" onClick={() => setTab(k)} className={cn("h-7 rounded-md px-4 text-xs font-medium transition-colors", tab === k ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-800")}>{l}</button>)}</div>
       {tab === "profile" && <ProfileTab />}
-      {tab === "company" && companyId && <CompanyTab companyId={companyId} />}
+      {tab === "company" && (companyId ? <CompanyTab companyId={companyId} /> : <EmptyState title="No company linked" body="This account isn't linked to a company." className="max-w-[520px]" />)}
       {tab === "users" && canManageUsers && <UsersTab />}
     </div>
   );

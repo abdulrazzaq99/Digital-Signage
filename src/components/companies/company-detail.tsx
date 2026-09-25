@@ -2,7 +2,8 @@
 import { Button } from "@/components/ui/button";
 import { Badge, DotStatus, StatusBadge } from "@/components/ui/badge";
 import { Card, CardHeader, StatCard } from "@/components/ui/card";
-import { Input, Label, Select } from "@/components/ui/input";
+import { applyApiError, Field, FormError, maskedRegister, SubmitButton, useZodForm } from "@/components/ui/form";
+import { Input, Select } from "@/components/ui/input";
 import { Alert, Breadcrumb, CompanyLogo, Progress } from "@/components/ui/misc";
 import { QueryState, Skeleton } from "@/components/ui/query-state";
 import { TD, TH, THead, TR, Table } from "@/components/ui/table";
@@ -17,23 +18,38 @@ import { formatDate, formatDateTime, label, timeAgo } from "@/lib/format";
 import { Activity, Pencil, Users } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { UserDrawer } from "@/components/portal/user-drawer";
+import { UserDrawer, type UserDrawerState } from "@/components/portal/user-drawer";
+import { isHttpUrl } from "@/lib/validation/fields";
+import { formatPhone, maskEmail, maskInteger } from "@/lib/validation/masks";
+import { z } from "zod";
+import { LICENSE_STATE_VALUES, screenLimit } from "./company-schema";
 import { CompanyFormModal } from "./company-modals";
+
+const licenseSchema = z.object({ limit: screenLimit(), state: z.enum(LICENSE_STATE_VALUES, { error: "Choose a licence status" }) });
 
 function LicensePanel({ company }: { company: Company }) {
   const toast = useToast();
   const license = useLicense(company.id);
   const update = useUpdateLicense();
   const [editing, setEditing] = useState(false);
-  const [limit, setLimit] = useState(company.license?.screenLimit ?? 0);
-  const [state, setState] = useState(company.license?.state ?? "ACTIVE");
   const l = license.data ?? { screenLimit: company.license?.screenLimit ?? 0, state: company.license?.state ?? "DISABLED", overLimit: company.overLimit, paired: counts(company).screens, available: counts(company).available, expiresAt: null };
+  const form = useZodForm(licenseSchema, { defaultValues: { limit: String(l.screenLimit || 1), state: l.state } });
+  const limitText = form.watch("limit");
   const usagePct = l.screenLimit ? Math.min(100, (l.paired / l.screenLimit) * 100) : 0;
-  const save = () => update.mutate({ companyId: company.id, screenLimit: Number(limit), state }, { onSuccess: (r) => { toast.success("License updated", r.overLimit ? "The account is now over its limit." : `${r.screenLimit} screens · ${label(r.state)}`); setEditing(false); }, onError: (e) => toast.error(e) });
+  const startEdit = () => { form.reset({ limit: String(l.screenLimit || 1), state: l.state }); setEditing(true); };
+  const save = form.handleSubmit(async (v) => {
+    try {
+      const r = await update.mutateAsync({ companyId: company.id, screenLimit: Number(v.limit), state: v.state });
+      toast.success("License updated", r.overLimit ? "The account is now over its limit." : `${r.screenLimit} screens · ${label(r.state)}`);
+      setEditing(false);
+    } catch (e) {
+      applyApiError(form, e, { screenLimit: "limit" });
+    }
+  });
   const desc: Record<string, string> = { ACTIVE: "Users can sign in and manage screens within the assigned limit.", SUSPENDED: "Publishing and pairing are blocked until the licence is reactivated.", DISABLED: "The account cannot use the platform.", EXPIRED: "The licence period has ended; renew to restore access." };
   return (
     <Card className="self-start">
-      <CardHeader title="License" subtitle="Screen allocation and access control" action={!editing && <Button variant="secondary" size="sm" onClick={() => { setLimit(l.screenLimit); setState(l.state); setEditing(true); }}>Edit License</Button>} />
+      <CardHeader title="License" subtitle="Screen allocation and access control" action={!editing && <Button variant="secondary" size="sm" onClick={startEdit}>Edit License</Button>} />
       <div className="space-y-4 px-5 py-4">
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {[["License Status", <StatusBadge key="a" status={label(l.state)} />], ["Screen Limit", <span key="b" className="text-lg font-bold text-slate-900">{l.screenLimit}</span>], ["Paired Screens", <span key="c" className="text-lg font-bold text-slate-900">{l.paired}</span>], ["Available Slots", <span key="d" className={`text-lg font-bold ${l.available > 0 ? "text-green-600" : "text-red-600"}`}>{l.available}</span>]].map(([k, v]) => (
@@ -48,14 +64,16 @@ function LicensePanel({ company }: { company: Company }) {
         <div className="rounded-lg border border-slate-100 bg-slate-50/60 px-4 py-3">
           <div className={`flex items-center gap-2 text-xs font-semibold ${l.state === "ACTIVE" ? "text-green-700" : "text-amber-700"}`}><span className={`h-1.5 w-1.5 rounded-full ${l.state === "ACTIVE" ? "bg-green-500" : "bg-amber-500"}`} />{label(l.state)}</div>
           <p className="mt-1 text-[11px] text-slate-400">{desc[l.state]}</p>
+          {license.isError && <p className="mt-1 text-[11px] text-red-600">Couldn&apos;t load the latest licence details. <button type="button" onClick={() => license.refetch()} className="font-medium underline">Retry</button></p>}
           {l.expiresAt && <p className="mt-1 text-[11px] text-slate-400">Expires {formatDate(l.expiresAt)}</p>}
         </div>
         {editing && (
-          <form onSubmit={(e) => { e.preventDefault(); save(); }} className="space-y-4 border-t border-slate-100 pt-4 animate-fade-in">
-            <div><Label>Maximum Screens</Label><Input type="number" min={1} value={limit} onChange={(e) => setLimit(Number(e.target.value))} /></div>
-            <div><Label>License Status</Label><Select value={state} onChange={(e) => setState(e.target.value as typeof state)}>{LICENSE_STATES.map((s) => <option key={s} value={s}>{label(s)}</option>)}</Select></div>
-            {Number(limit) < l.paired && <Alert tone="amber">Lower than the {l.paired} screens already paired; the account will be flagged over limit (screens are not removed).</Alert>}
-            <div className="flex justify-end gap-2"><Button type="button" variant="secondary" size="sm" onClick={() => setEditing(false)}>Cancel</Button><Button type="submit" size="sm" disabled={update.isPending}>{update.isPending ? "Saving…" : "Save Changes"}</Button></div>
+          <form onSubmit={save} noValidate className="space-y-4 border-t border-slate-100 pt-4 animate-fade-in">
+            <FormError form={form} />
+            <Field label="Maximum Screens" required hint="Whole number, 1–10,000." error={form.formState.errors.limit?.message}><Input inputMode="numeric" autoComplete="off" maxLength={5} {...maskedRegister(form, "limit", (v) => maskInteger(v, 5))} /></Field>
+            <Field label="License Status" error={form.formState.errors.state?.message}><Select {...form.register("state")}>{LICENSE_STATES.map((s) => <option key={s} value={s}>{label(s)}</option>)}</Select></Field>
+            {limitText !== "" && Number(limitText) < l.paired && <Alert tone="amber">Lower than the {l.paired} screens already paired; the account will be flagged over limit (screens are not removed).</Alert>}
+            <div className="flex justify-end gap-2"><Button type="button" variant="secondary" size="sm" disabled={form.formState.isSubmitting} onClick={() => setEditing(false)}>Cancel</Button><SubmitButton form={form} size="sm">Save Changes</SubmitButton></div>
           </form>
         )}
       </div>
@@ -66,7 +84,7 @@ function LicensePanel({ company }: { company: Company }) {
 function Detail({ company }: { company: Company }) {
   const [editCompany, setEditCompany] = useState(false);
   const [tab, setTab] = useState<"overview" | "users" | "screens">("overview");
-  const [userDrawer, setUserDrawer] = useState<{ mode: "create" } | { mode: "edit"; id: string } | null>(null);
+  const [userDrawer, setUserDrawer] = useState<UserDrawerState>(null);
   const activity = useActivity({ companyId: company.id, pageSize: 6 });
   const users = useUsers({ pageSize: 50 }, { companyId: company.id, enabled: tab === "users" });
   const screens = useScreens({ pageSize: 50 }, { companyId: company.id, enabled: tab === "screens" });
@@ -96,7 +114,7 @@ function Detail({ company }: { company: Company }) {
       </div>
 
       <div className="flex gap-1 rounded-lg border border-slate-200 bg-white p-1 text-xs font-medium sm:w-fit">
-        {([["overview", "Overview"], ["users", "Users"], ["screens", "Screens"]] as const).map(([v, l]) => <button key={v} onClick={() => setTab(v)} className={`h-8 flex-1 rounded-md px-4 transition-colors sm:flex-none ${tab === v ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-50"}`}>{l}</button>)}
+        {([["overview", "Overview"], ["users", "Users"], ["screens", "Screens"]] as const).map(([v, l]) => <button key={v} type="button" onClick={() => setTab(v)} className={`h-8 flex-1 rounded-md px-4 transition-colors sm:flex-none ${tab === v ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-50"}`}>{l}</button>)}
       </div>
 
       {tab === "overview" && (
@@ -105,7 +123,7 @@ function Detail({ company }: { company: Company }) {
             <Card>
               <CardHeader title="Company Information" />
               <dl className="divide-y divide-slate-100 px-5">
-                {([["Company name", company.name], ["Code", company.code], ["Status", <DotStatus key="s" status={label(company.status)} />], ["Website", company.website ? <a href={company.website} className="text-blue-600 hover:underline" target="_blank" rel="noreferrer">{company.website}</a> : "—"], ["Industry", company.industry || "—"], ["Phone", company.phone || "—"], ["Timezone", company.timezone], ["Member since", formatDate(company.createdAt)]] as [string, React.ReactNode][]).map(([k, v]) => (
+                {([["Company name", company.name], ["Code", company.code], ["Status", <DotStatus key="s" status={label(company.status)} />], ["Website", company.website ? (isHttpUrl(company.website) ? <a href={company.website} className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">{company.website}</a> : company.website) : "—"], ["Industry", company.industry || "—"], ["Phone", company.phone ? formatPhone(company.phone) : "—"], ["Timezone", company.timezone], ["Member since", formatDate(company.createdAt)]] as [string, React.ReactNode][]).map(([k, v]) => (
                   <div key={k} className="flex items-center justify-between py-3 text-sm"><dt className="text-slate-400">{k}</dt><dd className="font-semibold text-slate-900">{v}</dd></div>
                 ))}
               </dl>
@@ -140,7 +158,7 @@ function Detail({ company }: { company: Company }) {
             {({ data }) => (
               <Table>
                 <THead><tr><TH>User</TH><TH>Role</TH><TH>Status</TH><TH>Last login</TH></tr></THead>
-                <tbody>{data.map((u) => <TR key={u.id} className="cursor-pointer" onClick={() => setUserDrawer({ mode: "edit", id: u.id })}><TD><div className="text-sm font-semibold text-slate-900">{u.name}</div><div className="text-[11px] text-slate-400">{u.email}</div></TD><TD><Badge tone="blue">{label(u.role)}</Badge></TD><TD><StatusBadge status={label(u.status)} /></TD><TD className="text-xs text-slate-400">{timeAgo(u.lastLoginAt)}</TD></TR>)}</tbody>
+                <tbody>{data.map((u) => <TR key={u.id} className="cursor-pointer" onClick={() => setUserDrawer({ mode: "edit", id: u.id, user: u })}><TD><div className="text-sm font-semibold text-slate-900">{u.name}</div><div className="text-[11px] text-slate-400">{maskEmail(u.email)}</div></TD><TD><Badge tone="blue">{label(u.role)}</Badge></TD><TD><StatusBadge status={label(u.status)} /></TD><TD className="text-xs text-slate-400">{timeAgo(u.lastLoginAt)}</TD></TR>)}</tbody>
               </Table>
             )}
           </QueryState>

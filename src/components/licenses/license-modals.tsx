@@ -11,6 +11,10 @@ import type { Company } from "@/lib/api/types";
 import { errorMessage, label } from "@/lib/format";
 import { AlertCircle, FileBadge, Minus, Plus } from "lucide-react";
 import { useState } from "react";
+import { z } from "zod";
+import { applyApiError, FormError, maskedRegister, SubmitButton, useZodForm } from "@/components/ui/form";
+import { maskInteger } from "@/lib/validation/masks";
+import { SCREEN_LIMIT_MAX, screenLimit } from "@/components/companies/company-schema";
 
 function CompanyRow({ company }: { company: Company }) {
   return (
@@ -25,17 +29,33 @@ export function EditLimitModal({ company, onClose }: { company: Company | null; 
   return <Modal open={!!company} onClose={onClose} width="max-w-[410px]">{company && <EditLimitForm key={company.id} company={company} onClose={onClose} />}</Modal>;
 }
 
+const limitSchema = z.object({ limit: screenLimit() });
+
 function EditLimitForm({ company, onClose }: { company: Company; onClose: () => void }) {
   const toast = useToast();
   const update = useUpdateLicense();
   const current = company.license?.screenLimit ?? 0;
   const paired = counts(company).screens;
-  const [limit, setLimit] = useState(current);
-  const [error, setError] = useState("");
-  const diff = limit - current;
-  const save = () => update.mutate({ companyId: company.id, screenLimit: limit }, { onSuccess: (r) => { toast.success("Screen limit updated", r.overLimit ? `${r.screenLimit} screens — the account is now over its limit.` : `${r.screenLimit} screens`); onClose(); }, onError: (e) => setError(errorMessage(e)) });
+  const form = useZodForm(limitSchema, { defaultValues: { limit: String(Math.max(1, current)) } });
+  const limitText = form.watch("limit");
+  const limit = /^\d+$/.test(limitText) ? Number(limitText) : null;
+  const diff = limit === null ? 0 : limit - current;
+  const step = (by: number) => {
+    const next = Math.min(SCREEN_LIMIT_MAX, Math.max(1, (limit ?? current) + by));
+    form.setValue("limit", String(next), { shouldValidate: true, shouldDirty: true });
+  };
+  const save = form.handleSubmit(async (v) => {
+    try {
+      const r = await update.mutateAsync({ companyId: company.id, screenLimit: Number(v.limit) });
+      toast.success("Screen limit updated", r.overLimit ? `${r.screenLimit} screens — the account is now over its limit.` : `${r.screenLimit} screens`);
+      onClose();
+    } catch (e) {
+      applyApiError(form, e, { screenLimit: "limit" });
+    }
+  });
+  const limitError = form.formState.errors.limit?.message;
   return (
-    <form onSubmit={(e) => { e.preventDefault(); save(); }} className="p-6">
+    <form onSubmit={save} noValidate className="p-6">
       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600"><FileBadge className="h-4 w-4" /></div>
       <h2 className="mt-4 text-base font-semibold text-slate-900">Edit Screen Limit</h2>
       <p className="mt-1 text-xs text-slate-500">Update the maximum number of screens allowed for <span className="font-semibold text-slate-800">{company.name}</span>.</p>
@@ -44,17 +64,18 @@ function EditLimitForm({ company, onClose }: { company: Company; onClose: () => 
         <Badge tone={company.license?.state === "ACTIVE" ? "green" : "amber"} dot>{label(company.license?.state ?? "DISABLED")}</Badge>
       </div>
       <div className="mt-5">
-        <Label>New Screen Limit</Label>
+        <Label htmlFor="screen-limit-input" required>New Screen Limit</Label>
         <div className="flex items-center gap-2">
-          <button type="button" onClick={() => setLimit((v) => Math.max(1, v - 1))} className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50" aria-label="Decrease"><Minus className="h-4 w-4" /></button>
-          <input type="number" min={1} value={limit} onChange={(e) => setLimit(Math.max(1, Number(e.target.value)))} className="h-10 flex-1 rounded-lg border border-slate-200 text-center text-base font-semibold text-slate-900 outline-none focus:border-blue-500" />
-          <button type="button" onClick={() => setLimit((v) => v + 1)} className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50" aria-label="Increase"><Plus className="h-4 w-4" /></button>
+          <button type="button" onClick={() => step(-1)} disabled={limit !== null && limit <= 1} className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-40" aria-label="Decrease"><Minus className="h-4 w-4" /></button>
+          <input id="screen-limit-input" inputMode="numeric" autoComplete="off" maxLength={5} aria-invalid={limitError ? true : undefined} aria-describedby={limitError ? "screen-limit-error" : "screen-limit-hint"} {...maskedRegister(form, "limit", (v) => maskInteger(v, 5))} className="h-10 min-w-0 flex-1 rounded-lg border border-slate-200 text-center text-base font-semibold text-slate-900 outline-none focus:border-blue-500 aria-invalid:border-red-400" />
+          <button type="button" onClick={() => step(1)} disabled={limit !== null && limit >= SCREEN_LIMIT_MAX} className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-40" aria-label="Increase"><Plus className="h-4 w-4" /></button>
         </div>
+        {limitError ? <p id="screen-limit-error" role="alert" className="mt-1 text-[11px] font-medium text-red-600">{limitError}</p> : <p id="screen-limit-hint" className="mt-1 text-[11px] text-slate-400">Whole number, 1–10,000.</p>}
         {diff !== 0 && <p className={`mt-2 text-xs font-medium ${diff > 0 ? "text-green-600" : "text-red-600"}`}>{diff > 0 ? `+${diff} screens will be added` : `${diff} screens will be removed`}</p>}
-        {limit < paired && <Alert tone="amber" className="mt-2">Below the {paired} screens already paired. Screens are not removed; the account is flagged over limit until it unpairs some.</Alert>}
+        {limit !== null && limit < paired && <Alert tone="amber" className="mt-2">Below the {paired} screens already paired. Screens are not removed; the account is flagged over limit until it unpairs some.</Alert>}
       </div>
-      {error && <Alert tone="red" className="mt-3">{error}</Alert>}
-      <div className="mt-6 flex justify-end gap-2"><Button type="button" variant="secondary" onClick={onClose}>Cancel</Button><Button type="submit" disabled={update.isPending || diff === 0}>{update.isPending ? "Saving…" : "Save Changes"}</Button></div>
+      <FormError form={form} className="mt-3" />
+      <div className="mt-6 flex justify-end gap-2"><Button type="button" variant="secondary" onClick={onClose}>Cancel</Button><SubmitButton form={form} disabled={limit === current}>Save Changes</SubmitButton></div>
     </form>
   );
 }
@@ -63,7 +84,7 @@ function StateModal({ company, onClose, state, title, body, tone, cta }: { compa
   const toast = useToast();
   const update = useUpdateLicense();
   const [error, setError] = useState("");
-  const go = () => company && update.mutate({ companyId: company.id, state }, { onSuccess: () => { toast.success(`License ${label(state).toLowerCase()}`, company.name); onClose(); }, onError: (e) => setError(errorMessage(e)) });
+  const go = () => company && !update.isPending && update.mutate({ companyId: company.id, state }, { onSuccess: () => { toast.success(`License ${label(state).toLowerCase()}`, company.name); onClose(); }, onError: (e) => setError(errorMessage(e)) });
   return (
     <Modal open={!!company} onClose={onClose} width="max-w-[400px]">
       {company && (
@@ -74,7 +95,7 @@ function StateModal({ company, onClose, state, title, body, tone, cta }: { compa
           </div>
           <CompanyRow company={company} />
           {error && <Alert tone="red" className="mt-3">{error}</Alert>}
-          <div className="mt-6 flex justify-end gap-2"><Button variant="secondary" onClick={onClose}>Cancel</Button><Button className={tone} onClick={go} disabled={update.isPending}>{update.isPending ? "Saving…" : cta}</Button></div>
+          <div className="mt-6 flex justify-end gap-2"><Button type="button" variant="secondary" onClick={onClose} disabled={update.isPending}>Cancel</Button><Button type="button" className={tone} onClick={go} disabled={update.isPending} aria-busy={update.isPending || undefined}>{update.isPending ? "Saving…" : cta}</Button></div>
         </div>
       )}
     </Modal>
