@@ -15,6 +15,9 @@ const DEMO = {
   customer: { email: "sarah.mitchell@acmecorp.com", password: "Customer123!" },
 };
 
+/** Demo shortcuts only work against a seeded API: on in `next dev`, off in production builds unless NEXT_PUBLIC_DEMO_LOGIN=true. */
+const SHOW_DEMO = (process.env.NEXT_PUBLIC_DEMO_LOGIN ?? (process.env.NODE_ENV === "production" ? "false" : "true")) === "true";
+
 /** Honour `?next=` only when it belongs to the dashboard this user can access. */
 function destinationFor(superAdmin: boolean, next: string | null) {
   const inArea = next && (superAdmin ? !next.startsWith("/portal") : next.startsWith("/portal"));
@@ -77,11 +80,13 @@ function LoginForm() {
       <p className="text-center text-xs text-slate-500">
         Don&apos;t have an account? <a href="#" className="font-medium text-blue-600 hover:underline">Request access</a>
       </p>
-      <div className="flex items-center justify-center gap-4 border-t border-slate-100 pt-4 text-[11px] text-slate-400">
-        <span>Demo:</span>
-        <button type="button" disabled={pending} onClick={() => { setEmail(DEMO.admin.email); setPassword(DEMO.admin.password); submit(DEMO.admin); }} className="font-medium text-blue-600 hover:underline">Super Admin</button>
-        <button type="button" disabled={pending} onClick={() => { setEmail(DEMO.customer.email); setPassword(DEMO.customer.password); submit(DEMO.customer); }} className="font-medium text-blue-600 hover:underline">Customer Portal</button>
-      </div>
+      {SHOW_DEMO && (
+        <div className="flex items-center justify-center gap-4 border-t border-slate-100 pt-4 text-[11px] text-slate-400">
+          <span>Demo:</span>
+          <button type="button" disabled={pending} onClick={() => { setEmail(DEMO.admin.email); setPassword(DEMO.admin.password); submit(DEMO.admin); }} className="font-medium text-blue-600 hover:underline">Super Admin</button>
+          <button type="button" disabled={pending} onClick={() => { setEmail(DEMO.customer.email); setPassword(DEMO.customer.password); submit(DEMO.customer); }} className="font-medium text-blue-600 hover:underline">Customer Portal</button>
+        </div>
+      )}
     </form>
   );
 }
