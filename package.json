@@ -9,7 +9,8 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "api:types": "openapi-typescript ../Digital-Signage-API/docs/openapi.json -o src/lib/api/schema.d.ts"
+    "api:types": "openapi-typescript ../Digital-Signage-API/docs/openapi.json -o src/lib/api/schema.d.ts",
+    "lock:linux": "docker run --rm -v \\\"$PWD/package.json:/app/package.json\\\" -v \\\"$PWD/package-lock.json:/app/package-lock.json\\\" -w /app node:22-alpine npm install --package-lock-only --ignore-scripts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
