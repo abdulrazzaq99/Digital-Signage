@@ -20,21 +20,22 @@ const sizes: Record<Size, string> = {
   lg: "h-11 px-5 text-sm gap-2",
 };
 
-interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
   size?: Size;
   href?: string;
   children?: ReactNode;
 }
 
-export function Button({ variant = "primary", size = "md", href, className, children, ...rest }: Props) {
+export function Button({ variant = "primary", size = "md", href, className, children, ...rest }: ButtonProps) {
   const cls = cn(
     "inline-flex items-center justify-center rounded-lg font-medium transition-colors whitespace-nowrap disabled:opacity-50 disabled:pointer-events-none focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40",
     variants[variant],
     sizes[size],
     className,
   );
-  if (href) return <Link href={href} className={cls}>{children}</Link>;
+  // A disabled link renders as a disabled button: <Link> has no disabled state and would still navigate.
+  if (href && !rest.disabled) return <Link href={href} className={cls} onClick={rest.onClick as never}>{children}</Link>;
   return <button className={cls} {...rest}>{children}</button>;
 }
 

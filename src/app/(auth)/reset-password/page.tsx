@@ -1,10 +1,11 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { Input, Label } from "@/components/ui/input";
-import { Alert } from "@/components/ui/misc";
+import { applyApiError, Field, FormError, SubmitButton, useZodForm } from "@/components/ui/form";
+import { PasswordInput } from "@/components/ui/input";
 import { useResetPassword } from "@/lib/api/hooks/auth";
 import { ApiError } from "@/lib/api/client";
-import { errorMessage } from "@/lib/format";
+import { password } from "@/lib/validation/fields";
+import { z } from "zod";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -14,14 +15,25 @@ import { Suspense, useState } from "react";
  * Landing page for emailed password links (forgot-password and user invites):
  * `/reset-password?token=…`. The mobile apps claim the same URL as a Universal / App Link.
  */
+const resetSchema = z
+  .object({ password: password(), confirm: z.string().min(1, "Required") })
+  .refine((v) => v.password === v.confirm, { path: ["confirm"], message: "Passwords don't match" });
+
 function ResetForm() {
   const token = useSearchParams().get("token") ?? "";
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
   const [done, setDone] = useState(false);
   const reset = useResetPassword();
-  const mismatch = confirm.length > 0 && confirm !== password;
+  const form = useZodForm(resetSchema, { defaultValues: { password: "", confirm: "" } });
+  const { register, formState } = form;
   const expired = reset.error instanceof ApiError && reset.error.code === "RESET_INVALID";
+  const submit = form.handleSubmit(async (v) => {
+    try {
+      await reset.mutateAsync({ token, password: v.password });
+      setDone(true);
+    } catch (e) {
+      if (!(e instanceof ApiError && e.code === "RESET_INVALID")) applyApiError(form, e);
+    }
+  });
 
   if (done) {
     return (
@@ -49,25 +61,22 @@ function ResetForm() {
   }
 
   return (
-    <form onSubmit={(e) => { e.preventDefault(); if (!mismatch) reset.mutate({ token, password }, { onSuccess: () => setDone(true) }); }} className="space-y-6">
+    <form onSubmit={submit} noValidate className="space-y-6">
       <Link href="/login" className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-800">
         <ArrowLeft className="h-3.5 w-3.5" /> Back to Sign In
       </Link>
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-slate-900">Set your password</h1>
-        <p className="mt-1.5 text-sm text-slate-500">Choose a password for your Digital Signage account. Use at least 8 characters.</p>
+        <p className="mt-1.5 text-sm text-slate-500">Choose a password for your Digital Signage account.</p>
       </div>
-      {reset.isError && <Alert tone="red">{errorMessage(reset.error)}</Alert>}
-      <div>
-        <Label>New password</Label>
-        <Input type="password" autoComplete="new-password" minLength={8} maxLength={128} value={password} onChange={(e) => setPassword(e.target.value)} required />
-      </div>
-      <div>
-        <Label>Confirm password</Label>
-        <Input type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required />
-        {mismatch && <p className="mt-1 text-xs text-red-600">Passwords don&apos;t match.</p>}
-      </div>
-      <Button type="submit" size="lg" className="w-full" disabled={reset.isPending || password.length < 8 || mismatch}>{reset.isPending ? "Saving…" : "Save Password"}</Button>
+      <FormError form={form} />
+      <Field label="New password" required hint="At least 8 characters, with a letter and a number." error={formState.errors.password?.message}>
+        <PasswordInput autoComplete="new-password" maxLength={128} {...register("password")} />
+      </Field>
+      <Field label="Confirm password" required error={formState.errors.confirm?.message}>
+        <PasswordInput autoComplete="new-password" maxLength={128} {...register("confirm")} />
+      </Field>
+      <SubmitButton form={form} size="lg" className="w-full">Save Password</SubmitButton>
     </form>
   );
 }

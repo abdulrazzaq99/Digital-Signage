@@ -56,12 +56,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => { cancelled = true; };
   }, [loadUser]);
 
+  // The API rejected the session (refresh token revoked, user deactivated): drop cached data; the
+  // route guard then sends the user to /login with a `next` back to where they were.
+  useEffect(() => session.onExpired(() => {
+    disconnectRealtime();
+    qc.clear();
+    setUser(null);
+    setStatus("anonymous");
+  }), [qc]);
+
   // Real-time: connected while authenticated, reconnected whenever the access token rotates.
   useEffect(() => {
     if (status !== "authenticated") { disconnectRealtime(); return; }
     const connect = () => {
       const token = session.getAccess();
-      if (token) connectRealtime(token, (event) => { for (const k of INVALIDATE[event]) qc.invalidateQueries({ queryKey: k }); });
+      if (token) connectRealtime(token, (event) => { for (const k of INVALIDATE[event] ?? []) qc.invalidateQueries({ queryKey: k }); }, () => void session.refresh());
     };
     connect();
     const off = session.onChange(() => { if (session.getAccess()) connect(); else disconnectRealtime(); });

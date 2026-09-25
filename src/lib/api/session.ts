@@ -4,6 +4,7 @@ const KEY = "dsp.refresh";
 let access: string | null = null;
 let refreshing: Promise<boolean> | null = null;
 const listeners = new Set<() => void>();
+const expiredListeners = new Set<() => void>();
 const emit = () => listeners.forEach((fn) => fn());
 
 /** The access token lives in memory only; the rotating refresh token is the one thing persisted. */
@@ -22,6 +23,12 @@ export const session = {
     try { localStorage.removeItem(KEY); } catch { /* ignore */ }
     emit();
   },
+  /** Ends a session the API no longer accepts; the auth provider sends the user to /login. */
+  expire() {
+    session.clear();
+    expiredListeners.forEach((fn) => fn());
+  },
+  onExpired(fn: () => void) { expiredListeners.add(fn); return () => { expiredListeners.delete(fn); }; },
   /** Single-flight: concurrent 401s share one refresh call. Resolves false (and clears) when the token is rejected. */
   refresh(): Promise<boolean> {
     if (refreshing) return refreshing;
@@ -30,7 +37,9 @@ export const session = {
       if (!refreshToken) return false;
       try {
         const res = await fetch(`${API_BASE}/auth/refresh`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ refreshToken }) });
-        if (!res.ok) { session.clear(); return false; }
+        // A rejected token (any 4xx but a rate limit) ends the session; a 5xx leaves it for the next try.
+        if (res.status >= 400 && res.status < 500 && res.status !== 429) { session.expire(); return false; }
+        if (!res.ok) return false;
         const { data } = (await res.json()) as { data: { accessToken: string; refreshToken: string } };
         session.setTokens(data);
         return true;

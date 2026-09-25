@@ -18,8 +18,16 @@ export class ApiError extends Error {
   }
 }
 
+/** A request that hasn't answered in this long fails with TIMEOUT instead of spinning forever. */
+export const REQUEST_TIMEOUT_MS = 30_000;
+
+const withTimeout = (signal: AbortSignal | null | undefined) => {
+  const timeout = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
+  return signal && typeof AbortSignal.any === "function" ? AbortSignal.any([signal, timeout]) : timeout;
+};
+
 // `fetch` is resolved per call so environments (and tests) that replace the global are honoured.
-export const api = createClient<paths>({ baseUrl: API_BASE, fetch: (req) => globalThis.fetch(req) });
+export const api = createClient<paths>({ baseUrl: API_BASE, fetch: (req) => globalThis.fetch(req, { signal: withTimeout(req.signal) }) });
 api.use({
   onRequest({ request }) {
     const token = session.getAccess();
@@ -35,23 +43,39 @@ const isAuthExpiry = (error: unknown) => {
   const code = (error as ErrorBody | undefined)?.error?.code;
   return code === "TOKEN_EXPIRED" || code === "UNAUTHORIZED";
 };
-const networkError = (cause: unknown) => new ApiError(0, "NETWORK", `Can't reach the API at ${API_URL}`, cause);
+/** Maps a thrown fetch/parse failure to an ApiError the UI can explain. Caller aborts are re-thrown untouched. */
+const transportError = (cause: unknown): ApiError => {
+  const name = (cause as { name?: string } | null)?.name;
+  if (name === "TimeoutError") return new ApiError(0, "TIMEOUT", "The server took too long to respond. Please try again.", cause);
+  if (cause instanceof SyntaxError) return new ApiError(0, "BAD_RESPONSE", "The server sent an unexpected response. Please try again.", cause);
+  return new ApiError(0, "NETWORK", `Can't reach the API at ${API_URL}`, cause);
+};
+const isCallerAbort = (e: unknown) => (e as { name?: string } | null)?.name === "AbortError";
+const call = async <R,>(fn: () => Promise<R>): Promise<R> => {
+  try {
+    return await fn();
+  } catch (e) {
+    if (isCallerAbort(e)) throw e;
+    throw transportError(e);
+  }
+};
 
 /**
  * Runs a typed call. On an expired access token it refreshes once and retries, then unwraps the
  * `{ data, meta }` envelope or throws ApiError. Resolves undefined for empty 204 responses.
  */
 export async function request<R extends FetchLike>(fn: () => Promise<R>): Promise<NonNullable<R["data"]>> {
-  let res: R;
-  try { res = await fn(); } catch (e) { throw networkError(e); }
-  if (res.response.status === 401 && isAuthExpiry(res.error) && session.getRefresh()) {
-    if (await session.refresh()) {
-      try { res = await fn(); } catch (e) { throw networkError(e); }
-    }
+  let res = await call(fn);
+  if (res.response.status === 401 && isAuthExpiry(res.error)) {
+    // A session we can't renew is over: tell the app so it returns to the login page.
+    if (session.getRefresh() && (await session.refresh())) res = await call(fn);
+    else if (session.getAccess() || session.getRefresh()) session.expire();
   }
   if (!res.response.ok) {
     const body = (res.error ?? {}) as ErrorBody;
-    throw new ApiError(res.response.status, body.error?.code ?? "HTTP_ERROR", body.error?.message ?? (res.response.statusText || "Request failed"), body.error?.details, body.error?.requestId);
+    const status = res.response.status;
+    const fallback = status === 413 ? "That file or request is too large." : status >= 500 ? "The server hit a problem. Please try again." : res.response.statusText || "Request failed";
+    throw new ApiError(status, body.error?.code ?? (status >= 500 ? "SERVER_ERROR" : "HTTP_ERROR"), body.error?.message ?? fallback, body.error?.details, body.error?.requestId);
   }
   return res.data as NonNullable<R["data"]>;
 }

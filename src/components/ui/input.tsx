@@ -1,11 +1,12 @@
 "use client";
 import { cn } from "@/lib/utils";
-import { ChevronDown, Search } from "lucide-react";
+import { ChevronDown, Eye, EyeOff, Search } from "lucide-react";
+import { useState } from "react";
 import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
 
-export function Label({ children, required, className }: { children: ReactNode; required?: boolean; className?: string }) {
+export function Label({ children, required, className, htmlFor }: { children: ReactNode; required?: boolean; className?: string; htmlFor?: string }) {
   return (
-    <label className={cn("mb-1.5 block text-xs font-medium text-slate-700", className)}>
+    <label htmlFor={htmlFor} className={cn("mb-1.5 block text-xs font-medium text-slate-700", className)}>
       {children}{required && <span className="text-red-500"> *</span>}
     </label>
   );
@@ -14,7 +15,7 @@ export function Label({ children, required, className }: { children: ReactNode; 
 export function Input({ className, ...rest }: InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
-      className={cn("h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20", className)}
+      className={cn("h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 aria-invalid:border-red-400 aria-invalid:focus:border-red-500 aria-invalid:focus:ring-red-500/20 disabled:bg-slate-50 disabled:text-slate-500", className)}
       {...rest}
     />
   );
@@ -36,7 +37,7 @@ export function Select({ className, children, ...rest }: SelectHTMLAttributes<HT
   return (
     <div className={cn("relative", className)}>
       <select
-        className="h-10 w-full appearance-none rounded-lg border border-slate-200 bg-white pl-3 pr-8 text-sm text-slate-900 shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+        className="h-10 w-full appearance-none rounded-lg border border-slate-200 bg-white pl-3 pr-8 text-sm text-slate-900 shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 aria-invalid:border-red-400 aria-invalid:focus:border-red-500 aria-invalid:focus:ring-red-500/20 disabled:bg-slate-50"
         {...rest}
       >
         {children}
@@ -118,7 +119,7 @@ export function PillTabs<T extends string>({ options, value, onChange, className
 export function Textarea({ className, ...rest }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return (
     <textarea
-      className={cn("w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20", className)}
+      className={cn("w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 aria-invalid:border-red-400 aria-invalid:focus:border-red-500 aria-invalid:focus:ring-red-500/20", className)}
       {...rest}
     />
   );
@@ -153,5 +154,18 @@ export function RadioCard({ checked, onSelect, title, sub, className }: { checke
       <span className={cn("mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border", checked ? "border-blue-600" : "border-slate-300")}>{checked && <span className="h-2 w-2 rounded-full bg-blue-600" />}</span>
       <span><span className="block text-sm font-semibold text-slate-900">{title}</span>{sub && <span className="block text-[11px] text-slate-400">{sub}</span>}</span>
     </button>
+  );
+}
+
+/** Password field with a show/hide toggle. Masked by default; the toggle never submits the form. */
+export function PasswordInput({ className, ...rest }: Omit<InputHTMLAttributes<HTMLInputElement>, "type">) {
+  const [shown, setShown] = useState(false);
+  return (
+    <div className="relative">
+      <Input type={shown ? "text" : "password"} className={cn("pr-10", className)} autoCapitalize="off" autoCorrect="off" spellCheck={false} {...rest} />
+      <button type="button" onClick={() => setShown((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600" aria-label={shown ? "Hide password" : "Show password"} aria-pressed={shown}>
+        {shown ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+      </button>
+    </div>
   );
 }
