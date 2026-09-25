@@ -121,15 +121,15 @@ export function OverviewPage() {
       {license.data?.overLimit && <Alert tone="amber">Your account is over its licence limit ({license.data.paired} paired, {license.data.screenLimit} licensed). Pairing is blocked until it is raised.</Alert>}
       {license.data && license.data.state !== "ACTIVE" && <Alert tone="red">Your licence is {(license.data.state ?? "").toLowerCase()}. Publishing and pairing are unavailable — contact your account manager.</Alert>}
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
         {[
           { value: screens.isPending || screens.isError ? undefined : all.length, label: "Total Screens", icon: <Monitor className="h-4 w-4" />, cls: "border-slate-200", ic: "bg-blue-50 text-blue-600" },
           { value: screens.isPending || screens.isError ? undefined : online, label: "Online", icon: <Monitor className="h-4 w-4" />, cls: "border-slate-200", ic: "bg-green-50 text-green-600" },
           { value: screens.isPending || screens.isError ? undefined : offline, label: "Offline", icon: <MonitorOff className="h-4 w-4" />, cls: offline > 0 ? "border-red-200" : "border-slate-200", ic: "bg-red-50 text-red-600" },
         ].map((s) => (
-          <Card key={s.label} className={cn("flex items-center gap-4 px-5 py-4", s.cls)}>
+          <Card key={s.label} className={cn("flex flex-col items-start gap-2 px-3 py-3 sm:flex-row sm:items-center sm:gap-4 sm:px-5 sm:py-4", s.cls)}>
             <span className={cn("flex h-9 w-9 items-center justify-center rounded-lg", s.ic)}>{s.icon}</span>
-            <div>{s.value === undefined ? (screens.isError ? <div className="text-2xl font-bold tracking-tight text-slate-300" title="Couldn't load screens">—</div> : <Skeleton className="h-7 w-10" />) : <div className="text-2xl font-bold tracking-tight text-slate-900">{s.value}</div>}<div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">{s.label}</div></div>
+            <div>{s.value === undefined ? (screens.isError ? <div className="text-2xl font-bold tracking-tight text-slate-300" title="Couldn't load screens">—</div> : <Skeleton className="h-7 w-10" />) : <div className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">{s.value}</div>}<div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">{s.label}</div></div>
           </Card>
         ))}
       </div>

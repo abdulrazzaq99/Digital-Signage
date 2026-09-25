@@ -62,7 +62,28 @@ export function ActivityPage() {
       <QueryState query={activity} empty={<EmptyState icon={<Activity className="h-5 w-5" />} title="No activity matches" body="Try widening the filters." />}>
         {({ data, meta }) => (
           <>
-            <Card>
+            {/* Phones: one card per entry instead of a seven-column table. */}
+            <ul className="space-y-2 sm:hidden">
+              {data.map((a) => (
+                <li key={a.id}>
+                  <button type="button" onClick={() => setOpen(a)} className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-left shadow-sm active:bg-slate-50">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="text-sm font-semibold text-slate-900">{actionLabel(a.action)}</div>
+                        <div className="mt-0.5 line-clamp-2 text-xs text-slate-500">{maskEmailsIn(a.summary ?? "")}</div>
+                      </div>
+                      <Badge tone={tone(a.status)} dot>{label(a.status)}</Badge>
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-slate-400">
+                      <span>{a.actor?.name ?? "System"}</span>
+                      <span>{a.company?.name ?? "Platform"}</span>
+                      <span>{formatDateTime(a.createdAt)}</span>
+                    </div>
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <Card className="hidden sm:block">
               <Table>
                 <THead><tr><TH>Action</TH><TH>Performed By</TH><TH>Company</TH><TH>Resource</TH><TH>Status</TH><TH>Date &amp; Time</TH><TH> </TH></tr></THead>
                 <tbody>

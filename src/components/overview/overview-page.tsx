@@ -80,12 +80,12 @@ export function OverviewPage() {
 
   return (
     <div className="space-y-5">
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         {stats.map((s) => (
-          <Card key={s.label} className="px-5 py-4">
-            <div className={`mb-3 flex h-8 w-8 items-center justify-center rounded-lg ${s.bg}`}>{s.icon}</div>
-            {s.value === undefined ? (totals.failed ? <button type="button" onClick={totals.retry} className="text-2xl font-bold tracking-tight text-slate-400" title="Couldn't load. Click to retry">—</button> : <Skeleton className="h-8 w-16" />) : <div className="text-2xl font-bold tracking-tight text-slate-900">{s.value}</div>}
-            <div className="text-sm font-medium text-slate-700">{s.label}</div>
+          <Card key={s.label} className="px-4 py-3 sm:px-5 sm:py-4">
+            <div className={`mb-2 flex h-8 w-8 sm:mb-3 items-center justify-center rounded-lg ${s.bg}`}>{s.icon}</div>
+            {s.value === undefined ? (totals.failed ? <button type="button" onClick={totals.retry} className="text-2xl font-bold tracking-tight text-slate-400" title="Couldn't load. Click to retry">—</button> : <Skeleton className="h-8 w-16" />) : <div className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">{s.value}</div>}
+            <div className="text-xs font-medium text-slate-700 sm:text-sm">{s.label}</div>
             <div className="text-xs text-slate-400">{s.sub}</div>
           </Card>
         ))}
@@ -99,10 +99,10 @@ export function OverviewPage() {
           </div>
           <ul className="divide-y divide-slate-100">
             {attention.slice(0, 8).map((a) => (
-              <li key={a.id} className="flex items-center gap-3 px-5 py-3">
+              <li key={a.id} className="flex flex-wrap items-center gap-3 px-4 py-3 sm:flex-nowrap sm:px-5">
                 <span className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border", attnStyle[a.kind].iconCls)}>{attnStyle[a.kind].icon}</span>
                 <div className="min-w-0 flex-1"><div className="flex items-center gap-2 text-sm font-semibold text-slate-900">{a.title}{a.critical && <Badge tone="red">CRITICAL</Badge>}</div><div className="text-[11px] text-slate-400">{a.company.name} · {a.sub}</div></div>
-                <Link href={a.href} className={cn("h-7 rounded-md border px-3 text-xs font-medium leading-7 transition-colors", attnStyle[a.kind].btn)}>{a.kind === "offline" ? "View screens" : "Open licence"}</Link>
+                <Link href={a.href} className={cn("ml-11 h-9 rounded-md border px-3 text-xs font-medium leading-9 transition-colors sm:ml-0 sm:h-7 sm:leading-7", attnStyle[a.kind].btn)}>{a.kind === "offline" ? "View screens" : "Open licence"}</Link>
               </li>
             ))}
           </ul>
@@ -172,7 +172,7 @@ export function OverviewPage() {
             return rows.length === 0 ? <div className="px-5 py-8 text-center text-xs text-slate-400">No alerts in the latest activity.</div> : (
               <ul className="divide-y divide-slate-100">
                 {rows.map(({ a, icon, cls, alert }) => (
-                  <li key={a.id} className="flex items-center gap-3 px-5 py-3">
+                  <li key={a.id} className="flex flex-wrap items-center gap-3 px-4 py-3 sm:flex-nowrap sm:px-5">
                     <span className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", cls)}>{icon}</span>
                     <div className="min-w-0 flex-1"><div className="truncate text-sm font-medium text-slate-900">{maskEmailsIn(a.summary ?? "")}</div><div className="text-[11px] text-slate-400">{a.company?.name ?? a.actor?.name ?? "Platform"} · <span title={formatDateTime(a.createdAt)}>{timeAgo(a.createdAt)}</span></div></div>
                     <span className={cn("h-2 w-2 rounded-full", alert ? "bg-red-500" : "bg-green-500")} />
