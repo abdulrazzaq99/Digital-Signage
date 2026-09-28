@@ -60,8 +60,8 @@ export function ScreenDetail({ id }: { id: string }) {
                 <Card>
                   <CardHeader title="Current Display" action={<span className="text-[11px] text-slate-400">{label(s.orientation)} · {s.orientation === "LANDSCAPE" ? "16:9" : "9:16"}</span>} />
                   <div className="flex justify-center px-5 py-6">
-                    <div className="w-full max-w-[560px] rounded-lg border-[6px] border-slate-900 bg-slate-900 shadow-2xl">
-                      {s.assignment?.thumbnailUrl && s.status === "ONLINE" ? <img src={s.assignment.thumbnailUrl} alt="" className="aspect-video w-full rounded-[3px] object-cover" /> : <div className="flex aspect-video w-full items-center justify-center rounded-[3px] text-xs font-medium uppercase tracking-wider text-slate-500">{s.status !== "ONLINE" ? screenStatusLabel(s.status) : s.assignment ? "No preview available" : "Nothing assigned"}</div>}
+                    <div className="w-full max-w-[560px] rounded-lg border-[6px] border-slate-900 bg-slate-900">
+                      {s.assignment?.thumbnailUrl && s.status === "ONLINE" ? <img src={s.assignment.thumbnailUrl} alt="" className="aspect-video w-full rounded-[3px] object-cover" /> : <div className="flex aspect-video w-full items-center justify-center rounded-[3px] text-xs font-medium text-slate-500">{s.status !== "ONLINE" ? screenStatusLabel(s.status) : s.assignment ? "No preview available" : "Nothing assigned"}</div>}
                     </div>
                   </div>
                 </Card>

@@ -25,7 +25,7 @@ export function ScreenThumb({ screen, className }: { screen: Screen; className?:
       {showImage ? (
         <img src={screen.assignment!.thumbnailUrl!} alt="" className="h-full w-full object-cover" />
       ) : (
-        <div className="flex h-full items-center justify-center text-[8px] font-medium uppercase tracking-wider text-slate-500">{screen.status === "ONLINE" ? "No preview" : screenStatusLabel(screen.status)}</div>
+        <div className="flex h-full items-center justify-center text-[8px] font-medium text-slate-500">{screen.status === "ONLINE" ? "No preview" : screenStatusLabel(screen.status)}</div>
       )}
       <span className="absolute inset-x-0 bottom-0 truncate bg-black/60 px-1.5 py-0.5 text-[8px] font-medium text-white">{screen.assignment?.name ?? "Nothing assigned"}</span>
     </div>

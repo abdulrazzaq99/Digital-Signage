@@ -27,7 +27,7 @@ const maskDuration = (v: string) => maskInteger(v, 4);
 
 function Thumb({ url, type, className }: { url: string | null; type: Media["type"]; className: string }) {
   if (type === "PDF" && !url) return <span className={cn("flex items-center justify-center rounded bg-navy-50 text-navy-600", className)}><FileText className="h-3.5 w-3.5" /></span>;
-  return <span className={cn("relative overflow-hidden rounded bg-slate-900", className)}>{url ? <img src={url} alt="" className="h-full w-full object-cover" /> : <span className="flex h-full items-center justify-center text-[8px] uppercase text-slate-500">{typeShort(type)}</span>}{type === "VIDEO" && <Play className="absolute inset-0 m-auto h-3 w-3 fill-white text-white" />}</span>;
+  return <span className={cn("relative overflow-hidden rounded bg-slate-900", className)}>{url ? <img src={url} alt="" className="h-full w-full object-cover" /> : <span className="flex h-full items-center justify-center text-[8px] text-slate-500">{typeShort(type)}</span>}{type === "VIDEO" && <Play className="absolute inset-0 m-auto h-3 w-3 fill-white text-white" />}</span>;
 }
 
 const toEditorValues = (p: Playlist): PlaylistEditorInput => ({

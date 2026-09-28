@@ -18,7 +18,7 @@ export function MediaPreview({ item, className }: { item: Media; className?: str
   if (item.type === "PDF" && !item.thumbnailUrl) return <div className={`flex flex-col items-center justify-center gap-1 bg-navy-50 text-navy-600 ${className}`}><FileText className="h-8 w-8" /><span className="text-[9px] font-medium">{item.pages ? `${item.pages}p` : "PDF"}</span></div>;
   return (
     <div className={`relative bg-slate-900 ${className}`}>
-      {item.thumbnailUrl ? <img src={item.thumbnailUrl} alt="" className="h-full w-full object-cover" /> : <div className="flex h-full w-full items-center justify-center text-[10px] uppercase tracking-wider text-slate-500">{item.status === "READY" ? mediaTypeLabel(item.type) : label(item.status)}</div>}
+      {item.thumbnailUrl ? <img src={item.thumbnailUrl} alt="" className="h-full w-full object-cover" /> : <div className="flex h-full w-full items-center justify-center text-[10px] text-slate-500">{item.status === "READY" ? mediaTypeLabel(item.type) : label(item.status)}</div>}
       {item.type === "VIDEO" && <span className="absolute inset-0 m-auto flex h-9 w-9 items-center justify-center rounded-full bg-black/50 text-white"><Play className="h-4 w-4 fill-current" /></span>}
     </div>
   );

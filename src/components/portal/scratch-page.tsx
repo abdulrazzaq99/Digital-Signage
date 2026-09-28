@@ -54,7 +54,7 @@ function Campaign({ campaign }: { campaign: Campaign }) {
             {c.artworkUrl && <img src={c.artworkUrl} alt="" className="h-full w-full object-cover opacity-70" />}
             <span className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-white px-2.5 py-1 text-xs font-medium text-green-700"><span className="h-1.5 w-1.5 rounded-full bg-green-600" />Live now</span>
             <span className="absolute right-3 top-3 rounded bg-black/50 px-2 py-0.5 text-[10px] text-white">Ends {formatDate(c.endsAt)}</span>
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent px-5 pb-4 pt-12 text-white"><h1 className="text-xl font-bold">{c.title}</h1>{c.description && <p className="mt-1 text-[11px] leading-4 text-white/80">{c.description}</p>}</div>
+            <div className="absolute inset-x-0 bottom-0 bg-navy-950/85 px-5 py-4 text-white"><h1 className="text-xl font-bold">{c.title}</h1>{c.description && <p className="mt-1 text-[11px] leading-4 text-white/80">{c.description}</p>}</div>
           </div>
           <div className="px-5 py-4">
             <div className="text-xs font-medium text-slate-500">Prizes up for grabs</div>

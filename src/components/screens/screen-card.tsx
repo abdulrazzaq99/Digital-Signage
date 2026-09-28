@@ -18,7 +18,7 @@ export function ScreenCard({ screen, companyName, onRefresh, onUnpair, busy }: {
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200 bg-white transition-shadow hover:shadow-md">
       <div className="relative aspect-[16/9] bg-slate-900">
-        {thumb ? <img src={thumb} alt="" className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center text-[11px] font-medium uppercase tracking-wider text-slate-500">{screen.status === "ONLINE" ? "No preview" : status}</div>}
+        {thumb ? <img src={thumb} alt="" className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center text-[11px] font-medium text-slate-500">{screen.status === "ONLINE" ? "No preview" : status}</div>}
         <div className="absolute inset-x-0 top-0 flex items-start justify-between p-2.5">
           <Badge tone={tone} dot className="bg-white/95">{status}</Badge>
           <div className="flex items-center gap-1.5">
@@ -30,7 +30,7 @@ export function ScreenCard({ screen, companyName, onRefresh, onUnpair, busy }: {
             ]} />
           </div>
         </div>
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-3 pb-2.5 pt-8">
+        <div className="absolute inset-x-0 bottom-0 bg-navy-950/80 px-3 py-2">
           <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-white"><Play className="h-3 w-3 fill-current" /> {screen.assignment?.name ?? "Nothing assigned"}</span>
         </div>
       </div>

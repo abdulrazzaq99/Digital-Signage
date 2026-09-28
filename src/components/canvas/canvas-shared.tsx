@@ -22,7 +22,7 @@ export function Arrangement({ screens, onMove }: { screens: Screen[]; onMove?: (
       {screens.map((s, i) => (
         <div key={s.id} className="overflow-hidden rounded-lg border border-slate-200">
           <div className="relative flex aspect-video items-center justify-center bg-slate-900 text-slate-600">
-            {s.assignment?.thumbnailUrl ? <img src={s.assignment.thumbnailUrl} alt="" className="h-full w-full object-cover" /> : <span className="text-[10px] uppercase tracking-wider">{screenStatusLabel(s.status)}</span>}
+            {s.assignment?.thumbnailUrl ? <img src={s.assignment.thumbnailUrl} alt="" className="h-full w-full object-cover" /> : <span className="text-[10px]">{screenStatusLabel(s.status)}</span>}
             <span className={`absolute left-2 top-2 rounded px-1.5 py-0.5 text-[10px] font-semibold text-white ${swatches[i % swatches.length]}`}>#{i + 1}</span>
           </div>
           <div className="flex items-center justify-between gap-2 px-3 py-2">

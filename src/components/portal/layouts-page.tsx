@@ -20,7 +20,7 @@ export function NavyZoneDiagram({ zones, className, showNames = true, filled }: 
     <div className={cn("relative aspect-video overflow-hidden rounded-lg border-4 border-slate-800 bg-slate-900", className)}>
       {(zones ?? []).map((z) => (
         <div key={z.index} className={cn("absolute flex flex-col items-center justify-center overflow-hidden rounded-sm border text-center", filled?.[z.index] ? "border-navy-400/40 bg-slate-800" : "border-navy-400/40 bg-navy-950/60")} style={{ left: `calc(${z.x * 100}% + 2px)`, top: `calc(${z.y * 100}% + 2px)`, width: `calc(${z.w * 100}% - 4px)`, height: `calc(${z.h * 100}% - 4px)` }}>
-          {showNames && <span className="px-1 text-[7px] font-semibold uppercase tracking-wider text-navy-300">{z.name}</span>}
+          {showNames && <span className="px-1 text-[7px] font-semibold text-navy-300">{z.name}</span>}
           {filled?.[z.index] && <span className="max-w-[90%] truncate px-1 text-[7px] text-slate-400">{filled[z.index]}</span>}
         </div>
       ))}
