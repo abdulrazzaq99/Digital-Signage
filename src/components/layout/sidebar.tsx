@@ -34,10 +34,13 @@ export function Sidebar({ config, collapsed, mobileOpen, onClose }: { config: Sh
       isCollapsed ? "lg:w-16" : "lg:w-[232px]",
     )}>
       <div className={cn("flex h-16 items-center gap-2.5 border-b border-navy-850 px-5", collapsed && "lg:justify-center lg:px-0")}>
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-white">
-          <LayoutDashboard className="h-4 w-4" />
-        </div>
-        <span className={cn("min-w-0", collapsed && "lg:hidden")}><span className="block truncate text-sm font-bold text-white">{config.brand.name}</span>{config.brand.subtitle && <span className="block text-[10px] leading-3 text-navy-300">{config.brand.subtitle}</span>}</span>
+        {/* The logo and name go to this dashboard's home, as users expect. */}
+        <Link href={config.basePath} onClick={() => onClose?.()} aria-label={`${config.brand.name} home`} className={cn("flex min-w-0 items-center gap-2.5 rounded-lg", collapsed && "lg:justify-center")}>
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-white">
+            <LayoutDashboard className="h-4 w-4" />
+          </div>
+          <span className={cn("min-w-0", collapsed && "lg:hidden")}><span className="block truncate text-sm font-bold text-white">{config.brand.name}</span>{config.brand.subtitle && <span className="block text-[10px] leading-3 text-navy-300">{config.brand.subtitle}</span>}</span>
+        </Link>
         {onClose && <button onClick={onClose} className="ml-auto flex h-10 w-10 sm:h-7 sm:w-7 items-center justify-center rounded-md text-navy-300 hover:bg-navy-800 hover:text-white lg:hidden" aria-label="Close menu"><X className="h-4 w-4" /></button>}
       </div>
 
