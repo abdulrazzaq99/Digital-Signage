@@ -37,15 +37,15 @@ function Detail({ offer }: { offer: Offer }) {
           <Badge tone={offerTone(offer.status)} dot className="mt-2">{label(offer.status)}</Badge>
           <p className="mt-4 text-sm font-medium text-slate-700">{offer.summary}</p>
           <p className="mt-2 whitespace-pre-line text-sm leading-6 text-slate-600">{offer.description}</p>
-          <SectionLabel className="mt-6">Contact Information</SectionLabel>
+          <SectionLabel className="mt-6">Contact information</SectionLabel>
           <ul className="mt-2 space-y-0.5 text-xs text-slate-700">{[offer.contact?.name, offer.contact?.role, offer.contact?.email, offer.contact?.phone ? formatPhone(offer.contact.phone) : undefined, offer.contact?.hours].filter(Boolean).map((c, i) => <li key={i}>{c}</li>)}</ul>
-          <SectionLabel className="mt-5">Buying Instructions</SectionLabel>
+          <SectionLabel className="mt-5">Buying instructions</SectionLabel>
           <p className="mt-2 whitespace-pre-line text-xs leading-5 text-slate-700">{offer.instructions}</p>
           {(offer.included ?? []).length > 0 && <><SectionLabel className="mt-5">What&apos;s included</SectionLabel><ul className="mt-2 list-disc space-y-0.5 pl-4 text-xs text-slate-700">{(offer.included ?? []).map((item, i) => <li key={i}>{item}</li>)}</ul></>}
           {(offer.steps ?? []).length > 0 && <><SectionLabel className="mt-5">Steps</SectionLabel><ol className="mt-2 list-decimal space-y-0.5 pl-4 text-xs text-slate-700">{(offer.steps ?? []).map((s, i) => <li key={i}>{s}</li>)}</ol></>}
         </div>
         <div className="space-y-4">
-          <Card><CardHeader title="Statistics" /><div className="grid grid-cols-2 divide-x divide-slate-100 px-2 py-4 text-center"><div><Eye className="mx-auto h-4 w-4 text-blue-500" /><div className="mt-1 text-lg font-bold text-slate-900">{stats.data?.totalViews ?? offer.stats?.totalViews ?? 0}</div><div className="text-[10px] text-slate-400">Total Views</div></div><div><Users className="mx-auto h-4 w-4 text-violet-500" /><div className="mt-1 text-lg font-bold text-slate-900">{stats.data?.uniqueViewers ?? offer.stats?.uniqueViewers ?? 0}</div><div className="text-[10px] text-slate-400">Unique Viewers</div></div></div>
+          <Card><CardHeader title="Statistics" /><div className="grid grid-cols-2 divide-x divide-slate-100 px-2 py-4 text-center"><div><Eye className="mx-auto h-4 w-4 text-navy-500" /><div className="mt-1 text-lg font-bold text-slate-900">{stats.data?.totalViews ?? offer.stats?.totalViews ?? 0}</div><div className="text-[10px] text-slate-400">Total Views</div></div><div><Users className="mx-auto h-4 w-4 text-violet-500" /><div className="mt-1 text-lg font-bold text-slate-900">{stats.data?.uniqueViewers ?? offer.stats?.uniqueViewers ?? 0}</div><div className="text-[10px] text-slate-400">Unique Viewers</div></div></div>
             {stats.data && (stats.data.byCompany ?? []).length > 0 && <ul className="divide-y divide-slate-100 border-t border-slate-100 px-5 py-2 text-xs">{(stats.data.byCompany ?? []).map((c) => <li key={c.companyId ?? "none"} className="flex justify-between py-1.5"><span className="text-slate-600">{c.companyId ? names[c.companyId] ?? "Company" : "Platform"}</span><span className="font-semibold text-slate-800">{c.views}</span></li>)}</ul>}
             {stats.data?.lastViewedAt && <div className="border-t border-slate-100 px-5 py-2 text-[10px] text-slate-400">Last viewed {formatDateTime(stats.data.lastViewedAt)}</div>}
           </Card>
@@ -73,7 +73,7 @@ export function MarketplaceOffer({ id, preview }: { id: string; preview?: boolea
   return (
     <OffersShell tab={preview ? "manage" : "marketplace"} hideCreate>
       <BackLink href={preview ? `/offers/${id}` : "/offers?tab=marketplace"} label={preview ? "Offer" : "Marketplace"} current={offer.data?.title ?? "…"} />
-      {preview && <div className="flex items-center gap-3"><Badge tone="blue" className="uppercase"><Eye className="h-2.5 w-2.5" /> Customer View Preview</Badge><span className="text-xs text-slate-400">Exactly what customers see in the Marketplace. Views are not counted from here.</span></div>}
+      {preview && <div className="flex items-center gap-3"><Badge tone="blue"><Eye className="h-2.5 w-2.5" /> Customer View Preview</Badge><span className="text-xs text-slate-400">Exactly what customers see in the Marketplace. Views are not counted from here.</span></div>}
       <QueryState query={offer} skeleton={<Skeleton className="h-96 max-w-[800px]" />}>{(o) => <div className="max-w-[800px] space-y-4"><OfferBody offer={o} /></div>}</QueryState>
     </OffersShell>
   );

@@ -68,7 +68,7 @@ function LoginForm() {
             <PasswordInput placeholder="Enter your password" autoComplete="current-password" maxLength={128} {...register("password")} />
           </Field>
           <div className="mt-2 text-right">
-            <Link href="/forgot-password" className="text-xs font-medium text-blue-600 hover:underline">Forgot password?</Link>
+            <Link href="/forgot-password" className="text-xs font-medium text-navy-600 hover:underline">Forgot password?</Link>
           </div>
         </div>
       </div>
@@ -76,8 +76,8 @@ function LoginForm() {
       {SHOW_DEMO && (
         <div className="flex items-center justify-center gap-4 border-t border-slate-100 pt-4 text-[11px] text-slate-400">
           <span>Demo:</span>
-          <button type="button" disabled={formState.isSubmitting} onClick={() => demo(DEMO.admin)} className="font-medium text-blue-600 hover:underline">Super Admin</button>
-          <button type="button" disabled={formState.isSubmitting} onClick={() => demo(DEMO.customer)} className="font-medium text-blue-600 hover:underline">Customer Portal</button>
+          <button type="button" disabled={formState.isSubmitting} onClick={() => demo(DEMO.admin)} className="font-medium text-navy-600 hover:underline">Super Admin</button>
+          <button type="button" disabled={formState.isSubmitting} onClick={() => demo(DEMO.customer)} className="font-medium text-navy-600 hover:underline">Customer Portal</button>
         </div>
       )}
     </form>

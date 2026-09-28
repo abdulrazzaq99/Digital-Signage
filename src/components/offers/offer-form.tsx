@@ -67,14 +67,14 @@ function Form({ offer, mode }: { offer?: Offer; mode: "create" | "edit" | "previ
     return (
       <OffersShell tab="manage" hideCreate>
         <BackLink href={backHref} label="Back to Edit" current="Customer Preview" />
-        <div className="flex items-center gap-3"><Badge tone="blue" className="uppercase"><Eye className="h-2.5 w-2.5" /> Customer View Preview</Badge><span className="text-xs text-slate-400">This is what customers will see in the Marketplace.</span></div>
+        <div className="flex items-center gap-3"><Badge tone="blue"><Eye className="h-2.5 w-2.5" /> Customer View Preview</Badge><span className="text-xs text-slate-400">This is what customers will see in the Marketplace.</span></div>
         <Card className="mx-auto max-w-[800px] space-y-4 p-6"><OfferBody offer={previewOffer(shownBody, offer)} /></Card>
         <FormError form={form} />
         <div className="flex flex-wrap items-center justify-between gap-2"><Button variant="secondary" onClick={() => setPreview(false)} disabled={busy}><ArrowLeft className="h-3.5 w-3.5" /> Back to Edit</Button><div className="flex gap-2"><Button variant="secondary" onClick={() => void saveDraft()} disabled={busy}><Save className="h-3.5 w-3.5" /> {busy && confirm === "none" ? "Saving…" : offer ? "Save Changes" : "Save Draft"}</Button><Button variant="success" onClick={() => setConfirm("ask")} disabled={busy}><Send className="h-3.5 w-3.5" /> {isLive ? "Save & Update Live Offer" : "Save & Publish"}</Button></div></div>
 
         <Modal open={confirm === "ask"} onClose={() => !busy && setConfirm("none")} width="max-w-[460px]">
           <div className="p-6">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600"><Send className="h-4 w-4" /></div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-navy-50 text-navy-600"><Send className="h-4 w-4" /></div>
             <h2 className="mt-4 text-base font-semibold text-slate-900">{isLive ? "Update Live Offer" : "Publish Offer"}</h2>
             <p className="mt-1.5 text-xs leading-5 text-slate-500">{isLive ? "Saving updates the offer customers already see." : <>Publishing <span className="font-semibold text-slate-800">&quot;{values.title || "Untitled offer"}&quot;</span> makes it immediately visible to all customers in the Marketplace.</>}</p>
             <ul className="mt-4 space-y-1.5 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-600">

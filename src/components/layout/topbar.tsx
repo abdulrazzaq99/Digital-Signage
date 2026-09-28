@@ -22,7 +22,7 @@ export function Topbar({ config, onToggle, collapsed }: { config: ShellConfig; o
       <div className="hidden items-center gap-2 md:flex">
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
-          <input placeholder="Search platform..." className="h-9 w-56 rounded-lg border border-slate-200 bg-slate-50 pl-8 pr-12 text-xs outline-none placeholder:text-slate-400 focus:border-blue-500 focus:bg-white" />
+          <input placeholder="Search platform..." className="h-9 w-56 rounded-lg border border-slate-200 bg-slate-50 pl-8 pr-12 text-xs outline-none placeholder:text-slate-400 focus:border-navy-500 focus:bg-white" />
           <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[9px] font-medium text-slate-400">⌘K</kbd>
         </div>
         <button className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50" aria-label="Share">

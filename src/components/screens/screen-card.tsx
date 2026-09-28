@@ -16,13 +16,13 @@ export function ScreenCard({ screen, companyName, onRefresh, onUnpair, busy }: {
   const tone = statusTone(status);
   const thumb = screen.status === "ONLINE" ? screen.assignment?.thumbnailUrl : null;
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md">
+    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white transition-shadow hover:shadow-md">
       <div className="relative aspect-[16/9] bg-slate-900">
         {thumb ? <img src={thumb} alt="" className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center text-[11px] font-medium uppercase tracking-wider text-slate-500">{screen.status === "ONLINE" ? "No preview" : status}</div>}
         <div className="absolute inset-x-0 top-0 flex items-start justify-between p-2.5">
-          <Badge tone={tone} dot className="bg-white/95 shadow-sm">{status}</Badge>
+          <Badge tone={tone} dot className="bg-white/95">{status}</Badge>
           <div className="flex items-center gap-1.5">
-            <span className="inline-flex items-center gap-1 rounded-md bg-white/95 px-2 py-0.5 text-[10px] font-medium text-slate-600 shadow-sm"><OrientationIcon o={screen.orientation} /> {label(screen.orientation)}</span>
+            <span className="inline-flex items-center gap-1 rounded-md bg-white/95 px-2 py-0.5 text-[10px] font-medium text-slate-600"><OrientationIcon o={screen.orientation} /> {label(screen.orientation)}</span>
             <DropdownMenu items={[
               { label: "View Details", icon: <MonitorSmartphone className="h-3.5 w-3.5" />, href: `/screens/${screen.id}` },
               { label: "Refresh player", icon: <RefreshCw className="h-3.5 w-3.5" />, onSelect: onRefresh, disabled: busy },
@@ -37,7 +37,7 @@ export function ScreenCard({ screen, companyName, onRefresh, onUnpair, busy }: {
       <div className="px-3.5 py-3">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <Link href={`/screens/${screen.id}`} className="block truncate text-sm font-semibold text-slate-900 hover:text-blue-600">{screen.name}</Link>
+            <Link href={`/screens/${screen.id}`} className="block truncate text-sm font-semibold text-slate-900 hover:text-navy-600">{screen.name}</Link>
             <div className="truncate text-[11px] text-slate-400">{companyName ?? "—"} · {screen.location ?? "No location"}</div>
           </div>
           {screen.isPersonal && <Badge tone="blue"><User className="h-2.5 w-2.5" /> Personal</Badge>}

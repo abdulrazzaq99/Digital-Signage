@@ -10,7 +10,7 @@ import { formatDuration } from "@/lib/format";
 import { QueryBlock } from "@/components/screens/query-guards";
 import { ChevronLeft, ChevronRight, Play } from "lucide-react";
 
-export const swatches = ["bg-blue-600", "bg-violet-600", "bg-emerald-600", "bg-amber-500", "bg-pink-500"];
+export const swatches = ["bg-navy-600", "bg-violet-600", "bg-emerald-600", "bg-amber-600", "bg-rose-600"];
 
 /** A screen is canvas-compatible when it is landscape; the API enforces orientation consistency on create. */
 export const canvasCompatible = (s: Screen) => s.orientation === "LANDSCAPE";

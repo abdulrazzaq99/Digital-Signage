@@ -76,7 +76,7 @@ export function PlaylistsPage({ companyId, basePath = "/portal/playlists", query
                 <tbody>
                   {data.map((p) => (
                     <TR key={p.id}>
-                      <TD><Link href={link(p, "edit")} className="text-sm font-semibold text-slate-900 hover:text-blue-600">{p.name}</Link><div className="mt-0.5 flex items-center gap-1 text-[11px] text-slate-400">{(p.assignedTo ?? []).length > 0 ? <><Monitor className="h-3 w-3" /> {p.assignedTo[0].name}{p.assignedTo.length > 1 && ` +${p.assignedTo.length - 1} more`}</> : "Not published"}</div></TD>
+                      <TD><Link href={link(p, "edit")} className="text-sm font-semibold text-slate-900 hover:text-navy-600">{p.name}</Link><div className="mt-0.5 flex items-center gap-1 text-[11px] text-slate-400">{(p.assignedTo ?? []).length > 0 ? <><Monitor className="h-3 w-3" /> {p.assignedTo[0].name}{p.assignedTo.length > 1 && ` +${p.assignedTo.length - 1} more`}</> : "Not published"}</div></TD>
                       <TD className="text-center text-sm font-semibold text-slate-800">{p.itemCount}</TD>
                       <TD className="text-xs">{fmtClock(p.totalDurationSec)}</TD>
                       <TD><Badge tone={p.status === "PUBLISHED" ? "green" : "slate"} dot>{label(p.status)}</Badge></TD>

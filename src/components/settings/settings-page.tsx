@@ -85,7 +85,7 @@ function ProfileTab() {
   });
   return (
     <div className="space-y-4 animate-fade-in">
-      <Section title="Profile Photo"><div className="flex items-center gap-4"><Avatar name={user?.name ?? ""} size="lg" className="bg-blue-600 text-base" /><div><div className="text-sm font-semibold text-slate-900">{user?.name}</div><div className="text-[11px] text-slate-400">{roleLabel(user)} · {user?.email}</div></div></div></Section>
+      <Section title="Profile Photo"><div className="flex items-center gap-4"><Avatar name={user?.name ?? ""} size="lg" className="bg-navy-600 text-base" /><div><div className="text-sm font-semibold text-slate-900">{user?.name}</div><div className="text-[11px] text-slate-400">{roleLabel(user)} · {user?.email}</div></div></div></Section>
       <Section title="Personal Information">
         <form onSubmit={submit} noValidate className="space-y-4">
           <FormError form={form} />
@@ -120,7 +120,7 @@ function SecurityTab() {
   const next = form.watch("newPassword") ?? "";
   const strength = next.length === 0 ? 0 : next.length < 8 ? 1 : /[A-Z]/.test(next) && /\d/.test(next) && /[^\w]/.test(next) ? 4 : /[A-Z]/.test(next) || /\d/.test(next) ? 3 : 2;
   const strengthLabel = ["", "Weak", "Fair", "Good", "Strong"][strength];
-  const strengthCls = ["", "bg-red-500", "bg-amber-500", "bg-blue-500", "bg-green-500"][strength];
+  const strengthCls = ["", "bg-red-500", "bg-amber-500", "bg-navy-500", "bg-green-500"][strength];
   const submit = form.handleSubmit(async (v) => {
     try {
       await changePw.mutateAsync({ currentPassword: v.currentPassword, newPassword: v.newPassword });
@@ -144,7 +144,7 @@ function SecurityTab() {
             <Field label="New Password" required hint={PASSWORD_HINT} error={formState.errors.newPassword?.message}>
               <PasswordInput placeholder="At least 8 characters" autoComplete="new-password" maxLength={128} {...register("newPassword")} />
             </Field>
-            {next && <div className="mt-2 flex items-center gap-2"><div className="flex flex-1 gap-1">{[1, 2, 3, 4].map((n) => <span key={n} className={cn("h-1 flex-1 rounded-full", n <= strength ? strengthCls : "bg-slate-200")} />)}</div><span className={cn("text-[10px] font-medium", strength >= 4 ? "text-green-600" : strength >= 3 ? "text-blue-600" : "text-amber-600")}>{strengthLabel}</span></div>}
+            {next && <div className="mt-2 flex items-center gap-2"><div className="flex flex-1 gap-1">{[1, 2, 3, 4].map((n) => <span key={n} className={cn("h-1 flex-1 rounded-full", n <= strength ? strengthCls : "bg-slate-200")} />)}</div><span className={cn("text-[10px] font-medium", strength >= 4 ? "text-green-600" : strength >= 3 ? "text-navy-600" : "text-amber-600")}>{strengthLabel}</span></div>}
           </div>
           <Field label="Confirm New Password" required error={formState.errors.confirm?.message}>
             <PasswordInput placeholder="Re-enter new password" autoComplete="new-password" maxLength={128} {...register("confirm")} />
@@ -167,7 +167,7 @@ export function SettingsPage() {
   return (
     <div className="space-y-5">
       <PageHeader title="Settings" subtitle="Manage your platform configuration, profile and security." />
-      <div className="inline-flex rounded-lg border border-slate-200 bg-slate-100 p-1">{TABS.map((t) => <button key={t} type="button" onClick={() => setTab(t)} className={cn("h-9 sm:h-7 rounded-md px-4 text-xs font-medium capitalize transition-colors", tab === t ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-800")}>{t}</button>)}</div>
+      <div className="inline-flex rounded-lg border border-slate-200 bg-slate-100 p-1">{TABS.map((t) => <button key={t} type="button" onClick={() => setTab(t)} className={cn("h-9 sm:h-7 rounded-md px-4 text-xs font-medium capitalize transition-colors", tab === t ? "bg-white text-slate-900" : "text-slate-500 hover:text-slate-800")}>{t}</button>)}</div>
 
       <div className="max-w-[760px] space-y-4">
         {tab === "general" && <GeneralTab />}

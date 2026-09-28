@@ -51,15 +51,15 @@ export function CreateGroupModal({ open, onClose, companyId, group }: { open: bo
         <div className="space-y-5 px-6 py-5">
           <FormError form={form} />
           <div className="space-y-4">
-            <SectionLabel>Group Details</SectionLabel>
+            <SectionLabel>Group details</SectionLabel>
             <Field label="Group Name" required error={fieldError(form, "name")}><Input placeholder="e.g Main Lobby Display" maxLength={GROUP_NAME_MAX} autoFocus {...maskedRegister(form, "name", maskName)} /></Field>
             <Field label="Description" hint={`Optional · up to ${GROUP_DESCRIPTION_MAX} characters`} error={fieldError(form, "description")}><Input placeholder="Optional" maxLength={GROUP_DESCRIPTION_MAX} {...form.register("description")} /></Field>
           </div>
           <div className="space-y-3">
-            <div><SectionLabel>Select Screens</SectionLabel><p className="mt-0.5 text-[11px] text-slate-400">Choose the screens to include in this group.</p></div>
+            <div><SectionLabel>Screens</SectionLabel><p className="mt-0.5 text-[11px] text-slate-400">Choose the screens to include in this group.</p></div>
             <SearchInput placeholder="Search screens..." maxLength={120} value={q} onChange={(e) => setQ(e.target.value)} />
             <div className="rounded-lg border border-slate-200">
-              <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400"><span className="flex items-center gap-3"><Checkbox checked={pool.length > 0 && pool.every((s) => sel.includes(s.id))} onChange={(v) => setSel(v ? [...new Set([...sel, ...pool.map((s) => s.id)])] : sel.filter((id) => !pool.some((s) => s.id === id)))} /> Screen</span><span>{screens.data ? `${pool.length} available` : ""}</span></div>
+              <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-500"><span className="flex items-center gap-3"><Checkbox checked={pool.length > 0 && pool.every((s) => sel.includes(s.id))} onChange={(v) => setSel(v ? [...new Set([...sel, ...pool.map((s) => s.id)])] : sel.filter((id) => !pool.some((s) => s.id === id)))} /> Screen</span><span>{screens.data ? `${pool.length} available` : ""}</span></div>
               {screens.isError ? <ErrorState error={screens.error} onRetry={() => screens.refetch()} className="m-3 p-4" /> : screens.isPending ? <div className="p-3"><TableSkeleton rows={3} /></div> : (
                 <ul className="max-h-[200px] divide-y divide-slate-100 overflow-y-auto">
                   {pool.map((s) => (

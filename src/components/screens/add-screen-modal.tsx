@@ -51,7 +51,7 @@ export function AddScreenModal({ open, onClose, defaultCompanyId }: { open: bool
     <Modal open={open} onClose={close} width="max-w-[520px]">
       {step < 3 && (
         <div className="flex gap-2 px-6 pt-5">
-          {[1, 2, 3].map((n) => <div key={n} className={`h-1 flex-1 rounded-full ${n <= step ? "bg-blue-600" : "bg-slate-200"}`} />)}
+          {[1, 2, 3].map((n) => <div key={n} className={`h-1 flex-1 rounded-full ${n <= step ? "bg-navy-600" : "bg-slate-200"}`} />)}
         </div>
       )}
 

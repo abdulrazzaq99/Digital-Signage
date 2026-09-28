@@ -67,7 +67,7 @@ export function ActivityPage() {
             <ul className="space-y-2 sm:hidden">
               {data.map((a) => (
                 <li key={a.id}>
-                  <button type="button" onClick={() => setOpen(a)} className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-left shadow-sm active:bg-slate-50">
+                  <button type="button" onClick={() => setOpen(a)} className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-left active:bg-slate-50">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <div className="text-sm font-semibold text-slate-900">{actionLabel(a.action)}</div>
@@ -110,13 +110,13 @@ export function ActivityPage() {
       <Drawer open={!!open} onClose={() => setOpen(null)}>
         {open && (
           <>
-            <div className="flex items-start justify-between border-b border-slate-100 px-5 py-4"><div><div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">{open.action ?? "—"}</div><div className="text-sm font-semibold text-slate-900">{actionLabel(open.action)}</div><div className="text-[11px] text-slate-400">{maskEmailsIn(open.summary ?? "")}</div></div><button onClick={() => setOpen(null)} className="flex h-6 w-6 items-center justify-center rounded-md border border-slate-200 text-slate-400" aria-label="Close"><X className="h-3.5 w-3.5" /></button></div>
+            <div className="flex items-start justify-between border-b border-slate-100 px-5 py-4"><div><div className="text-xs font-medium text-slate-500">{open.action ?? "—"}</div><div className="text-sm font-semibold text-slate-900">{actionLabel(open.action)}</div><div className="text-[11px] text-slate-400">{maskEmailsIn(open.summary ?? "")}</div></div><button onClick={() => setOpen(null)} className="flex h-6 w-6 items-center justify-center rounded-md border border-slate-200 text-slate-400" aria-label="Close"><X className="h-3.5 w-3.5" /></button></div>
             <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
               <dl className="divide-y divide-slate-100 text-xs">
                 {([["Action", open.action ?? "—"], ["Performed By", open.actor ? <span key="b">{open.actor.name} <span className="font-normal text-slate-400">· {label(open.actor.role)}</span></span> : "System"], ["Company", open.company?.name ?? "Platform"], ["Resource Type", label(open.resourceType)], ["Resource ID", <span key="r" className="font-mono">{maskMiddle(open.resourceId)}</span>], ["Status", <Badge key="s" tone={tone(open.status)} dot>{label(open.status)}</Badge>], ["Date & Time", formatDateTime(open.createdAt)]] as [string, React.ReactNode][]).map(([k, v]) => <div key={k} className="flex items-center justify-between gap-4 py-2.5"><dt className="shrink-0 text-slate-400">{k}</dt><dd className="truncate text-right font-semibold text-slate-800">{v}</dd></div>)}
               </dl>
               {open.meta != null && typeof open.meta === "object" && !Array.isArray(open.meta) && Object.keys(open.meta as object).length > 0 && (
-                <div><div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Details</div><dl className="mt-2 divide-y divide-slate-100 rounded-lg border border-slate-200 bg-slate-50/60 px-3 text-xs">{Object.entries(open.meta as Record<string, unknown>).map(([k, v]) => <div key={k} className="flex justify-between gap-4 py-2"><dt className="text-slate-400">{label(k)}</dt><dd className="truncate text-right font-medium text-slate-800" title={metaText(k, v)}>{metaText(k, v)}</dd></div>)}</dl></div>
+                <div><div className="text-xs font-medium text-slate-500">Details</div><dl className="mt-2 divide-y divide-slate-100 rounded-lg border border-slate-200 bg-slate-50/60 px-3 text-xs">{Object.entries(open.meta as Record<string, unknown>).map(([k, v]) => <div key={k} className="flex justify-between gap-4 py-2"><dt className="text-slate-400">{label(k)}</dt><dd className="truncate text-right font-medium text-slate-800" title={metaText(k, v)}>{metaText(k, v)}</dd></div>)}</dl></div>
               )}
               <Alert tone="blue" className="border-slate-200 bg-slate-50 text-slate-500" icon={<Info className="h-3.5 w-3.5 shrink-0" />}>Activity history is read-only and cannot be modified.</Alert>
             </div>

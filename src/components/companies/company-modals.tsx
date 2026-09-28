@@ -53,7 +53,7 @@ function CompanyForm({ company, onClose, onSaved }: { company?: Company | null; 
       <div className="space-y-6 px-6 py-6">
         <FormError form={form} />
         <div className="space-y-4">
-          <SectionLabel>Company Information</SectionLabel>
+          <SectionLabel>Company information</SectionLabel>
           <Field label="Company Name" required error={e.name?.message}><Input placeholder="e.g. Acme Retail" autoComplete="organization" maxLength={120} {...maskedRegister(form, "name", maskName)} /></Field>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Company Status" error={e.status?.message}><Select {...register("status")}>{COMPANY_STATUSES.map((s) => <option key={s} value={s}>{label(s)}</option>)}</Select></Field>
@@ -65,7 +65,7 @@ function CompanyForm({ company, onClose, onSaved }: { company?: Company | null; 
           </div>
         </div>
         <div className="space-y-4">
-          <SectionLabel>License Configuration</SectionLabel>
+          <SectionLabel>Licence</SectionLabel>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Maximum Screens" required hint="Whole number, 1–10,000." error={e.screenLimit?.message}><Input inputMode="numeric" autoComplete="off" maxLength={5} {...maskedRegister(form, "screenLimit", (v) => maskInteger(v, 5))} /></Field>
             <Field label="License Status" error={e.licenseState?.message}><Select {...register("licenseState")}>{LICENSE_STATES.map((s) => <option key={s} value={s}>{label(s)}</option>)}</Select></Field>

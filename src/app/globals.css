@@ -1,11 +1,70 @@
 @import "tailwindcss";
 
 @theme inline {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-grotesk), ui-sans-serif, system-ui, sans-serif;
+}
+
+/*
+ * AddifyTv palette. Navy is structure and state (sidebar, links, selected tabs, toggles); burnt
+ * orange is action only (primary buttons, the active menu item, the logo mark), so orange on a
+ * screen always means "you can act here". Greys are tinted toward the navy, and warnings use
+ * ochre rather than orange so they never read as buttons.
+ */
+@theme {
+  --color-navy-50: #e8eef8;
+  --color-navy-100: #d6e0f0;
+  --color-navy-200: #b6c6e0;
+  --color-navy-300: #a9b4c8;
+  --color-navy-400: #6581b0;
+  --color-navy-500: #3f5e93;
+  --color-navy-600: #1d3b6e;
+  --color-navy-700: #1b3260;
+  --color-navy-800: #1c2e52;
+  --color-navy-850: #22345a;
+  --color-navy-900: #13213c;
+  --color-navy-950: #0d1729;
+
+  --color-brand-50: #ffede3;
+  --color-brand-100: #ffd9c2;
+  --color-brand-200: #fdba8c;
+  --color-brand-500: #f97316;
+  --color-brand-600: #c2410c;
+  --color-brand-700: #9a3412;
+  --color-brand-800: #7c2d12;
+
+  /* Neutrals, tinted toward the navy. */
+  --color-slate-50: #f5f7fa;
+  --color-slate-100: #edf1f6;
+  --color-slate-200: #e2e7ef;
+  --color-slate-300: #c9d1dd;
+  --color-slate-400: #768196;
+  --color-slate-500: #5b6475;
+  --color-slate-600: #465063;
+  --color-slate-700: #343d50;
+  --color-slate-800: #222b3e;
+  --color-slate-900: #14203a;
+  --color-slate-950: #0c1426;
+
+  /* Warnings: ochre, not orange. */
+  --color-amber-50: #fbf3e2;
+  --color-amber-100: #f5e3bd;
+  --color-amber-200: #ecd08e;
+  --color-amber-300: #dcb25a;
+  --color-amber-400: #c9952f;
+  --color-amber-500: #b7791f;
+  --color-amber-600: #a16207;
+  --color-amber-700: #854d0e;
+  --color-amber-800: #713f12;
 }
 
 body {
   font-family: var(--font-sans);
+}
+
+/* One visible keyboard focus style everywhere: a navy ring, never the browser default blue. */
+:where(a, button, [role="button"], input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-navy-600);
+  outline-offset: 2px;
 }
 
 * {

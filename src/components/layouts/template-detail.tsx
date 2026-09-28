@@ -33,7 +33,7 @@ function Detail({ t }: { t: Template }) {
       <div className="grid gap-6 xl:grid-cols-[1fr_460px]">
         <div>
           <div className={cn("relative rounded-xl border-[6px] border-slate-900 bg-slate-900 shadow-2xl", portrait && "mx-auto max-w-[360px]")}>
-            <span className="absolute right-3 top-3 z-10 rounded bg-blue-600 px-2 py-0.5 text-[10px] font-semibold text-white">{fields.length} editable fields</span>
+            <span className="absolute right-3 top-3 z-10 rounded bg-navy-600 px-2 py-0.5 text-[10px] font-semibold text-white">{fields.length} editable fields</span>
             <span className="absolute left-3 top-2 z-10 text-[9px] text-white/50">{portrait ? "9:16" : "16:9"} PREVIEW</span>
             <PortalTemplateArt template={t} values={Object.fromEntries(fields.map((f) => [f.key, f.label]))} className="rounded-md text-xl" />
           </div>

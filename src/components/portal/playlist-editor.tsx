@@ -26,7 +26,7 @@ const stripExt = (n: string) => n.replace(/\.[a-z0-9]+$/i, "");
 const maskDuration = (v: string) => maskInteger(v, 4);
 
 function Thumb({ url, type, className }: { url: string | null; type: Media["type"]; className: string }) {
-  if (type === "PDF" && !url) return <span className={cn("flex items-center justify-center rounded bg-orange-50 text-orange-500", className)}><FileText className="h-3.5 w-3.5" /></span>;
+  if (type === "PDF" && !url) return <span className={cn("flex items-center justify-center rounded bg-navy-50 text-navy-600", className)}><FileText className="h-3.5 w-3.5" /></span>;
   return <span className={cn("relative overflow-hidden rounded bg-slate-900", className)}>{url ? <img src={url} alt="" className="h-full w-full object-cover" /> : <span className="flex h-full items-center justify-center text-[8px] uppercase text-slate-500">{typeShort(type)}</span>}{type === "VIDEO" && <Play className="absolute inset-0 m-auto h-3 w-3 fill-white text-white" />}</span>;
 }
 
@@ -81,8 +81,8 @@ function Editor({ playlist, companyId, basePath, query }: { playlist: Playlist; 
           <BackLinkButton label="Playlists" onClick={() => router.push(`${basePath}${qs}`)} />
           <div>
             {editingName || nameError ? (
-              <input autoFocus aria-label="Playlist name" aria-invalid={nameError ? true : undefined} maxLength={PLAYLIST_NAME_MAX} disabled={busy} {...nameReg} onBlur={(e) => { void nameReg.onBlur(e); setEditingName(false); }} className="h-7 rounded border border-slate-200 px-2 text-sm font-semibold text-slate-900 outline-none focus:border-blue-500 aria-invalid:border-red-400" />
-            ) : <button type="button" onClick={() => setEditingName(true)} className="flex items-center gap-1.5 text-sm font-semibold text-slate-900 hover:text-blue-600">{name}<Pencil className="h-3 w-3 text-slate-400" /></button>}
+              <input autoFocus aria-label="Playlist name" aria-invalid={nameError ? true : undefined} maxLength={PLAYLIST_NAME_MAX} disabled={busy} {...nameReg} onBlur={(e) => { void nameReg.onBlur(e); setEditingName(false); }} className="h-7 rounded border border-slate-200 px-2 text-sm font-semibold text-slate-900 outline-none focus:border-navy-500 aria-invalid:border-red-400" />
+            ) : <button type="button" onClick={() => setEditingName(true)} className="flex items-center gap-1.5 text-sm font-semibold text-slate-900 hover:text-navy-600">{name}<Pencil className="h-3 w-3 text-slate-400" /></button>}
             {nameError && <p role="alert" className="mt-1 text-[11px] font-medium text-red-600">Name: {nameError}</p>}
           </div>
           {dirty && <Badge tone="amber">Unsaved</Badge>}
@@ -107,7 +107,7 @@ function Editor({ playlist, companyId, basePath, query }: { playlist: Playlist; 
                   <li key={m.id} className="flex items-center gap-2 px-3 py-2">
                     <Thumb url={m.thumbnailUrl} type={m.type} className="h-7 w-10 shrink-0" />
                     <span className="min-w-0 flex-1"><span className="block truncate text-[11px] font-medium text-slate-800">{stripExt(m.name)}</span><span className="flex items-center gap-1"><Badge tone={typeTone(m.type)}>{typeShort(m.type)}</Badge>{m.durationSec && <span className="text-[9px] text-slate-400">{fmtClock(m.durationSec)}</span>}</span></span>
-                    <button type="button" onClick={() => add(m)} disabled={busy || full} className="flex h-6 w-6 items-center justify-center rounded border border-slate-200 text-slate-500 hover:border-blue-300 hover:text-blue-600 disabled:opacity-40" aria-label={`Add ${m.name}`}><Plus className="h-3 w-3" /></button>
+                    <button type="button" onClick={() => add(m)} disabled={busy || full} className="flex h-6 w-6 items-center justify-center rounded border border-slate-200 text-slate-500 hover:border-navy-300 hover:text-navy-600 disabled:opacity-40" aria-label={`Add ${m.name}`}><Plus className="h-3 w-3" /></button>
                   </li>
                 ))}
               </ul>
@@ -123,14 +123,14 @@ function Editor({ playlist, companyId, basePath, query }: { playlist: Playlist; 
               {fields.map((it, i) => {
                 const err = fieldError(form, `items.${i}.duration`);
                 return (
-                  <li key={it.key} onClick={() => setCur(i)} className={cn("rounded-lg border px-2 py-2", err ? "border-red-200 bg-red-50/30" : i === cur ? "border-blue-200 bg-blue-50/30" : "border-slate-200")}>
+                  <li key={it.key} onClick={() => setCur(i)} className={cn("rounded-lg border px-2 py-2", err ? "border-red-200 bg-red-50/30" : i === cur ? "border-navy-200 bg-navy-50/30" : "border-slate-200")}>
                     <div className="flex items-center gap-2">
                       <span className="flex h-5 w-5 items-center justify-center rounded border border-slate-200 text-[10px] font-semibold text-slate-500">{i + 1}</span>
                       <span className="flex flex-col text-slate-300"><button type="button" onClick={(e) => { e.stopPropagation(); move(i, -1); }} disabled={busy || i === 0} className="disabled:opacity-30" aria-label="Move up"><ChevronUp className="h-3 w-3" /></button><button type="button" onClick={(e) => { e.stopPropagation(); move(i, 1); }} disabled={busy || i === fields.length - 1} className="disabled:opacity-30" aria-label="Move down"><ChevronDown className="h-3 w-3" /></button></span>
                       <GripVertical className="hidden h-3.5 w-3.5 text-slate-300 sm:block" />
                       <Thumb url={it.thumbnailUrl} type={it.type} className="h-8 w-12 shrink-0" />
                       <span className="min-w-0 flex-1"><span className="block truncate text-xs font-semibold text-slate-900">{stripExt(it.name)}</span><Badge tone={typeTone(it.type)}>{typeShort(it.type)}</Badge></span>
-                      <span className="flex items-center gap-1"><input type="text" inputMode="numeric" maxLength={4} disabled={busy} onClick={(e) => e.stopPropagation()} {...maskedRegister(form, `items.${i}.duration`, maskDuration)} aria-invalid={err ? true : undefined} aria-describedby={err ? `dur-err-${it.key}` : undefined} className="h-7 w-14 rounded border border-slate-200 text-center text-xs outline-none focus:border-blue-500 aria-invalid:border-red-400" aria-label={`Duration of item ${i + 1} in seconds`} /><span className="text-[10px] text-slate-400">sec</span></span>
+                      <span className="flex items-center gap-1"><input type="text" inputMode="numeric" maxLength={4} disabled={busy} onClick={(e) => e.stopPropagation()} {...maskedRegister(form, `items.${i}.duration`, maskDuration)} aria-invalid={err ? true : undefined} aria-describedby={err ? `dur-err-${it.key}` : undefined} className="h-7 w-14 rounded border border-slate-200 text-center text-xs outline-none focus:border-navy-500 aria-invalid:border-red-400" aria-label={`Duration of item ${i + 1} in seconds`} /><span className="text-[10px] text-slate-400">sec</span></span>
                       <button type="button" onClick={(e) => { e.stopPropagation(); remove(i); setCur((c) => Math.max(0, Math.min(c, fields.length - 2))); }} disabled={busy} className="text-slate-400 hover:text-red-500 disabled:opacity-30" aria-label="Remove"><X className="h-3.5 w-3.5" /></button>
                     </div>
                     {err && <p id={`dur-err-${it.key}`} role="alert" className="mt-1 pl-7 text-[11px] font-medium text-red-600">Duration: {err}</p>}

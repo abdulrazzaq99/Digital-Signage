@@ -52,7 +52,7 @@ export function PhoneInput({ value, onChange, onBlur, defaultCountry: fallback, 
   return (
     <div
       className={cn(
-        "flex h-11 w-full items-stretch rounded-lg border border-slate-200 bg-white shadow-sm focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 sm:h-10",
+        "flex h-11 w-full items-stretch rounded-lg border border-slate-200 bg-white focus-within:border-navy-500 focus-within:ring-2 focus-within:ring-navy-500/20 sm:h-10",
         invalid && "border-red-400 focus-within:border-red-500 focus-within:ring-red-500/20",
         disabled && "bg-slate-50",
         className,
@@ -173,7 +173,7 @@ function CountryPicker({ value, onChange, disabled }: { value: CountryCode; onCh
               aria-label="Search countries"
               aria-controls={listId}
               aria-activedescendant={matches[active] ? `${listId}-${matches[active].code}` : undefined}
-              className="h-9 w-full rounded-md border border-slate-200 pl-7 pr-2 text-base outline-none focus:border-blue-500 sm:text-sm"
+              className="h-9 w-full rounded-md border border-slate-200 pl-7 pr-2 text-base outline-none focus:border-navy-500 sm:text-sm"
             />
           </div>
           <ul ref={list} id={listId} role="listbox" aria-label="Countries" className="max-h-64 overflow-y-auto overscroll-contain py-1">
@@ -188,12 +188,12 @@ function CountryPicker({ value, onChange, disabled }: { value: CountryCode; onCh
                 onMouseEnter={() => setActive(i)}
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => choose(c.code)}
-                className={cn("flex cursor-pointer items-center gap-2.5 px-3 py-2.5 text-sm sm:py-1.5", i === active ? "bg-blue-50" : "hover:bg-slate-50")}
+                className={cn("flex cursor-pointer items-center gap-2.5 px-3 py-2.5 text-sm sm:py-1.5", i === active ? "bg-navy-50" : "hover:bg-slate-50")}
               >
                 <span className="text-lg leading-none" aria-hidden>{c.flag}</span>
                 <span className="min-w-0 flex-1 truncate text-slate-800">{c.name}</span>
                 <span className="tabular-nums text-xs text-slate-400">{c.dial}</span>
-                {c.code === value && <Check className="h-3.5 w-3.5 text-blue-600" aria-hidden />}
+                {c.code === value && <Check className="h-3.5 w-3.5 text-navy-600" aria-hidden />}
               </li>
             ))}
           </ul>

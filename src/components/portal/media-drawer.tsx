@@ -15,7 +15,7 @@ export function typeTone(t: Media["type"]) { return t === "IMAGE" ? "blue" : t =
 export function statusTone(s: Media["status"]) { return s === "READY" ? "green" : s === "FAILED" ? "red" : "amber"; }
 
 export function MediaPreview({ item, className }: { item: Media; className?: string }) {
-  if (item.type === "PDF" && !item.thumbnailUrl) return <div className={`flex flex-col items-center justify-center gap-1 bg-orange-50 text-orange-500 ${className}`}><FileText className="h-8 w-8" /><span className="text-[9px] font-medium">{item.pages ? `${item.pages}p` : "PDF"}</span></div>;
+  if (item.type === "PDF" && !item.thumbnailUrl) return <div className={`flex flex-col items-center justify-center gap-1 bg-navy-50 text-navy-600 ${className}`}><FileText className="h-8 w-8" /><span className="text-[9px] font-medium">{item.pages ? `${item.pages}p` : "PDF"}</span></div>;
   return (
     <div className={`relative bg-slate-900 ${className}`}>
       {item.thumbnailUrl ? <img src={item.thumbnailUrl} alt="" className="h-full w-full object-cover" /> : <div className="flex h-full w-full items-center justify-center text-[10px] uppercase tracking-wider text-slate-500">{item.status === "READY" ? mediaTypeLabel(item.type) : label(item.status)}</div>}
@@ -53,7 +53,7 @@ function MediaDrawerBody({ id, initialView, companyId, onClose }: { id: string; 
       </div>
       <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
         {item.isPending && <div className="h-40 animate-pulse rounded-xl bg-slate-100" />}
-        {item.isError && <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-700">{errorMessage(item.error)} <button type="button" onClick={() => item.refetch()} className="ml-1 font-semibold text-blue-600 hover:underline">Retry</button></div>}
+        {item.isError && <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-700">{errorMessage(item.error)} <button type="button" onClick={() => item.refetch()} className="ml-1 font-semibold text-navy-600 hover:underline">Retry</button></div>}
         {item.data && (() => {
           const m = item.data;
           const usedIn = m.usedIn ?? [];
@@ -78,7 +78,7 @@ function MediaDrawerBody({ id, initialView, companyId, onClose }: { id: string; 
                 <>
                   <p className="text-xs text-slate-600"><span className="font-semibold text-slate-900">{m.name}</span> is currently referenced in:</p>
                   {usedIn.length === 0 ? <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-6 text-center text-xs text-slate-400">Not used in any playlist.</div> : (
-                    <ul className="space-y-2">{usedIn.map((p) => <li key={p.id} className="flex items-center gap-3 rounded-lg border border-slate-200 px-3 py-2.5"><span className="flex h-8 w-8 items-center justify-center rounded-md bg-blue-50 text-blue-600"><ListVideo className="h-4 w-4" /></span><span className="flex-1"><span className="block text-xs font-semibold text-slate-900">{p.name}</span><span className="block text-[10px] text-slate-400">Playlist</span></span></li>)}</ul>
+                    <ul className="space-y-2">{usedIn.map((p) => <li key={p.id} className="flex items-center gap-3 rounded-lg border border-slate-200 px-3 py-2.5"><span className="flex h-8 w-8 items-center justify-center rounded-md bg-navy-50 text-navy-600"><ListVideo className="h-4 w-4" /></span><span className="flex-1"><span className="block text-xs font-semibold text-slate-900">{p.name}</span><span className="block text-[10px] text-slate-400">Playlist</span></span></li>)}</ul>
                   )}
                 </>
               )}

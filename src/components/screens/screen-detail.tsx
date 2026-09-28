@@ -80,7 +80,7 @@ export function ScreenDetail({ id }: { id: string }) {
                   ) : <div className="px-5 py-6 text-center text-xs text-slate-400">Nothing has been published to this screen yet.</div>}
                 </Card>
                 <Card>
-                  <CardHeader title="Recent Activity" action={<Link href="/activity" className="text-xs font-medium text-blue-600 hover:underline">View All</Link>} />
+                  <CardHeader title="Recent Activity" action={<Link href="/activity" className="text-xs font-medium text-navy-600 hover:underline">View All</Link>} />
                   <ul className="divide-y divide-slate-100">
                     {(activity.data?.data ?? []).map((a) => <li key={a.id} className="px-5 py-3"><div className="text-sm text-slate-800">{a.summary}</div><div className="text-[11px] text-slate-400">{formatDateTime(a.createdAt)}{a.actor ? ` · ${a.actor.name}` : ""}</div></li>)}
                     {activity.data && activity.data.data.length === 0 && <li className="px-5 py-6 text-center text-xs text-slate-400">No activity recorded for this screen.</li>}
@@ -90,16 +90,16 @@ export function ScreenDetail({ id }: { id: string }) {
 
               <div className="space-y-5">
                 <Card className="px-5 py-4">
-                  <SectionLabel>Health &amp; Status</SectionLabel>
+                  <SectionLabel>Health and status</SectionLabel>
                   <dl className="mt-3 space-y-4">
-                    <div><dt className="text-[10px] uppercase tracking-wider text-slate-400">Status</dt><dd className="mt-0.5 flex items-center gap-1.5 text-sm font-semibold text-slate-900"><span className={`h-2 w-2 rounded-full ${s.status === "ONLINE" ? "bg-green-500" : s.status === "OFFLINE" ? "bg-slate-400" : "bg-red-500"}`} />{screenStatusLabel(s.status)}</dd><div className="text-[11px] text-slate-400">Last seen {timeAgo(s.lastSeenAt)}</div></div>
-                    <div><dt className="text-[10px] uppercase tracking-wider text-slate-400">Orientation</dt><dd className="mt-0.5 text-sm font-semibold text-slate-900">{label(s.orientation)}</dd><div className="text-[11px] text-slate-400">{s.device?.resolution ?? "Resolution unknown"}</div></div>
-                    <div><dt className="text-[10px] uppercase tracking-wider text-slate-400">Sync</dt><dd className="mt-0.5 text-sm font-semibold text-slate-900">{label(s.syncState)}</dd><div className="text-[11px] text-slate-400">Manifest v{s.manifestVersion} · acknowledged v{s.ackVersion}</div></div>
-                    <div><dt className="text-[10px] uppercase tracking-wider text-slate-400">Groups</dt><dd className="mt-0.5 text-sm font-semibold text-slate-900">{(s.groups ?? []).map((g) => g.name).join(", ") || "None"}</dd></div>
+                    <div><dt className="text-xs font-medium text-slate-500">Status</dt><dd className="mt-0.5 flex items-center gap-1.5 text-sm font-semibold text-slate-900"><span className={`h-2 w-2 rounded-full ${s.status === "ONLINE" ? "bg-green-500" : s.status === "OFFLINE" ? "bg-slate-400" : "bg-red-500"}`} />{screenStatusLabel(s.status)}</dd><div className="text-[11px] text-slate-400">Last seen {timeAgo(s.lastSeenAt)}</div></div>
+                    <div><dt className="text-xs font-medium text-slate-500">Orientation</dt><dd className="mt-0.5 text-sm font-semibold text-slate-900">{label(s.orientation)}</dd><div className="text-[11px] text-slate-400">{s.device?.resolution ?? "Resolution unknown"}</div></div>
+                    <div><dt className="text-xs font-medium text-slate-500">Sync</dt><dd className="mt-0.5 text-sm font-semibold text-slate-900">{label(s.syncState)}</dd><div className="text-[11px] text-slate-400">Manifest v{s.manifestVersion} · acknowledged v{s.ackVersion}</div></div>
+                    <div><dt className="text-xs font-medium text-slate-500">Groups</dt><dd className="mt-0.5 text-sm font-semibold text-slate-900">{(s.groups ?? []).map((g) => g.name).join(", ") || "None"}</dd></div>
                   </dl>
                 </Card>
                 <Card className="px-5 py-4">
-                  <SectionLabel>Device Information</SectionLabel>
+                  <SectionLabel>Device information</SectionLabel>
                   <dl className="mt-3 space-y-2.5 text-xs">
                     {/* Device id and IP are masked on screen; the Super Admin (the only viewer of this page) can hover for the full value. */}
                     {([["Device ID", maskMiddle(s.device?.deviceId), true, s.device?.deviceId], ["Player Version", s.device?.playerVersion], ["App Version", s.device?.appVersion], ["Model", s.device?.model], ["Firmware", s.device?.firmware], ["IP Address", maskIp(s.device?.ip), true, s.device?.ip], ["Paired", formatDate(s.createdAt)]] as [string, string | null | undefined, boolean?, (string | null)?][]).map(([k, v, mono, full]) => (

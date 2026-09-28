@@ -6,13 +6,13 @@ type Variant = "primary" | "secondary" | "ghost" | "danger" | "danger-outline" |
 type Size = "sm" | "md" | "lg";
 
 const variants: Record<Variant, string> = {
-  primary: "bg-blue-600 text-white hover:bg-blue-700 shadow-sm",
-  secondary: "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 shadow-sm",
+  primary: "bg-brand-600 text-white hover:bg-brand-700 active:bg-brand-800",
+  secondary: "bg-white text-slate-800 border border-slate-300 hover:border-slate-400 hover:bg-slate-50",
   ghost: "text-slate-600 hover:bg-slate-100",
-  danger: "bg-red-600 text-white hover:bg-red-700 shadow-sm",
-  "danger-outline": "bg-white text-red-600 border border-red-200 hover:bg-red-50 shadow-sm",
-  success: "bg-green-600 text-white hover:bg-green-700 shadow-sm",
-  "warning-outline": "bg-white text-amber-600 border border-amber-200 hover:bg-amber-50 shadow-sm",
+  danger: "bg-red-700 text-white hover:bg-red-800",
+  "danger-outline": "bg-white text-red-700 border border-red-200 hover:bg-red-50",
+  success: "bg-green-700 text-white hover:bg-green-800",
+  "warning-outline": "bg-white text-amber-700 border border-amber-200 hover:bg-amber-50",
 };
 const sizes: Record<Size, string> = {
   sm: "h-10 px-3 text-xs gap-1.5 sm:h-8",
@@ -29,7 +29,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 export function Button({ variant = "primary", size = "md", href, className, children, ...rest }: ButtonProps) {
   const cls = cn(
-    "inline-flex items-center justify-center rounded-lg font-medium transition-colors whitespace-nowrap disabled:opacity-50 disabled:pointer-events-none focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40",
+    "inline-flex items-center justify-center rounded-lg font-medium transition-colors whitespace-nowrap disabled:opacity-50 disabled:pointer-events-none focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy-600",
     variants[variant],
     sizes[size],
     className,

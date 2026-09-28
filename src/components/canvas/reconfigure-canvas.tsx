@@ -77,7 +77,7 @@ function Reconfigure({ canvas: raw, companyId }: { canvas: CanvasSet; companyId:
             )}
             {addable.length > 0 && (
               <div className="border-t border-slate-100 px-5 py-4">
-                <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400">Add screens</div>
+                <div className="mb-2 text-xs font-medium text-slate-500">Add screens</div>
                 <ul className="space-y-1.5">{addable.map((s) => <li key={s.id} className="flex items-center gap-3 text-xs"><Checkbox checked={false} onChange={() => setMembers((m) => (m.length >= 16 ? m : [...m, s.id]))} /><span className="font-semibold text-slate-900">{s.name}</span><span className="text-slate-400">{s.location ?? "—"}</span><DotStatus status={screenStatusLabel(s.status)} /></li>)}</ul>
               </div>
             )}
@@ -126,8 +126,8 @@ function Reconfigure({ canvas: raw, companyId }: { canvas: CanvasSet; companyId:
           <Card>
             <CardHeader title="Summary of Changes" />
             <ul className="divide-y divide-slate-100">
-              {membersChanged && <li className="flex items-center gap-3 px-5 py-4 text-xs"><span className="flex h-6 w-6 items-center justify-center rounded-md bg-blue-50 text-blue-600"><RefreshCw className="h-3 w-3" /></span><span className="font-semibold text-slate-900">Screens changed —</span><span className="text-slate-600">{canvas.members.length} → {members.length} screens, order {selected.map((s) => s.name).join(" › ")}</span></li>}
-              {contentChanged && <li className="flex items-center gap-3 px-5 py-4 text-xs"><span className="flex h-6 w-6 items-center justify-center rounded-md bg-blue-50 text-blue-600"><RefreshCw className="h-3 w-3" /></span><span className="font-semibold text-slate-900">Content changed —</span><span className="text-slate-600">{canvas.content ? playlistName(canvas.content.refId) : "None"} → {playlistId ? playlistName(playlistId) : "None"}</span></li>}
+              {membersChanged && <li className="flex items-center gap-3 px-5 py-4 text-xs"><span className="flex h-6 w-6 items-center justify-center rounded-md bg-navy-50 text-navy-600"><RefreshCw className="h-3 w-3" /></span><span className="font-semibold text-slate-900">Screens changed —</span><span className="text-slate-600">{canvas.members.length} → {members.length} screens, order {selected.map((s) => s.name).join(" › ")}</span></li>}
+              {contentChanged && <li className="flex items-center gap-3 px-5 py-4 text-xs"><span className="flex h-6 w-6 items-center justify-center rounded-md bg-navy-50 text-navy-600"><RefreshCw className="h-3 w-3" /></span><span className="font-semibold text-slate-900">Content changed —</span><span className="text-slate-600">{canvas.content ? playlistName(canvas.content.refId) : "None"} → {playlistId ? playlistName(playlistId) : "None"}</span></li>}
               {!membersChanged && !contentChanged && <li className="px-5 py-6 text-center text-xs text-slate-400">No changes yet.</li>}
             </ul>
           </Card>

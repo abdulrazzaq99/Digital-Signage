@@ -108,7 +108,7 @@ export function ScreenDetail({ id, companyId, basePath = "/portal/screens" }: { 
               {editing && <EditForm screen={s} companyId={companyId} onDone={() => setEditing(false)} />}
 
               <Card>
-                <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3"><span className="text-sm font-semibold text-slate-900">Current Assignment</span><Link href={`${basePath}/${s.id}/publish`} className="text-xs font-medium text-blue-600 hover:underline">Change →</Link></div>
+                <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3"><span className="text-sm font-semibold text-slate-900">Current Assignment</span><Link href={`${basePath}/${s.id}/publish`} className="text-xs font-medium text-navy-600 hover:underline">Change →</Link></div>
                 {s.assignment ? (
                   <div className="flex items-center gap-3 px-5 py-4">
                     {s.assignment.thumbnailUrl ? <img src={s.assignment.thumbnailUrl} alt="" className="h-8 w-12 rounded object-cover" /> : <span className="h-8 w-12 rounded bg-slate-100" />}

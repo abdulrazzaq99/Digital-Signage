@@ -56,7 +56,7 @@ function EditLimitForm({ company, onClose }: { company: Company; onClose: () => 
   const limitError = form.formState.errors.limit?.message;
   return (
     <form onSubmit={save} noValidate className="p-6">
-      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600"><FileBadge className="h-4 w-4" /></div>
+      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-navy-50 text-navy-600"><FileBadge className="h-4 w-4" /></div>
       <h2 className="mt-4 text-base font-semibold text-slate-900">Edit Screen Limit</h2>
       <p className="mt-1 text-xs text-slate-500">Update the maximum number of screens allowed for <span className="font-semibold text-slate-800">{company.name}</span>.</p>
       <div className="mt-4 flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
@@ -67,7 +67,7 @@ function EditLimitForm({ company, onClose }: { company: Company; onClose: () => 
         <Label htmlFor="screen-limit-input" required>New Screen Limit</Label>
         <div className="flex items-center gap-2">
           <button type="button" onClick={() => step(-1)} disabled={limit !== null && limit <= 1} className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-40" aria-label="Decrease"><Minus className="h-4 w-4" /></button>
-          <input id="screen-limit-input" inputMode="numeric" autoComplete="off" maxLength={5} aria-invalid={limitError ? true : undefined} aria-describedby={limitError ? "screen-limit-error" : "screen-limit-hint"} {...maskedRegister(form, "limit", (v) => maskInteger(v, 5))} className="h-10 min-w-0 flex-1 rounded-lg border border-slate-200 text-center text-base font-semibold text-slate-900 outline-none focus:border-blue-500 aria-invalid:border-red-400" />
+          <input id="screen-limit-input" inputMode="numeric" autoComplete="off" maxLength={5} aria-invalid={limitError ? true : undefined} aria-describedby={limitError ? "screen-limit-error" : "screen-limit-hint"} {...maskedRegister(form, "limit", (v) => maskInteger(v, 5))} className="h-10 min-w-0 flex-1 rounded-lg border border-slate-200 text-center text-base font-semibold text-slate-900 outline-none focus:border-navy-500 aria-invalid:border-red-400" />
           <button type="button" onClick={() => step(1)} disabled={limit !== null && limit >= SCREEN_LIMIT_MAX} className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-40" aria-label="Increase"><Plus className="h-4 w-4" /></button>
         </div>
         {limitError ? <p id="screen-limit-error" role="alert" className="mt-1 text-[11px] font-medium text-red-600">{limitError}</p> : <p id="screen-limit-hint" className="mt-1 text-[11px] text-slate-400">Whole number, 1–10,000.</p>}
