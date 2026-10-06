@@ -18,11 +18,11 @@ describe("company form", () => {
   });
   it("create omits blank optionals and sends numbers/digits", () => {
     const body = createCompanyBody(companySchema.parse({ ...base, phone: "+44 20 7946 0000", screenLimit: "25" }));
-    expect(body).toEqual({ name: "QA Retail", status: "ACTIVE", timezone: "UTC", screenLimit: 25, licenseState: "ACTIVE", phone: "+442079460000" });
+    expect(body).toEqual({ name: "QA Retail", status: "ACTIVE", timezone: "UTC", screenLimit: 25, licenseState: "ACTIVE", mediaApproval: true, phone: "+442079460000" });
   });
   it("update clears blanks with null", () => {
     const body = updateCompanyBody(companySchema.parse({ ...base, website: "https://qa.example.com" }));
-    expect(body).toEqual({ name: "QA Retail", status: "ACTIVE", timezone: "UTC", plan: null, website: "https://qa.example.com", industry: null, phone: null });
+    expect(body).toEqual({ name: "QA Retail", status: "ACTIVE", timezone: "UTC", plan: null, website: "https://qa.example.com", industry: null, phone: null, mediaApproval: true });
   });
   it("delete requires the exact company name", () => {
     const s = deleteCompanySchema("Acme Retail");

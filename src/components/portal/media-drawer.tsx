@@ -8,6 +8,7 @@ import type { Media } from "@/lib/api/types";
 import { errorMessage, fmtClock, formatBytes, formatDateTime, label } from "@/lib/format";
 import { AlertTriangle, ArrowLeft, Check, Download, FileText, ListVideo, Play, RefreshCw, Trash2, X } from "lucide-react";
 import { useState } from "react";
+import { ApprovalNotice } from "@/components/media/approval";
 
 export type MediaDrawerView = "detail" | "usedBy" | "delete";
 
@@ -64,6 +65,7 @@ function MediaDrawerBody({ id, initialView, companyId, onClose }: { id: string; 
               {view === "detail" && (
                 <>
                   <MediaPreview item={m} className="aspect-video overflow-hidden rounded-xl" />
+                  <ApprovalNotice item={m} />
                   {m.status === "FAILED" && <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-700"><div className="font-semibold">Processing failed</div><div className="mt-0.5">{m.failureReason ?? "Unknown error"}</div><Button size="sm" variant="secondary" className="mt-2" onClick={doRetry} disabled={retry.isPending}><RefreshCw className="h-3.5 w-3.5" /> Retry</Button></div>}
                   <dl className="divide-y divide-slate-100 text-xs">
                     {([["File Name", m.name], ["Type", <Badge key="t" tone={typeTone(m.type)}>{mediaTypeLabel(m.type)}</Badge>], ["Status", <Badge key="s" tone={statusTone(m.status)} dot>{label(m.status)}</Badge>], ["File Size", formatBytes(m.sizeBytes)], meta, ["Uploaded", formatDateTime(m.createdAt)], ["Uploaded By", m.uploadedBy ?? "—"]] as [string, React.ReactNode][]).map(([k, v]) => <div key={k} className="flex items-center justify-between gap-4 py-2.5"><dt className="text-slate-400">{k}</dt><dd className="truncate text-right font-semibold text-slate-800">{v}</dd></div>)}

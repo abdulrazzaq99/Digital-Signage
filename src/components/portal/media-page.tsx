@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { Eye, ImageIcon, LayoutGrid, List, Trash2, Upload } from "lucide-react";
 import { useState } from "react";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
+import { ApprovalBadge } from "@/components/media/approval";
 import { MediaDrawer, MediaPreview, statusTone, typeTone, type MediaDrawerView } from "./media-drawer";
 import { PortalUploadModal } from "./upload-media-modal";
 
@@ -24,8 +25,9 @@ export function useMediaTotals(companyId?: string | null, enabled = true) {
   const ready = useMedia({ status: "READY", pageSize: 1 }, { companyId, enabled });
   const processing = useMedia({ status: "PROCESSING", pageSize: 1 }, { companyId, enabled });
   const failed = useMedia({ status: "FAILED", pageSize: 1 }, { companyId, enabled });
+  const pending = useMedia({ approval: "PENDING", pageSize: 1 }, { companyId, enabled });
   const n = (q: typeof all) => q.data?.meta?.total ?? "—";
-  return { total: n(all), ready: n(ready), processing: n(processing), failed: n(failed) };
+  return { total: n(all), ready: n(ready), processing: n(processing), failed: n(failed), pending: n(pending) };
 }
 
 export function MediaPage({ companyId }: { companyId?: string | null } = {}) {
@@ -54,11 +56,12 @@ export function MediaPage({ companyId }: { companyId?: string | null } = {}) {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <StatCard value={totals.total} label="Total Files" tone="blue" />
         <StatCard value={totals.ready} label="Ready" tone="green" />
         <StatCard value={totals.processing} label="Processing" tone="amber" />
         <StatCard value={totals.failed} label="Failed" tone="red" />
+        <StatCard value={totals.pending} label="Waiting for approval" tone="amber" />
       </div>
 
       <QueryState query={media} skeleton={<CardGridSkeleton count={10} className="xl:grid-cols-5" />} empty={<EmptyState icon={<ImageIcon className="h-5 w-5" />} title={search || type ? "No media matches" : "No media yet"} body={search || type ? "Try another search or type." : "Upload images, videos, or PDFs to use in playlists."} action={<Button onClick={() => setUpload(true)}><Upload className="h-4 w-4" /> Upload Media</Button>} />}>
@@ -74,7 +77,7 @@ export function MediaPage({ companyId }: { companyId?: string | null } = {}) {
                         : <MediaPreview item={m} className="aspect-video" />}
                     </button>
                     <div className="flex items-start justify-between gap-2 px-3 py-2.5">
-                      <div className="min-w-0"><button onClick={() => open(m)} className="block max-w-full truncate text-xs font-semibold text-slate-900 hover:text-blue-600">{m.name}</button><div className="mt-1 flex items-center gap-1.5"><Badge tone={typeTone(m.type)}>{mediaTypeLabel(m.type)}</Badge><span className="text-[10px] text-slate-400">{formatBytes(m.sizeBytes)}</span></div></div>
+                      <div className="min-w-0"><button onClick={() => open(m)} className="block max-w-full truncate text-xs font-semibold text-slate-900 hover:text-blue-600">{m.name}</button><div className="mt-1 flex items-center gap-1.5"><Badge tone={typeTone(m.type)}>{mediaTypeLabel(m.type)}</Badge><span className="text-[10px] text-slate-400">{formatBytes(m.sizeBytes)}</span></div><ApprovalBadge item={m} className="mt-1.5" /></div>
                       <DropdownMenu items={menu(m)} />
                     </div>
                   </div>
@@ -90,7 +93,7 @@ export function MediaPage({ companyId }: { companyId?: string | null } = {}) {
                         <TD><MediaPreview item={m} className="h-8 w-12 overflow-hidden rounded" /></TD>
                         <TD><div className="text-sm font-semibold text-slate-900 whitespace-nowrap">{m.name}</div><div className="text-[11px] text-slate-400 whitespace-nowrap">{formatDate(m.createdAt)}</div></TD>
                         <TD><Badge tone={typeTone(m.type)}>{mediaTypeLabel(m.type)}</Badge></TD>
-                        <TD><Badge tone={statusTone(m.status)} dot>{label(m.status)}</Badge></TD>
+                        <TD><div className="flex flex-col items-start gap-1"><Badge tone={statusTone(m.status)} dot>{label(m.status)}</Badge><ApprovalBadge item={m} /></div></TD>
                         <TD className="text-xs whitespace-nowrap">{formatBytes(m.sizeBytes)}</TD>
                         <TD className="text-xs text-slate-500 whitespace-nowrap">{(m.usedIn ?? []).length ? `${m.usedIn.length} playlist${m.usedIn.length > 1 ? "s" : ""}` : <span className="text-slate-300">Unused</span>}</TD>
                         <TD onClick={(e) => e.stopPropagation()}><DropdownMenu items={menu(m)} /></TD>

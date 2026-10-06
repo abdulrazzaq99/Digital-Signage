@@ -22,6 +22,8 @@ export const companySchema = z.object({
   timezone: timezone(),
   screenLimit: screenLimit(),
   licenseState: z.enum(LICENSE_STATE_VALUES, { error: "Choose a licence status" }),
+  /** Uploads wait for the Super Admin's approval before screens show them. */
+  mediaApproval: z.boolean(),
 });
 export type CompanyFormValues = z.input<typeof companySchema>;
 type Parsed = z.output<typeof companySchema>;
@@ -36,6 +38,7 @@ export const companyDefaults = (c?: Company | null): CompanyFormValues => ({
   timezone: c?.timezone ?? "UTC",
   screenLimit: String(c?.license?.screenLimit ?? 10),
   licenseState: c?.license?.state ?? "ACTIVE",
+  mediaApproval: c?.mediaApproval ?? true,
 });
 
 /** POST /companies: blank optionals are omitted, phone sent as digits, limit as a number. */
@@ -46,6 +49,7 @@ export function createCompanyBody(v: Parsed): Schemas["CreateCompanyBody"] {
     timezone: v.timezone,
     screenLimit: Number(v.screenLimit),
     licenseState: v.licenseState,
+    mediaApproval: v.mediaApproval,
     ...(v.plan ? { plan: v.plan } : {}),
     ...(v.website ? { website: v.website } : {}),
     ...(v.industry ? { industry: v.industry } : {}),
@@ -63,6 +67,7 @@ export function updateCompanyBody(v: Parsed): Schemas["UpdateCompanyBody"] {
     website: v.website || null,
     industry: v.industry || null,
     phone: v.phone ? phoneDigits(v.phone) : null,
+    mediaApproval: v.mediaApproval,
   };
 }
 

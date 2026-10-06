@@ -1557,6 +1557,7 @@ export interface paths {
                     search?: string;
                     type?: "IMAGE" | "VIDEO" | "PDF";
                     status?: "UPLOADING" | "PROCESSING" | "READY" | "FAILED";
+                    approval?: "PENDING" | "APPROVED" | "REJECTED";
                 };
                 header?: never;
                 path?: never;
@@ -1932,6 +1933,110 @@ export interface paths {
                                 [key: string]: unknown;
                             };
                         };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/media/{id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Super Admin only. Screens start showing the file. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Media"];
+                            meta?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/media/{id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Super Admin only. Screens stop showing the file; the uploader is told why. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["RejectMediaBody"];
+                };
+            };
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Media"];
+                            meta?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
                     };
                 };
             };
@@ -4745,6 +4850,7 @@ export interface components {
             phone: string | null;
             timezone: string;
             plan: string | null;
+            mediaApproval: boolean;
             overLimit: boolean;
             createdAt: string;
             license: {
@@ -4773,6 +4879,8 @@ export interface components {
             /** @default UTC */
             timezone: string;
             plan?: string;
+            /** @default true */
+            mediaApproval: boolean;
             screenLimit: number;
             /**
              * @default ACTIVE
@@ -4789,6 +4897,7 @@ export interface components {
             phone?: string | unknown;
             timezone?: string;
             plan?: string | null;
+            mediaApproval?: boolean;
         };
         License: {
             companyId: string;
@@ -5055,6 +5164,15 @@ export interface components {
             failureReason: string | null;
             uploadedBy: string | null;
             createdAt: string;
+            /** @enum {string} */
+            approval: "PENDING" | "APPROVED" | "REJECTED";
+            rejectionReason: string | null;
+            reviewedAt: string | null;
+            reviewedBy: string | null;
+            company: {
+                id: string;
+                name: string;
+            };
             usedIn: {
                 id: string;
                 name: string;
@@ -5086,6 +5204,9 @@ export interface components {
         UpdateMediaBody: {
             name?: string;
             tags?: string[];
+        };
+        RejectMediaBody: {
+            reason: string;
         };
         Playlist: {
             id: string;

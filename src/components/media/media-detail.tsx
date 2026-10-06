@@ -14,6 +14,7 @@ import { Download, Pencil, RefreshCw, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { CompanyGate } from "@/components/screens/query-guards";
+import { ApprovalBadge, ReviewActions } from "./approval";
 import { PreviewMediaModal, RemoveMediaModal, RenameModal } from "./media-modals";
 
 function Detail({ item, companyId }: { item: Media; companyId: string }) {
@@ -43,6 +44,11 @@ function Detail({ item, companyId }: { item: Media; companyId: string }) {
       <div className="grid gap-5 xl:grid-cols-[1fr_320px]">
         <button onClick={() => setPreview(true)} className="relative overflow-hidden rounded-xl bg-slate-900 text-left"><MediaPreview item={item} className="aspect-video" /></button>
         <div className="space-y-5">
+          <Card className="space-y-3 px-5 py-4">
+            <div className="flex items-center justify-between gap-2"><SectionLabel>Approval</SectionLabel><ApprovalBadge item={item} showApproved /></div>
+            {item.approval === "REJECTED" && item.rejectionReason && <p className="rounded-md bg-red-50 px-3 py-2 text-[11px] text-red-700">Reason: {item.rejectionReason}</p>}
+            <ReviewActions item={item} size="sm" />
+          </Card>
           <Card className="px-5 py-4">
             <SectionLabel>File Details</SectionLabel>
             <dl className="mt-3 space-y-2.5 text-xs">

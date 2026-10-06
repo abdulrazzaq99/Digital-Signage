@@ -1,7 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { applyApiError, Field, FormError, FormPhone, maskedRegister, SubmitButton, useZodForm } from "@/components/ui/form";
-import { Input, Select } from "@/components/ui/input";
+import { Checkbox, Input, Select } from "@/components/ui/input";
 import { Modal, ModalFooter, ModalHeader } from "@/components/ui/modal";
 import { SectionLabel } from "@/components/ui/card";
 import { Alert, CompanyLogo } from "@/components/ui/misc";
@@ -26,6 +26,7 @@ function CompanyForm({ company, onClose, onSaved }: { company?: Company | null; 
   const e = formState.errors;
   const limitText = form.watch("screenLimit");
   const zone = form.watch("timezone");
+  const approval = form.watch("mediaApproval");
   // Keep a stored zone the browser doesn't list selectable, so opening the form never silently changes it.
   const zones = zone && !TIME_ZONES.includes(zone) ? [zone, ...TIME_ZONES] : TIME_ZONES;
 
@@ -70,6 +71,10 @@ function CompanyForm({ company, onClose, onSaved }: { company?: Company | null; 
             <Field label="Maximum Screens" required hint="Whole number, 1–10,000." error={e.screenLimit?.message}><Input inputMode="numeric" autoComplete="off" maxLength={5} {...maskedRegister(form, "screenLimit", (v) => maskInteger(v, 5))} /></Field>
             <Field label="License Status" error={e.licenseState?.message}><Select {...register("licenseState")}>{LICENSE_STATES.map((s) => <option key={s} value={s}>{label(s)}</option>)}</Select></Field>
           </div>
+          <label className="flex cursor-pointer items-start gap-2.5 rounded-lg border border-slate-200 px-3.5 py-3">
+            <Checkbox className="mt-0.5" checked={approval} onChange={(v) => form.setValue("mediaApproval", v, { shouldDirty: true })} />
+            <span className="text-xs leading-5"><span className="block font-semibold text-slate-800">Uploads need my approval</span><span className="text-slate-500">New files this company uploads only appear on screens after you approve them in Approvals. Turn off for companies you trust.</span></span>
+          </label>
           {editing && company?.license && limitText !== "" && Number(limitText) < counts(company).screens && <Alert tone="amber">Lower than the {counts(company).screens} screens already paired: the account is flagged over limit and cannot pair more until screens are unpaired.</Alert>}
         </div>
       </div>

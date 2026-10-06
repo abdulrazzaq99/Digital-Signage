@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { Eye, FileText, ImageIcon, LayoutGrid, List, Pencil, RefreshCw, Trash2, Upload } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { ApprovalBadge } from "./approval";
 import { PreviewMediaModal, RemoveMediaModal, RenameModal, UploadMediaModal } from "./media-modals";
 
 const metaLine = (m: Media) => (m.type === "VIDEO" ? (m.durationSec ? fmtClock(m.durationSec) : "Video") : m.type === "PDF" ? (m.pages ? `${m.pages} pages` : "PDF") : m.width && m.height ? `${m.width}×${m.height}` : "Image");
@@ -89,7 +90,7 @@ export function MediaLibrary() {
                     </div>
                     <div className="mt-1 text-[11px] text-slate-400">{metaLine(m)} · {formatBytes(m.sizeBytes)}</div>
                     <div className="mt-2 flex items-center justify-between">
-                      <Badge tone={statusTone(m.status)}>{label(m.status)}</Badge>
+                      <span className="flex flex-wrap gap-1"><Badge tone={statusTone(m.status)}>{label(m.status)}</Badge><ApprovalBadge item={m} /></span>
                       {m.status === "FAILED" && <span className="flex gap-2 text-[11px] font-medium"><button onClick={() => doRetry(m)} disabled={retry.isPending} className="flex items-center gap-1 text-blue-600 hover:underline disabled:opacity-50"><RefreshCw className="h-3 w-3" />Retry</button><button onClick={() => setRemove(m)} className="text-red-600 hover:underline">Remove</button></span>}
                     </div>
                   </div>

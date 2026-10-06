@@ -52,10 +52,11 @@ export function PortalUploadModal({ open, onClose, companyId, extra }: { open: b
     const tagList = parseTags(v.tags);
     let ok = 0;
     let failed = 0;
+    let held = 0;
     for (let i = 0; i < rows.length; i++) {
       if (rows[i].status !== "queued" && rows[i].status !== "error") continue;
       setRow(i, { status: "uploading", error: undefined });
-      try { await upload(rows[i].file, tagList); setRow(i, { status: "done" }); ok++; }
+      try { const m = await upload(rows[i].file, tagList); setRow(i, { status: "done" }); ok++; if (m.approval === "PENDING") held++; }
       catch (e) {
         failed++;
         // Tag problems reported by the API belong on the tags field, not on every file.
@@ -63,7 +64,7 @@ export function PortalUploadModal({ open, onClose, companyId, extra }: { open: b
         setRow(i, { status: "error", error: errorMessage(e) });
       }
     }
-    if (ok) toast.success(`${ok} file${ok === 1 ? "" : "s"} uploaded`, "Videos and PDFs show as Processing until conversion finishes.");
+    if (ok) toast.success(`${ok} file${ok === 1 ? "" : "s"} uploaded`, held ? "They will be shown on screens once the platform administrator approves them." : "Videos and PDFs show as Processing until conversion finishes.");
     if (ok && !failed && rows.every((r) => r.status !== "invalid")) setTimeout(() => { onClose(); setTimeout(() => { setRows([]); setNote(""); form.reset({ tags: "" }); }, 200); }, 600);
   });
 

@@ -7,7 +7,7 @@ import { clean, keys } from "../query";
 import type { Media, Page, Schemas } from "../types";
 import type { ScopeOpts } from "./screens";
 
-export interface MediaFilters { search?: string; type?: Media["type"]; status?: Media["status"]; page?: number; pageSize?: number }
+export interface MediaFilters { search?: string; type?: Media["type"]; status?: Media["status"]; approval?: Media["approval"]; page?: number; pageSize?: number }
 
 export function useMedia(filters: MediaFilters = {}, opts: ScopeOpts = {}) {
   const query = clean(filters);
@@ -52,6 +52,17 @@ export function useRetryMedia(companyId?: string | null) {
   const invalidate = useInvalidateMedia();
   return useMutation<Media, ApiError, string>({
     mutationFn: (id) => requestData(() => api.POST("/media/{id}/retry", { params: { path: { id } }, headers: companyHeader(companyId) })),
+    onSuccess: () => invalidate(),
+  });
+}
+
+/** Super Admin: approve a file (screens start showing it) or reject it with a reason. */
+export function useReviewMedia() {
+  const invalidate = useInvalidateMedia();
+  return useMutation<Media, ApiError, { id: string; approve: true } | { id: string; approve: false; reason: string }>({
+    mutationFn: (v) => v.approve
+      ? requestData(() => api.POST("/media/{id}/approve", { params: { path: { id: v.id } } }))
+      : requestData(() => api.POST("/media/{id}/reject", { params: { path: { id: v.id } }, body: { reason: v.reason } })),
     onSuccess: () => invalidate(),
   });
 }
