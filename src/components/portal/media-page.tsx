@@ -46,10 +46,10 @@ export function MediaPage({ companyId }: { companyId?: string | null } = {}) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <SearchInput placeholder="Search media..." className="w-56" maxLength={120} value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} />
-          <div className="flex flex-wrap gap-1.5">{TYPE_TABS.map((t) => <button key={t.value} onClick={() => { setType(t.value); setPage(1); }} className={cn("flex h-8 items-center gap-1.5 rounded-md border px-3 text-xs font-medium transition-colors", type === t.value ? "border-navy-200 bg-navy-50 text-navy-600" : "border-slate-200 bg-white text-slate-500 hover:bg-slate-50")}>{t.label}</button>)}</div>
+          <div className="flex flex-wrap gap-1.5">{TYPE_TABS.map((t) => <button key={t.value} onClick={() => { setType(t.value); setPage(1); }} className={cn("flex h-8 items-center gap-1.5 rounded-md border px-3 text-xs font-medium transition-colors", type === t.value ? "border-blue-200 bg-blue-50 text-blue-600" : "border-slate-200 bg-white text-slate-500 hover:bg-slate-50")}>{t.label}</button>)}</div>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex rounded-lg border border-slate-200 bg-white p-0.5"><button onClick={() => setView("grid")} className={cn("flex h-10 w-10 sm:h-7 sm:w-7 items-center justify-center rounded-md", view === "grid" ? "bg-navy-50 text-navy-600" : "text-slate-400")} aria-label="Grid view"><LayoutGrid className="h-3.5 w-3.5" /></button><button onClick={() => setView("list")} className={cn("flex h-10 w-10 sm:h-7 sm:w-7 items-center justify-center rounded-md", view === "list" ? "bg-navy-50 text-navy-600" : "text-slate-400")} aria-label="List view"><List className="h-3.5 w-3.5" /></button></div>
+          <div className="flex rounded-lg border border-slate-200 bg-white p-0.5"><button onClick={() => setView("grid")} className={cn("flex h-10 w-10 sm:h-7 sm:w-7 items-center justify-center rounded-md", view === "grid" ? "bg-blue-50 text-blue-600" : "text-slate-400")} aria-label="Grid view"><LayoutGrid className="h-3.5 w-3.5" /></button><button onClick={() => setView("list")} className={cn("flex h-10 w-10 sm:h-7 sm:w-7 items-center justify-center rounded-md", view === "list" ? "bg-blue-50 text-blue-600" : "text-slate-400")} aria-label="List view"><List className="h-3.5 w-3.5" /></button></div>
           <Button onClick={() => setUpload(true)}><Upload className="h-4 w-4" /> Upload Media</Button>
         </div>
       </div>
@@ -67,14 +67,14 @@ export function MediaPage({ companyId }: { companyId?: string | null } = {}) {
             {view === "grid" ? (
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
                 {data.map((m) => (
-                  <div key={m.id} className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+                  <div key={m.id} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                     <button onClick={() => open(m)} className="relative block w-full text-left">
                       {m.status === "PROCESSING" || m.status === "UPLOADING" ? <div className="relative flex aspect-video items-center justify-center bg-slate-800"><span className="absolute left-2 top-2 z-10 rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-semibold text-amber-700">● {label(m.status)}</span><MediaPreview item={m} className="h-full w-full opacity-40" /></div>
-                        : m.status === "FAILED" ? <div className="relative flex aspect-video items-center justify-center bg-red-50"><span className="absolute left-2 top-2 z-10 rounded-full bg-red-100 px-2 py-0.5 text-[9px] font-semibold text-red-600">● Failed</span><MediaPreview item={m} className="h-full w-full" /></div>
+                        : m.status === "FAILED" ? <div className="relative flex aspect-video items-center justify-center bg-orange-50"><span className="absolute left-2 top-2 z-10 rounded-full bg-red-100 px-2 py-0.5 text-[9px] font-semibold text-red-600">● Failed</span><MediaPreview item={m} className="h-full w-full" /></div>
                         : <MediaPreview item={m} className="aspect-video" />}
                     </button>
                     <div className="flex items-start justify-between gap-2 px-3 py-2.5">
-                      <div className="min-w-0"><button onClick={() => open(m)} className="block max-w-full truncate text-xs font-semibold text-slate-900 hover:text-navy-600">{m.name}</button><div className="mt-1 flex items-center gap-1.5"><Badge tone={typeTone(m.type)}>{mediaTypeLabel(m.type)}</Badge><span className="text-[10px] text-slate-400">{formatBytes(m.sizeBytes)}</span></div></div>
+                      <div className="min-w-0"><button onClick={() => open(m)} className="block max-w-full truncate text-xs font-semibold text-slate-900 hover:text-blue-600">{m.name}</button><div className="mt-1 flex items-center gap-1.5"><Badge tone={typeTone(m.type)}>{mediaTypeLabel(m.type)}</Badge><span className="text-[10px] text-slate-400">{formatBytes(m.sizeBytes)}</span></div></div>
                       <DropdownMenu items={menu(m)} />
                     </div>
                   </div>

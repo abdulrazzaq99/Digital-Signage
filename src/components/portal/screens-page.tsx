@@ -25,7 +25,7 @@ export function ScreenThumb({ screen, className }: { screen: Screen; className?:
       {showImage ? (
         <img src={screen.assignment!.thumbnailUrl!} alt="" className="h-full w-full object-cover" />
       ) : (
-        <div className="flex h-full items-center justify-center text-[8px] font-medium text-slate-500">{screen.status === "ONLINE" ? "No preview" : screenStatusLabel(screen.status)}</div>
+        <div className="flex h-full items-center justify-center text-[8px] font-medium uppercase tracking-wider text-slate-500">{screen.status === "ONLINE" ? "No preview" : screenStatusLabel(screen.status)}</div>
       )}
       <span className="absolute inset-x-0 bottom-0 truncate bg-black/60 px-1.5 py-0.5 text-[8px] font-medium text-white">{screen.assignment?.name ?? "Nothing assigned"}</span>
     </div>
@@ -71,7 +71,7 @@ export function ScreensPage({ tab }: { tab: "all" | "groups" }) {
               <>
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                   {data.map((s) => (
-                    <Link key={s.id} href={`/portal/screens/${s.id}`} className="rounded-xl border border-slate-200 bg-white p-4 transition-shadow hover:shadow-md">
+                    <Link key={s.id} href={`/portal/screens/${s.id}`} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
                       <div className="flex gap-3">
                         <ScreenThumb screen={s} className="h-14 w-20" />
                         <div className="min-w-0 flex-1">
@@ -81,7 +81,7 @@ export function ScreensPage({ tab }: { tab: "all" | "groups" }) {
                         </div>
                       </div>
                       <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-[11px]">
-                        {[["Content", s.assignment?.name ?? "—"], ["Group", (s.groups ?? [])[0]?.name ?? "—"], ["Last Seen", timeAgo(s.lastSeenAt)], ["Orientation", label(s.orientation)]].map(([k, v]) => <div key={k}><dt className="text-xs font-medium text-slate-500">{k}</dt><dd className="mt-0.5 truncate font-medium text-slate-700">{v}</dd></div>)}
+                        {[["Content", s.assignment?.name ?? "—"], ["Group", (s.groups ?? [])[0]?.name ?? "—"], ["Last Seen", timeAgo(s.lastSeenAt)], ["Orientation", label(s.orientation)]].map(([k, v]) => <div key={k}><dt className="text-[9px] font-semibold uppercase tracking-wider text-slate-400">{k}</dt><dd className="mt-0.5 truncate font-medium text-slate-700">{v}</dd></div>)}
                       </dl>
                     </Link>
                   ))}
@@ -101,7 +101,7 @@ export function ScreensPage({ tab }: { tab: "all" | "groups" }) {
                     <span className="flex h-9 w-12 shrink-0 items-center justify-center rounded bg-slate-100 text-slate-400"><Monitor className="h-4 w-4" /></span>
                     <span className="min-w-0"><span className="block truncate text-sm font-semibold text-slate-900">{g.name}</span><span className="block truncate text-[11px] text-slate-400">{g.description || "No description"}</span></span>
                   </Link>
-                  <div className="flex items-center gap-6 text-center"><div><div className="text-sm font-bold text-slate-900">{g.screenCount}</div><div className="text-xs font-medium text-slate-500">Screens</div></div><div><div className="text-sm font-bold text-green-600">{g.onlineCount}</div><div className="text-xs font-medium text-slate-500">Online</div></div></div>
+                  <div className="flex items-center gap-6 text-center"><div><div className="text-sm font-bold text-slate-900">{g.screenCount}</div><div className="text-[9px] font-semibold uppercase tracking-wider text-slate-400">Screens</div></div><div><div className="text-sm font-bold text-green-600">{g.onlineCount}</div><div className="text-[9px] font-semibold uppercase tracking-wider text-slate-400">Online</div></div></div>
                   <Button size="sm" href={g.screenIds[0] ? `/portal/screens/${g.screenIds[0]}/publish?group=${g.id}` : undefined} disabled={!g.screenIds[0]}><Send className="h-3.5 w-3.5" /> Publish</Button>
                 </Card>
               ))}

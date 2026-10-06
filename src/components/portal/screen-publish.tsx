@@ -57,7 +57,7 @@ export function ScreenPublish({ id, companyId, basePath = "/portal/screens" }: {
                 <ul className="space-y-1.5">
                   {data.map((p) => (
                     <li key={p.id}>
-                      <button type="button" disabled={p.itemCount === 0} onClick={() => { setPick(p); setStep(2); }} className="flex w-full items-center gap-3 rounded-lg border border-slate-200 px-3 py-2.5 text-left transition-colors hover:border-navy-300 hover:bg-navy-50/40 disabled:opacity-50 disabled:hover:border-slate-200 disabled:hover:bg-transparent">
+                      <button type="button" disabled={p.itemCount === 0} onClick={() => { setPick(p); setStep(2); }} className="flex w-full items-center gap-3 rounded-lg border border-slate-200 px-3 py-2.5 text-left transition-colors hover:border-blue-300 hover:bg-blue-50/40 disabled:opacity-50 disabled:hover:border-slate-200 disabled:hover:bg-transparent">
                         <PlaylistThumb playlist={p} />
                         <span className="flex-1"><span className="block text-sm font-semibold text-slate-900">{p.name}</span><span className="block text-[11px] text-slate-400">{p.itemCount} items · {formatDuration(p.totalDurationSec)}{p.itemCount === 0 && " · empty"}</span></span>
                         <ChevronRight className="h-4 w-4 text-slate-300" />

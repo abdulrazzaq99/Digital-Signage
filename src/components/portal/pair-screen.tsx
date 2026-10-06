@@ -67,7 +67,7 @@ export function PairScreen({ companyId }: { companyId?: string | null } = {}) {
         <Card className="max-w-[540px] animate-fade-in">
           <div className="border-b border-slate-100 px-5 py-3 text-sm font-semibold text-slate-900">Configure Screen</div>
           <form onSubmit={submit} noValidate className="space-y-4 px-5 py-4">
-            <div className="flex items-center gap-2 rounded-lg border border-navy-200 bg-navy-50 px-3 py-2 text-xs text-navy-700"><Check className="h-3.5 w-3.5" /> Pairing code: <span className="font-mono font-semibold">{codeForm.getValues("code")}</span></div>
+            <div className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-700"><Check className="h-3.5 w-3.5" /> Pairing code: <span className="font-mono font-semibold">{codeForm.getValues("code")}</span></div>
             <FormError form={form} />
             <Field label="Screen Name" required error={fieldError(form, "name")}>
               <Input placeholder="e.g. Reception Display" maxLength={SCREEN_NAME_MAX} autoFocus {...maskedRegister(form, "name", maskName)} />

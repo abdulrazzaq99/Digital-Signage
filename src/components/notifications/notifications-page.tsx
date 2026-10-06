@@ -29,8 +29,8 @@ function kindOf(n: Notification): { icon: React.ReactNode; cls: string; label: s
   if (t.includes("licen")) return { icon: <FileBadge className="h-3.5 w-3.5" />, cls: "bg-amber-50 text-amber-600", label: "Licence" };
   if (t.includes("campaign") || t.includes("scratch") || t.includes("prize")) return { icon: <Ticket className="h-3.5 w-3.5" />, cls: "bg-violet-50 text-violet-600", label: "Campaign" };
   if (t.includes("maintenance") || t.includes("alert")) return { icon: <AlertTriangle className="h-3.5 w-3.5" />, cls: "bg-amber-50 text-amber-600", label: "Alert" };
-  if (t.includes("company") || t.includes("welcome")) return { icon: <Building2 className="h-3.5 w-3.5" />, cls: "bg-navy-50 text-navy-600", label: "Company" };
-  return { icon: <Rocket className="h-3.5 w-3.5" />, cls: "bg-navy-50 text-navy-600", label: "Platform" };
+  if (t.includes("company") || t.includes("welcome")) return { icon: <Building2 className="h-3.5 w-3.5" />, cls: "bg-blue-50 text-blue-600", label: "Company" };
+  return { icon: <Rocket className="h-3.5 w-3.5" />, cls: "bg-blue-50 text-blue-600", label: "Platform" };
 }
 const audienceLabel = (a: Notification["audience"] | null | undefined, names: Record<string, string>) => !a ? "—" : a.kind === "all" ? "All customers" : a.kind === "companies" ? (a.companyIds ?? []).map((id) => names[id] ?? "Company").join(", ") || "—" : `${(a.userIds ?? []).length} user${(a.userIds ?? []).length === 1 ? "" : "s"}`;
 const isToday = (iso: string) => new Date(iso).toDateString() === new Date().toDateString();
@@ -129,7 +129,7 @@ export function NotificationsPage() {
               {list.length === 0 && <div className="px-5 py-10 text-center text-xs text-slate-400">No notifications match.</div>}
               {groups.map(([g, rows]) => rows.length === 0 ? null : (
                 <div key={g}>
-                  <div className="border-b border-slate-100 bg-slate-50/70 px-5 py-2 text-xs font-medium text-slate-500">{g} · {rows.length}</div>
+                  <div className="border-b border-slate-100 bg-slate-50/70 px-5 py-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400">{g} · {rows.length}</div>
                   <ul className="divide-y divide-slate-100">
                     {rows.map((n) => { const k = kindOf(n); return (
                       <li key={n.id} className="flex items-start gap-3 px-5 py-3.5 transition-colors hover:bg-slate-50/60">
@@ -155,7 +155,7 @@ export function NotificationsPage() {
         {open && (() => { const k = kindOf(open); return (
           <>
             <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-5 py-4">
-              <div className="flex items-center gap-3"><span className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-full", k.cls)}>{k.icon}</span><div><div className="text-xs font-medium text-navy-600">{k.label}</div><div className="text-sm font-semibold text-slate-900">{open.title}</div></div></div>
+              <div className="flex items-center gap-3"><span className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-full", k.cls)}>{k.icon}</span><div><div className="text-[10px] font-semibold uppercase tracking-wider text-blue-600">{k.label}</div><div className="text-sm font-semibold text-slate-900">{open.title}</div></div></div>
               <button onClick={() => setOpen(null)} className="flex h-6 w-6 items-center justify-center rounded-md border border-slate-200 text-slate-400 hover:bg-slate-50" aria-label="Close"><X className="h-3.5 w-3.5" /></button>
             </div>
             <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5">

@@ -67,13 +67,13 @@ export function PublishModal({ open, onClose, companyId, defaultScreen, defaultG
           <div className="px-6 pt-5">
             <div className="grid grid-cols-3 rounded-lg border border-slate-200 bg-slate-50 p-1 text-xs font-medium">
               {([["single", "Single Screen"], ["multiple", "Multiple Screens"], ["group", "Screen Group"]] as [TargetMode, string][]).map(([v, l]) => (
-                <button key={v} type="button" onClick={() => setMode(v)} className={cn("h-8 rounded-md transition-colors", mode === v ? "bg-white text-navy-600" : "text-slate-500 hover:text-slate-800")}>{l}</button>
+                <button key={v} type="button" onClick={() => setMode(v)} className={cn("h-8 rounded-md transition-colors", mode === v ? "bg-white text-blue-600 shadow-sm" : "text-slate-500 hover:text-slate-800")}>{l}</button>
               ))}
             </div>
           </div>
           <div className="max-h-[280px] space-y-2 overflow-y-auto px-6 py-4">
             {targetQuery.isError ? <ErrorState error={targetQuery.error} onRetry={() => targetQuery.refetch()} className="p-4" /> : targetQuery.isPending ? <TableSkeleton rows={4} /> : mode === "group" ? (groupList.length ? groupList.map((g) => (
-              <button key={g.id} type="button" onClick={() => setGroup(g.id)} disabled={g.screenCount === 0} className={cn("flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors disabled:opacity-50", group === g.id ? "border-navy-300 bg-navy-50/50" : "border-slate-200 hover:bg-slate-50")}>
+              <button key={g.id} type="button" onClick={() => setGroup(g.id)} disabled={g.screenCount === 0} className={cn("flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors disabled:opacity-50", group === g.id ? "border-blue-300 bg-blue-50/50" : "border-slate-200 hover:bg-slate-50")}>
                 <span className="flex h-8 w-12 items-center justify-center rounded bg-slate-100 text-slate-400"><Monitor className="h-4 w-4" /></span>
                 <span className="flex-1"><span className="block text-sm font-semibold text-slate-900">{g.name}</span><span className="block text-[11px] text-slate-400">{g.screenCount} screen{g.screenCount === 1 ? "" : "s"} · {g.onlineCount} online</span></span>
               </button>
@@ -81,7 +81,7 @@ export function PublishModal({ open, onClose, companyId, defaultScreen, defaultG
               const selected = mode === "single" ? single === s.id : multi.includes(s.id);
               const toggle = () => mode === "single" ? setSingle(s.id) : setMulti((m) => m.includes(s.id) ? m.filter((x) => x !== s.id) : [...m, s.id]);
               return (
-                <div role="button" tabIndex={0} key={s.id} onClick={toggle} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && toggle()} className={cn("flex w-full cursor-pointer items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors", selected ? "border-navy-300 bg-navy-50/50" : "border-slate-200 hover:bg-slate-50")}>
+                <div role="button" tabIndex={0} key={s.id} onClick={toggle} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && toggle()} className={cn("flex w-full cursor-pointer items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors", selected ? "border-blue-300 bg-blue-50/50" : "border-slate-200 hover:bg-slate-50")}>
                   {mode === "multiple" && <Checkbox checked={selected} />}
                   <span className="flex h-8 w-12 shrink-0 items-center justify-center overflow-hidden rounded bg-slate-900 text-slate-500">{s.assignment?.thumbnailUrl ? <img src={s.assignment.thumbnailUrl} alt="" className="h-full w-full object-cover" /> : <Monitor className="h-3.5 w-3.5" />}</span>
                   <span className="flex-1"><span className="block text-sm font-semibold text-slate-900">{s.name}</span><span className="block text-[11px] text-slate-400">{s.location ?? "—"}{s.assignment ? ` · ${s.assignment.name}` : ""}</span></span>
@@ -99,10 +99,10 @@ export function PublishModal({ open, onClose, companyId, defaultScreen, defaultG
           <div className="px-6 pt-5 text-xs text-slate-500">Choose the playlist to send to <span className="font-semibold text-slate-800">{targetLabel}</span>.</div>
           <div className="max-h-[300px] space-y-2 overflow-y-auto px-6 py-4">
             {playlists.isError ? <ErrorState error={playlists.error} onRetry={() => playlists.refetch()} className="p-4" /> : playlists.isPending ? <TableSkeleton rows={4} /> : (playlists.data?.data ?? []).length ? playlists.data!.data.map((p) => (
-              <button key={p.id} type="button" onClick={() => setPlaylist(p)} disabled={p.itemCount === 0} className={cn("flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors disabled:opacity-50", playlist?.id === p.id ? "border-navy-400 bg-navy-50/50 ring-2 ring-navy-500/20" : "border-slate-200 hover:border-slate-300")}>
+              <button key={p.id} type="button" onClick={() => setPlaylist(p)} disabled={p.itemCount === 0} className={cn("flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors disabled:opacity-50", playlist?.id === p.id ? "border-blue-400 bg-blue-50/50 ring-2 ring-blue-500/20" : "border-slate-200 hover:border-slate-300")}>
                 <span className="flex h-8 w-12 items-center justify-center rounded bg-slate-100 text-slate-400"><ListVideo className="h-4 w-4" /></span>
                 <span className="flex-1"><span className="block text-sm font-semibold text-slate-900">{p.name}</span><span className="block text-[11px] text-slate-400">{p.itemCount} item{p.itemCount === 1 ? "" : "s"} · {formatDuration(p.totalDurationSec)}{p.itemCount === 0 ? " · empty" : ""}</span></span>
-                {playlist?.id === p.id && <span className="flex h-5 w-5 items-center justify-center rounded-full bg-navy-600 text-white"><Check className="h-3 w-3" /></span>}
+                {playlist?.id === p.id && <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-white"><Check className="h-3 w-3" /></span>}
               </button>
             )) : <p className="text-xs text-slate-400">This company has no playlists yet.</p>}
           </div>

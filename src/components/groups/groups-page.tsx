@@ -24,7 +24,7 @@ export function GroupsPage() {
               {data.map((g) => {
                 const offline = g.screenCount - g.onlineCount;
                 return (
-                  <Link key={g.id} href={scope.withCompany(`/screens/groups/${g.id}`)} className="overflow-hidden rounded-xl border border-slate-200 bg-white transition-shadow hover:shadow-md">
+                  <Link key={g.id} href={scope.withCompany(`/screens/groups/${g.id}`)} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md">
                     <div className="relative flex aspect-[16/7] items-center justify-center bg-slate-900 text-slate-600">
                       <Monitor className="h-8 w-8" />
                       <span className="absolute right-2.5 top-2.5 rounded-md bg-slate-900/80 px-2 py-0.5 text-[10px] font-medium text-white">{g.screenCount} screen{g.screenCount === 1 ? "" : "s"}</span>

@@ -21,10 +21,10 @@ import { PublishOutcome } from "./publish-target";
 
 function kindStyle(a: ActivityEntry): { icon: React.ReactNode; cls: string } {
   const [kind, verb] = (a.action ?? "").split(".");
-  if (verb?.includes("publish")) return { icon: <Send className="h-3.5 w-3.5" />, cls: "bg-navy-50 text-navy-600" };
+  if (verb?.includes("publish")) return { icon: <Send className="h-3.5 w-3.5" />, cls: "bg-blue-50 text-blue-600" };
   if (kind === "screen" && verb?.includes("offline")) return { icon: <MonitorOff className="h-3.5 w-3.5" />, cls: "bg-red-50 text-red-600" };
   if (kind === "screen") return { icon: <Link2 className="h-3.5 w-3.5" />, cls: "bg-green-50 text-green-600" };
-  if (kind === "media") return { icon: <UploadCloud className="h-3.5 w-3.5" />, cls: "bg-navy-50 text-navy-600" };
+  if (kind === "media") return { icon: <UploadCloud className="h-3.5 w-3.5" />, cls: "bg-blue-50 text-blue-600" };
   if (kind === "schedule") return { icon: <Calendar className="h-3.5 w-3.5" />, cls: "bg-amber-50 text-amber-600" };
   return { icon: <ImageIcon className="h-3.5 w-3.5" />, cls: "bg-violet-50 text-violet-600" };
 }
@@ -50,8 +50,8 @@ function QuickPublish() {
             return (
               <div key={label} className={cn("flex items-center", i < 2 && "flex-1")}>
                 <div className="flex flex-col items-center gap-1">
-                  <span className={cn("flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-semibold", done ? "bg-green-500 text-white" : active ? "bg-navy-600 text-white" : "border border-slate-200 bg-white text-slate-400")}>{done ? <Check className="h-3 w-3" /> : n}</span>
-                  <span className={cn("text-[9px] font-medium", active ? "text-navy-600" : "text-slate-400")}>{label}</span>
+                  <span className={cn("flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-semibold", done ? "bg-green-500 text-white" : active ? "bg-blue-600 text-white" : "border border-slate-200 bg-white text-slate-400")}>{done ? <Check className="h-3 w-3" /> : n}</span>
+                  <span className={cn("text-[9px] font-medium", active ? "text-blue-600" : "text-slate-400")}>{label}</span>
                 </div>
                 {i < 2 && <div className={cn("mx-2 mb-4 h-px flex-1", done ? "bg-green-300" : "bg-slate-200")} />}
               </div>
@@ -63,16 +63,16 @@ function QuickPublish() {
         {step === 1 && (
           <div className="animate-fade-in">
             <p className="mb-2 text-[11px] text-slate-400">Select a screen to publish to</p>
-            <QueryState query={screens} skeleton={<TableSkeleton rows={3} />} empty={<p className="text-xs text-slate-400">No screens paired yet. <Link href="/portal/screens/pair" className="text-navy-600 hover:underline">Pair one →</Link></p>}>
-              {({ data }) => <ul className="max-h-[420px] space-y-1.5 overflow-y-auto pr-1">{data.map((s) => <li key={s.id}><button onClick={() => { setScreen(s); setStep(2); }} className="flex w-full items-center justify-between rounded-lg border border-slate-200 px-3 py-2 text-left transition-colors hover:border-navy-300 hover:bg-navy-50/40"><span><span className="block text-xs font-semibold text-slate-900">{s.name}</span><span className="block text-[10px] text-slate-400">{s.location ?? "—"}</span></span><DotStatus status={screenStatusLabel(s.status)} /></button></li>)}</ul>}
+            <QueryState query={screens} skeleton={<TableSkeleton rows={3} />} empty={<p className="text-xs text-slate-400">No screens paired yet. <Link href="/portal/screens/pair" className="text-blue-600 hover:underline">Pair one →</Link></p>}>
+              {({ data }) => <ul className="max-h-[420px] space-y-1.5 overflow-y-auto pr-1">{data.map((s) => <li key={s.id}><button onClick={() => { setScreen(s); setStep(2); }} className="flex w-full items-center justify-between rounded-lg border border-slate-200 px-3 py-2 text-left transition-colors hover:border-blue-300 hover:bg-blue-50/40"><span><span className="block text-xs font-semibold text-slate-900">{s.name}</span><span className="block text-[10px] text-slate-400">{s.location ?? "—"}</span></span><DotStatus status={screenStatusLabel(s.status)} /></button></li>)}</ul>}
             </QueryState>
           </div>
         )}
         {step === 2 && screen && (
           <div className="animate-fade-in">
             <p className="mb-2 text-[11px] text-slate-400">Publishing to <span className="font-semibold text-slate-700">{screen.name}</span></p>
-            <QueryState query={playlists} skeleton={<TableSkeleton rows={3} />} empty={<p className="text-xs text-slate-400">No playlists yet. <Link href="/portal/playlists" className="text-navy-600 hover:underline">Create one →</Link></p>}>
-              {({ data }) => <ul className="space-y-1.5">{data.every((p) => !p.itemCount) ? <li className="text-xs text-slate-400">Your playlists are empty. <Link href="/portal/playlists" className="text-navy-600 hover:underline">Add content →</Link></li> : data.filter((p) => p.itemCount > 0).map((p) => <li key={p.id}><button onClick={() => { setPlaylist(p); setStep(3); }} className="flex w-full items-center gap-3 rounded-lg border border-slate-200 px-3 py-2 text-left transition-colors hover:border-navy-300 hover:bg-navy-50/40"><span className="flex h-7 w-11 items-center justify-center rounded bg-slate-100 text-slate-400"><ListVideo className="h-3.5 w-3.5" /></span><span className="flex-1"><span className="block text-xs font-semibold text-slate-900">{p.name}</span><span className="block text-[10px] text-slate-400">{p.itemCount} items · {formatDuration(p.totalDurationSec)}</span></span><ChevronRight className="h-3.5 w-3.5 text-slate-300" /></button></li>)}</ul>}
+            <QueryState query={playlists} skeleton={<TableSkeleton rows={3} />} empty={<p className="text-xs text-slate-400">No playlists yet. <Link href="/portal/playlists" className="text-blue-600 hover:underline">Create one →</Link></p>}>
+              {({ data }) => <ul className="space-y-1.5">{data.every((p) => !p.itemCount) ? <li className="text-xs text-slate-400">Your playlists are empty. <Link href="/portal/playlists" className="text-blue-600 hover:underline">Add content →</Link></li> : data.filter((p) => p.itemCount > 0).map((p) => <li key={p.id}><button onClick={() => { setPlaylist(p); setStep(3); }} className="flex w-full items-center gap-3 rounded-lg border border-slate-200 px-3 py-2 text-left transition-colors hover:border-blue-300 hover:bg-blue-50/40"><span className="flex h-7 w-11 items-center justify-center rounded bg-slate-100 text-slate-400"><ListVideo className="h-3.5 w-3.5" /></span><span className="flex-1"><span className="block text-xs font-semibold text-slate-900">{p.name}</span><span className="block text-[10px] text-slate-400">{p.itemCount} items · {formatDuration(p.totalDurationSec)}</span></span><ChevronRight className="h-3.5 w-3.5 text-slate-300" /></button></li>)}</ul>}
             </QueryState>
             <button onClick={() => setStep(1)} className="mt-3 text-[11px] font-medium text-slate-500 hover:text-slate-800">‹ Change screen</button>
           </div>
@@ -123,13 +123,13 @@ export function OverviewPage() {
 
       <div className="grid grid-cols-3 gap-2 sm:gap-4">
         {[
-          { value: screens.isPending || screens.isError ? undefined : all.length, label: "Total Screens", icon: <Monitor className="h-4 w-4" />, cls: "border-slate-200", ic: "bg-navy-50 text-navy-600" },
+          { value: screens.isPending || screens.isError ? undefined : all.length, label: "Total Screens", icon: <Monitor className="h-4 w-4" />, cls: "border-slate-200", ic: "bg-blue-50 text-blue-600" },
           { value: screens.isPending || screens.isError ? undefined : online, label: "Online", icon: <Monitor className="h-4 w-4" />, cls: "border-slate-200", ic: "bg-green-50 text-green-600" },
           { value: screens.isPending || screens.isError ? undefined : offline, label: "Offline", icon: <MonitorOff className="h-4 w-4" />, cls: offline > 0 ? "border-red-200" : "border-slate-200", ic: "bg-red-50 text-red-600" },
         ].map((s) => (
           <Card key={s.label} className={cn("flex flex-col items-start gap-2 px-3 py-3 sm:flex-row sm:items-center sm:gap-4 sm:px-5 sm:py-4", s.cls)}>
             <span className={cn("flex h-9 w-9 items-center justify-center rounded-lg", s.ic)}>{s.icon}</span>
-            <div>{s.value === undefined ? (screens.isError ? <div className="text-2xl font-bold tracking-tight text-slate-300" title="Couldn't load screens">—</div> : <Skeleton className="h-7 w-10" />) : <div className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">{s.value}</div>}<div className="text-xs font-medium text-slate-500">{s.label}</div></div>
+            <div>{s.value === undefined ? (screens.isError ? <div className="text-2xl font-bold tracking-tight text-slate-300" title="Couldn't load screens">—</div> : <Skeleton className="h-7 w-10" />) : <div className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">{s.value}</div>}<div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">{s.label}</div></div>
           </Card>
         ))}
       </div>
@@ -137,8 +137,8 @@ export function OverviewPage() {
       <div className="grid gap-5 xl:grid-cols-[1fr_300px]">
         <div className="space-y-5">
           <Card>
-            <CardHeader title="Screen Status" action={<Link href="/portal/screens" className="text-xs font-medium text-navy-600 hover:underline">View all ›</Link>} />
-            <QueryState query={screens} skeleton={<div className="p-4"><TableSkeleton rows={4} /></div>} empty={<div className="px-5 py-8 text-center text-xs text-slate-400">No screens paired yet. <Link href="/portal/screens/pair" className="text-navy-600 hover:underline">Pair your first screen →</Link></div>}>
+            <CardHeader title="Screen Status" action={<Link href="/portal/screens" className="text-xs font-medium text-blue-600 hover:underline">View all ›</Link>} />
+            <QueryState query={screens} skeleton={<div className="p-4"><TableSkeleton rows={4} /></div>} empty={<div className="px-5 py-8 text-center text-xs text-slate-400">No screens paired yet. <Link href="/portal/screens/pair" className="text-blue-600 hover:underline">Pair your first screen →</Link></div>}>
               {() => (
                 <>
                   <Table>
@@ -146,7 +146,7 @@ export function OverviewPage() {
                     <tbody>
                       {rows.map((s) => (
                         <TR key={s.id}>
-                          <TD><Link href={`/portal/screens/${s.id}`} className="text-sm font-semibold text-slate-900 hover:text-navy-600 whitespace-nowrap">{s.name}</Link></TD>
+                          <TD><Link href={`/portal/screens/${s.id}`} className="text-sm font-semibold text-slate-900 hover:text-blue-600 whitespace-nowrap">{s.name}</Link></TD>
                           <TD className="text-xs whitespace-nowrap">{s.location ?? "—"}</TD>
                           <TD><DotStatus status={screenStatusLabel(s.status)} /></TD>
                           <TD className="text-xs whitespace-nowrap">{s.assignment?.name ?? "—"}</TD>

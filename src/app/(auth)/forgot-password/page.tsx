@@ -33,7 +33,7 @@ export default function ForgotPasswordPage() {
   if (sentTo) {
     return (
       <div className="space-y-6">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-navy-50 text-navy-600">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-600">
           <Mail className="h-5 w-5" />
         </div>
         <div>
@@ -46,7 +46,7 @@ export default function ForgotPasswordPage() {
         {resend.isSuccess && <Alert tone="green">We sent another link.</Alert>}
         <Button href="/login" size="lg" className="w-full">Back to Sign In</Button>
         <p className="text-center text-xs text-slate-500">
-          Didn&apos;t receive it? <button type="button" onClick={() => resend.mutate({ email: sentTo })} disabled={resend.isPending} className="font-medium text-navy-600 hover:underline disabled:opacity-50">{resend.isPending ? "Sending…" : "Resend email"}</button>
+          Didn&apos;t receive it? <button type="button" onClick={() => resend.mutate({ email: sentTo })} disabled={resend.isPending} className="font-medium text-blue-600 hover:underline disabled:opacity-50">{resend.isPending ? "Sending…" : "Resend email"}</button>
         </p>
       </div>
     );
@@ -67,7 +67,7 @@ export default function ForgotPasswordPage() {
       </Field>
       <SubmitButton form={form} size="lg" className="w-full" pendingText="Sending…">Send Reset Link</SubmitButton>
       <p className="text-center text-xs text-slate-500">
-        Don&apos;t have an account? <a href="#" className="font-medium text-navy-600 hover:underline">Request access</a>
+        Don&apos;t have an account? <a href="#" className="font-medium text-blue-600 hover:underline">Request access</a>
       </p>
     </form>
   );

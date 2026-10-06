@@ -29,7 +29,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     error: (e, title = "Something went wrong") => toast({ title, body: errorMessage(e), tone: "error" }),
   }), [toast]);
 
-  const style: Record<Tone, string> = { success: "border-green-200 bg-green-50 text-green-800", error: "border-red-200 bg-red-50 text-red-800", info: "border-navy-200 bg-navy-50 text-navy-800" };
+  const style: Record<Tone, string> = { success: "border-green-200 bg-green-50 text-green-800", error: "border-red-200 bg-red-50 text-red-800", info: "border-blue-200 bg-blue-50 text-blue-800" };
   const Icon = { success: CheckCircle2, error: AlertCircle, info: Info };
 
   return (

@@ -9,10 +9,10 @@ export function PortalStepper({ steps, current, className }: { steps: string[]; 
         return (
           <div key={label} className={cn("flex items-start", i < steps.length - 1 && "flex-1")}>
             <div className="flex w-16 flex-col items-center gap-1.5">
-              <span className={cn("flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-semibold", done ? "bg-navy-600 text-white" : active ? "border-2 border-navy-600 bg-white text-navy-600" : "border border-slate-200 bg-white text-slate-400")}>{done ? <Check className="h-3.5 w-3.5" /> : n}</span>
-              <span className={cn("text-center text-[10px] font-medium", active ? "text-navy-600" : done ? "text-slate-700" : "text-slate-400")}>{label}</span>
+              <span className={cn("flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-semibold", done ? "bg-blue-600 text-white" : active ? "border-2 border-blue-600 bg-white text-blue-600" : "border border-slate-200 bg-white text-slate-400")}>{done ? <Check className="h-3.5 w-3.5" /> : n}</span>
+              <span className={cn("text-center text-[10px] font-medium", active ? "text-blue-600" : done ? "text-slate-700" : "text-slate-400")}>{label}</span>
             </div>
-            {i < steps.length - 1 && <div className={cn("mt-3.5 h-px flex-1", done ? "bg-navy-300" : "bg-slate-200")} />}
+            {i < steps.length - 1 && <div className={cn("mt-3.5 h-px flex-1", done ? "bg-blue-300" : "bg-slate-200")} />}
           </div>
         );
       })}

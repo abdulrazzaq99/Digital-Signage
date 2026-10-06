@@ -64,7 +64,7 @@ function Detail({ company, license }: { company: Company; license: License }) {
           <Card>
             <CardHeader title="Screen Usage" />
             <div className="px-5 py-4">
-              <div className="flex items-end gap-1"><span className="text-3xl font-bold text-navy-600">{license.paired}</span><span className="pb-1 text-xs text-slate-400">of {license.screenLimit}</span></div>
+              <div className="flex items-end gap-1"><span className="text-3xl font-bold text-blue-600">{license.paired}</span><span className="pb-1 text-xs text-slate-400">of {license.screenLimit}</span></div>
               <Progress value={pct} tone={license.overLimit ? "red" : "blue"} className="mt-3" />
               <div className="mt-2 flex justify-between text-[11px] text-slate-400"><span>{pct}% used</span><span>{license.available} slots free</span></div>
             </div>

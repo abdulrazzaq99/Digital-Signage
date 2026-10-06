@@ -30,7 +30,7 @@ export function QueryNotice({ query, what, className }: { query: QueryLike; what
     return (
       <p role="alert" className={cn("mt-1 flex flex-wrap items-center gap-1.5 text-[11px] font-medium text-red-600", className)}>
         Couldn&apos;t load {what}: {errorMessage(query.error)}
-        <button type="button" onClick={() => query.refetch()} className="inline-flex items-center gap-1 font-semibold text-navy-600 hover:underline"><RefreshCw className="h-3 w-3" /> Retry</button>
+        <button type="button" onClick={() => query.refetch()} className="inline-flex items-center gap-1 font-semibold text-blue-600 hover:underline"><RefreshCw className="h-3 w-3" /> Retry</button>
       </p>
     );
   }

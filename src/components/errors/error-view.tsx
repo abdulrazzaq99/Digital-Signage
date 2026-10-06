@@ -14,7 +14,7 @@ export function ErrorView({ error, retry, home = "/", compact }: { error: Error 
   }, [error]);
   return (
     <div className={compact ? "flex items-center justify-center p-10" : "flex min-h-screen items-center justify-center bg-slate-50 p-6"}>
-      <div role="alert" className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-8 text-center">
+      <div role="alert" className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm">
         <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-red-50 text-red-600"><AlertTriangle className="h-5 w-5" /></div>
         <h1 className="text-base font-semibold text-slate-900">Something went wrong</h1>
         <p className="mt-2 text-sm text-slate-500">{errorMessage(error)}</p>

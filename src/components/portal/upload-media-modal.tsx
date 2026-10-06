@@ -82,9 +82,9 @@ export function PortalUploadModal({ open, onClose, companyId, extra }: { open: b
           onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
           onDragLeave={() => setDragging(false)}
           onDrop={(e) => { e.preventDefault(); setDragging(false); addFiles(e.dataTransfer.files); }}
-          className={`flex w-full flex-col items-center rounded-xl border-2 border-dashed px-6 py-8 text-center transition-colors disabled:opacity-60 ${dragging ? "border-navy-400 bg-navy-50" : "border-slate-200 bg-slate-50/60 hover:border-navy-300"}`}
+          className={`flex w-full flex-col items-center rounded-xl border-2 border-dashed px-6 py-8 text-center transition-colors disabled:opacity-60 ${dragging ? "border-blue-400 bg-blue-50" : "border-slate-200 bg-slate-50/60 hover:border-blue-300"}`}
         >
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-navy-50 text-navy-600"><Upload className="h-4 w-4" /></span>
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600"><Upload className="h-4 w-4" /></span>
           <span className="mt-3 text-sm font-semibold text-slate-900">Drag &amp; drop files here</span>
           <span className="mt-0.5 text-[11px] text-slate-400">or click to browse your files</span>
           <span className="mt-3 flex gap-1">{["JPG", "PNG", "MP4", "PDF", "Max 500 MB"].map((t) => <span key={t} className="rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[9px] font-medium text-slate-500">{t}</span>)}</span>
@@ -101,7 +101,7 @@ export function PortalUploadModal({ open, onClose, companyId, extra }: { open: b
                   <span className="min-w-0 flex-1"><span className="block truncate text-xs font-semibold text-slate-900">{r.file.name}</span><span className="block text-[10px] text-slate-400">{formatBytes(r.file.size)} · {ALLOWED_MIME[r.file.type] ?? "Unsupported"}</span></span>
                   {r.status === "done" ? <Check className="h-4 w-4 text-green-600" /> : (r.status === "queued" || r.status === "invalid" || r.status === "error") && !busy ? <button type="button" onClick={() => setRows((x) => x.filter((_, j) => j !== i))} className="text-slate-400 hover:text-slate-600" aria-label={`Remove ${r.file.name}`}><X className="h-3.5 w-3.5" /></button> : null}
                 </div>
-                {r.status === "uploading" && <div className="mt-2"><div className="flex justify-between text-[10px]"><span className="font-semibold text-slate-700">{(progress[r.file.name] ?? 0) < 100 ? "Uploading…" : "Finalising…"}</span><span className="text-slate-400">{progress[r.file.name] ?? 0}%</span></div><div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-navy-600 transition-[width]" style={{ width: `${progress[r.file.name] ?? 0}%` }} /></div></div>}
+                {r.status === "uploading" && <div className="mt-2"><div className="flex justify-between text-[10px]"><span className="font-semibold text-slate-700">{(progress[r.file.name] ?? 0) < 100 ? "Uploading…" : "Finalising…"}</span><span className="text-slate-400">{progress[r.file.name] ?? 0}%</span></div><div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-blue-600 transition-[width]" style={{ width: `${progress[r.file.name] ?? 0}%` }} /></div></div>}
                 {(r.status === "error" || r.status === "invalid") && <div role="alert" className="mt-1.5 text-[11px] text-red-600">{r.error}</div>}
               </li>
             ))}

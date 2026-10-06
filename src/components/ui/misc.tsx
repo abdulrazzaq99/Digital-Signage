@@ -40,8 +40,7 @@ export function Avatar({ name, src, size = "md", className }: { name: string; sr
 /** Deterministic initials tile for a company (no external images). */
 export function CompanyLogo({ seed, name, size = "md", className }: { seed: string; name?: string; size?: "sm" | "md" | "lg"; className?: string }) {
   const s = { sm: "h-8 w-8 text-[10px]", md: "h-10 w-10 text-xs", lg: "h-12 w-12 text-sm" }[size];
-  // Deep, quiet identity colours that sit with the navy (no orange: orange means "act").
-  const palette = ["bg-navy-600", "bg-navy-800", "bg-violet-700", "bg-emerald-700", "bg-amber-700", "bg-rose-700", "bg-slate-600"];
+  const palette = ["bg-blue-600", "bg-violet-600", "bg-emerald-600", "bg-amber-500", "bg-rose-600", "bg-cyan-600", "bg-indigo-600"];
   const key = name ?? seed;
   let h = 0;
   for (const ch of key) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
@@ -61,7 +60,7 @@ export function Pagination({ page = 1, pages = 1, summary, onChange, className }
       <div className="flex flex-wrap items-center gap-1">
         <button type="button" disabled={page <= 1} onClick={() => go(page - 1)} className={cn(btn, "border-slate-200 bg-white text-slate-400 hover:bg-slate-50")} aria-label="Previous page"><ChevronLeft className="h-3.5 w-3.5" /></button>
         {nums.map((n) => (
-          <button type="button" key={n} onClick={() => go(n)} className={cn(btn, n === page ? "border-navy-600 bg-navy-600 text-white" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50")}>{n}</button>
+          <button type="button" key={n} onClick={() => go(n)} className={cn(btn, n === page ? "border-blue-600 bg-blue-600 text-white" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50")}>{n}</button>
         ))}
         {nums[nums.length - 1] < pages - 1 && <span className="px-1 text-xs text-slate-400">…</span>}
         {nums[nums.length - 1] < pages && <button type="button" onClick={() => go(pages)} className={cn(btn, "border-slate-200 bg-white text-slate-600 hover:bg-slate-50")}>{pages}</button>}
@@ -81,7 +80,7 @@ export function Stepper({ steps, current, className, compact }: { steps: string[
         return (
           <div key={s} className={cn("flex items-center", i < steps.length - 1 && "flex-1")}>
             <div className="flex items-center gap-2">
-              <span className={cn("flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-semibold", done ? "bg-green-500 text-white" : active ? "bg-navy-600 text-white" : "bg-slate-100 text-slate-400")}>
+              <span className={cn("flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-semibold", done ? "bg-green-500 text-white" : active ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-400")}>
                 {done ? <Check className="h-3 w-3" /> : n}
               </span>
               <span className={cn("text-xs font-medium whitespace-nowrap", done ? "text-green-600" : active ? "text-slate-900" : "text-slate-400", compact && "text-[11px]", !active && "hidden sm:inline")}>{s}</span>
@@ -95,7 +94,7 @@ export function Stepper({ steps, current, className, compact }: { steps: string[
 }
 
 export function Progress({ value, tone = "blue", className, thin }: { value: number; tone?: "blue" | "green" | "amber" | "red" | "slate"; className?: string; thin?: boolean }) {
-  const c = { blue: "bg-navy-600", green: "bg-green-500", amber: "bg-amber-500", red: "bg-red-500", slate: "bg-slate-300" }[tone];
+  const c = { blue: "bg-blue-600", green: "bg-green-500", amber: "bg-amber-500", red: "bg-red-500", slate: "bg-slate-300" }[tone];
   return (
     <div className={cn("w-full overflow-hidden rounded-full bg-slate-100", thin ? "h-1" : "h-1.5", className)}>
       <div className={cn("h-full rounded-full", c)} style={{ width: `${Math.max(0, Math.min(100, value))}%` }} />
@@ -105,7 +104,7 @@ export function Progress({ value, tone = "blue", className, thin }: { value: num
 
 export function Alert({ tone = "blue", children, className, icon }: { tone?: "blue" | "amber" | "green" | "red"; children: ReactNode; className?: string; icon?: ReactNode }) {
   const c = {
-    blue: "border-navy-100 bg-navy-50 text-navy-700",
+    blue: "border-blue-100 bg-blue-50 text-blue-700",
     amber: "border-amber-100 bg-amber-50 text-amber-700",
     green: "border-green-100 bg-green-50 text-green-700",
     red: "border-red-100 bg-red-50 text-red-700",
@@ -166,7 +165,7 @@ export function Drawer({ open, onClose, children, width = "max-w-[420px]" }: { o
 export function BackLink({ href, label, current }: { href: string; label: string; current: string }) {
   return (
     <div className="flex items-center gap-2 text-xs">
-      <Link href={href} className="inline-flex items-center gap-1 font-medium text-navy-600 hover:underline"><ChevronLeft className="h-3.5 w-3.5" /> {label}</Link>
+      <Link href={href} className="inline-flex items-center gap-1 font-medium text-blue-600 hover:underline"><ChevronLeft className="h-3.5 w-3.5" /> {label}</Link>
       <ChevronRight className="h-3 w-3 text-slate-300" />
       <span className="text-slate-400">{current}</span>
     </div>

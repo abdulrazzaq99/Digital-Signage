@@ -19,8 +19,8 @@ export function NavyZoneDiagram({ zones, className, showNames = true, filled }: 
   return (
     <div className={cn("relative aspect-video overflow-hidden rounded-lg border-4 border-slate-800 bg-slate-900", className)}>
       {(zones ?? []).map((z) => (
-        <div key={z.index} className={cn("absolute flex flex-col items-center justify-center overflow-hidden rounded-sm border text-center", filled?.[z.index] ? "border-navy-400/40 bg-slate-800" : "border-navy-400/40 bg-navy-950/60")} style={{ left: `calc(${z.x * 100}% + 2px)`, top: `calc(${z.y * 100}% + 2px)`, width: `calc(${z.w * 100}% - 4px)`, height: `calc(${z.h * 100}% - 4px)` }}>
-          {showNames && <span className="px-1 text-[7px] font-semibold text-navy-300">{z.name}</span>}
+        <div key={z.index} className={cn("absolute flex flex-col items-center justify-center overflow-hidden rounded-sm border text-center", filled?.[z.index] ? "border-blue-400/40 bg-slate-800" : "border-blue-400/40 bg-blue-950/60")} style={{ left: `calc(${z.x * 100}% + 2px)`, top: `calc(${z.y * 100}% + 2px)`, width: `calc(${z.w * 100}% - 4px)`, height: `calc(${z.h * 100}% - 4px)` }}>
+          {showNames && <span className="px-1 text-[7px] font-semibold uppercase tracking-wider text-blue-300">{z.name}</span>}
           {filled?.[z.index] && <span className="max-w-[90%] truncate px-1 text-[7px] text-slate-400">{filled[z.index]}</span>}
         </div>
       ))}
@@ -51,7 +51,7 @@ export function LayoutsPage({ tab, basePath = "/portal/layouts" }: { tab: "layou
             {({ data }) => (
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 {data.map((z) => (
-                  <div key={z.id} className="rounded-xl border border-slate-200 bg-white p-3">
+                  <div key={z.id} className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
                     <NavyZoneDiagram zones={z.zones} />
                     <div className="mt-3 text-sm font-semibold text-slate-900">{z.name}</div>
                     <div className="text-[11px] text-slate-400">{(z.zones ?? []).length} zone{(z.zones ?? []).length > 1 ? "s" : ""} · {zoneDesc[z.presetId] ?? "Fixed zone layout"}</div>
@@ -69,7 +69,7 @@ export function LayoutsPage({ tab, basePath = "/portal/layouts" }: { tab: "layou
             {() => filtered.length === 0 ? <EmptyState title="No templates match" body="Try another category or orientation." /> : (
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {filtered.map((t) => (
-                  <Link key={t.id} href={`${basePath}/templates/${t.id}`} className="overflow-hidden rounded-xl border border-slate-200 bg-white transition-shadow hover:shadow-md">
+                  <Link key={t.id} href={`${basePath}/templates/${t.id}`} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md">
                     <PortalTemplateArt template={t} className="rounded-none text-[13px]" />
                     <div className="flex items-center justify-between px-4 py-3"><div><div className="text-sm font-semibold text-slate-900">{t.name}</div><div className="text-[11px] text-slate-400">{t.category} · {label(t.orientation)} · {(t.fields ?? []).length} fields</div></div><ChevronRight className="h-4 w-4 text-slate-300" /></div>
                   </Link>

@@ -28,20 +28,20 @@ export function Sidebar({ config, collapsed, mobileOpen, onClose }: { config: Sh
 
   return (
     <aside className={cn(
-      "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-navy-950 bg-navy-900 text-white transition-[width,transform] duration-200",
+      "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-slate-200 bg-white transition-[width,transform] duration-200",
       "w-[232px] lg:translate-x-0",
       mobileOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full",
       isCollapsed ? "lg:w-16" : "lg:w-[232px]",
     )}>
-      <div className={cn("flex h-16 items-center gap-2.5 border-b border-navy-850 px-5", collapsed && "lg:justify-center lg:px-0")}>
+      <div className={cn("flex h-16 items-center gap-2.5 border-b border-slate-100 px-5", collapsed && "lg:justify-center lg:px-0")}>
         {/* The logo and name go to this dashboard's home, as users expect. */}
         <Link href={config.basePath} onClick={() => onClose?.()} aria-label={`${config.brand.name} home`} className={cn("flex min-w-0 items-center gap-2.5 rounded-lg", collapsed && "lg:justify-center")}>
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-white">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white">
             <LayoutDashboard className="h-4 w-4" />
           </div>
-          <span className={cn("min-w-0", collapsed && "lg:hidden")}><span className="block truncate text-sm font-bold text-white">{config.brand.name}</span>{config.brand.subtitle && <span className="block text-[10px] leading-3 text-navy-300">{config.brand.subtitle}</span>}</span>
+          <span className={cn("min-w-0", collapsed && "lg:hidden")}><span className="block truncate text-sm font-bold text-slate-900">{config.brand.name}</span>{config.brand.subtitle && <span className="block text-[10px] leading-3 text-slate-400">{config.brand.subtitle}</span>}</span>
         </Link>
-        {onClose && <button onClick={onClose} className="ml-auto flex h-10 w-10 sm:h-7 sm:w-7 items-center justify-center rounded-md text-navy-300 hover:bg-navy-800 hover:text-white lg:hidden" aria-label="Close menu"><X className="h-4 w-4" /></button>}
+        {onClose && <button onClick={onClose} className="ml-auto flex h-10 w-10 sm:h-7 sm:w-7 items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 lg:hidden" aria-label="Close menu"><X className="h-4 w-4" /></button>}
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-3">
@@ -59,17 +59,17 @@ export function Sidebar({ config, collapsed, mobileOpen, onClose }: { config: Sh
                     className={cn(
                       "flex h-9 flex-1 items-center gap-2.5 rounded-lg px-3 text-[13px] font-medium transition-colors",
                       collapsed && "lg:justify-center lg:px-0",
-                      active ? "bg-brand-600 text-white" : "text-navy-300 hover:bg-navy-800 hover:text-white",
+                      active ? "bg-blue-600 text-white shadow-sm" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
                     )}
                     onClick={() => { if (hasChildren) setOpenScreens(true); else onClose?.(); }}
                   >
-                    <span className={cn(active ? "text-white" : "text-navy-300")}>{item.icon}</span>
+                    <span className={cn(active ? "text-white" : "text-slate-400")}>{item.icon}</span>
                     <span className={cn("flex-1 truncate", collapsed && "lg:hidden")}>{item.label}</span>
                     {hasChildren && (
                       <button
                         type="button"
                         onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpenScreens((v) => !v); }}
-                        className={cn("rounded p-0.5", active ? "text-white/80" : "text-navy-300", collapsed && "lg:hidden")}
+                        className={cn("rounded p-0.5", active ? "text-white/80" : "text-slate-400", collapsed && "lg:hidden")}
                         aria-label="Toggle"
                       >
                         <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", expanded && "rotate-180")} />
@@ -84,8 +84,8 @@ export function Sidebar({ config, collapsed, mobileOpen, onClose }: { config: Sh
                       const sub = c.href === item.href ? isActive(pathname, c.href, config.basePath) && !siblings.some((h) => pathname.startsWith(h)) : isActive(pathname, c.href, config.basePath);
                       return (
                         <li key={c.href}>
-                          <Link href={c.href} onClick={() => onClose?.()} className={cn("flex h-8 items-center gap-2.5 rounded-lg px-3 text-xs font-medium transition-colors", sub ? "bg-navy-800 text-white" : "text-navy-300 hover:bg-navy-800 hover:text-white")}>
-                            <span className={cn("h-1 w-1 rounded-full", sub ? "bg-brand-500" : "bg-navy-500")} />
+                          <Link href={c.href} onClick={() => onClose?.()} className={cn("flex h-8 items-center gap-2.5 rounded-lg px-3 text-xs font-medium transition-colors", sub ? "bg-blue-50 text-blue-600" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800")}>
+                            <span className={cn("h-1 w-1 rounded-full", sub ? "bg-blue-600" : "bg-slate-300")} />
                             {c.label}
                           </Link>
                         </li>
@@ -99,14 +99,14 @@ export function Sidebar({ config, collapsed, mobileOpen, onClose }: { config: Sh
         </ul>
       </nav>
 
-      <div className={cn("flex items-center gap-1 border-t border-navy-850 px-2 py-2", collapsed && "lg:justify-center lg:px-0")}>
+      <div className={cn("flex items-center gap-1 border-t border-slate-100 px-2 py-2", collapsed && "lg:justify-center lg:px-0")}>
         <AccountMenu collapsed={collapsed} onNavigate={onClose} onSignOut={signOut} />
         <button
           type="button"
           onClick={signOut}
           title="Sign out"
           aria-label="Sign out"
-          className={cn("flex h-10 w-10 shrink-0 sm:h-7 sm:w-7 items-center justify-center rounded-md text-navy-300 hover:bg-navy-800 hover:text-white", collapsed && "lg:hidden")}
+          className={cn("flex h-10 w-10 shrink-0 sm:h-7 sm:w-7 items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-700", collapsed && "lg:hidden")}
         >
           <LogOut className="h-3.5 w-3.5" />
         </button>
@@ -139,14 +139,14 @@ function AccountMenu({ collapsed, onNavigate, onSignOut }: { collapsed: boolean;
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label="Account menu"
-        className={cn("flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-navy-800", open && "bg-navy-800", collapsed && "lg:justify-center lg:px-0")}
+        className={cn("flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-slate-50", open && "bg-slate-50", collapsed && "lg:justify-center lg:px-0")}
       >
-        <Avatar name={user?.name ?? ""} size="md" className="bg-brand-600" />
+        <Avatar name={user?.name ?? ""} size="md" />
         <span className={cn("min-w-0 flex-1", collapsed && "lg:hidden")}>
-          <span className="block truncate text-xs font-semibold text-white">{user?.name}</span>
-          <span className="block truncate text-[11px] text-brand-500">{roleLabel(user)}</span>
+          <span className="block truncate text-xs font-semibold text-slate-900">{user?.name}</span>
+          <span className="block truncate text-[11px] text-blue-600">{roleLabel(user)}</span>
         </span>
-        <ChevronUp className={cn("h-3.5 w-3.5 shrink-0 text-navy-300 transition-transform", !open && "rotate-180", collapsed && "lg:hidden")} aria-hidden />
+        <ChevronUp className={cn("h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform", !open && "rotate-180", collapsed && "lg:hidden")} aria-hidden />
       </button>
       <Floating anchor={button} open={open} panelRef={panel} placement={collapsed ? "right-end" : "top-start"} role="menu" aria-label="Account" className="w-60 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg animate-pop-in">
           <div className="border-b border-slate-100 px-2.5 pb-2 pt-1.5">

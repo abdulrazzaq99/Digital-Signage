@@ -50,7 +50,7 @@ function Form({ user, companyId, onClose }: { user?: User; companyId?: string | 
   return (
     <form onSubmit={submit} noValidate className="flex flex-1 flex-col">
       <div className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
-        {isSelf && <div className="rounded-lg border border-navy-200 bg-navy-50 px-3 py-2 text-[11px] text-navy-700">This is your own account. Role and status can only be changed by another admin.</div>}
+        {isSelf && <div className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-[11px] text-blue-700">This is your own account. Role and status can only be changed by another admin.</div>}
         <FormError form={form} />
         <Field label="Full Name" required error={formState.errors.name?.message}>
           <Input placeholder="Full name" autoComplete="off" maxLength={120} {...maskedRegister(form, "name", maskName)} />

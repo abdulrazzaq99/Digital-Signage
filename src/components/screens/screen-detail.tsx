@@ -60,8 +60,8 @@ export function ScreenDetail({ id }: { id: string }) {
                 <Card>
                   <CardHeader title="Current Display" action={<span className="text-[11px] text-slate-400">{label(s.orientation)} · {s.orientation === "LANDSCAPE" ? "16:9" : "9:16"}</span>} />
                   <div className="flex justify-center px-5 py-6">
-                    <div className="w-full max-w-[560px] rounded-lg border-[6px] border-slate-900 bg-slate-900">
-                      {s.assignment?.thumbnailUrl && s.status === "ONLINE" ? <img src={s.assignment.thumbnailUrl} alt="" className="aspect-video w-full rounded-[3px] object-cover" /> : <div className="flex aspect-video w-full items-center justify-center rounded-[3px] text-xs font-medium text-slate-500">{s.status !== "ONLINE" ? screenStatusLabel(s.status) : s.assignment ? "No preview available" : "Nothing assigned"}</div>}
+                    <div className="w-full max-w-[560px] rounded-lg border-[6px] border-slate-900 bg-slate-900 shadow-2xl">
+                      {s.assignment?.thumbnailUrl && s.status === "ONLINE" ? <img src={s.assignment.thumbnailUrl} alt="" className="aspect-video w-full rounded-[3px] object-cover" /> : <div className="flex aspect-video w-full items-center justify-center rounded-[3px] text-xs font-medium uppercase tracking-wider text-slate-500">{s.status !== "ONLINE" ? screenStatusLabel(s.status) : s.assignment ? "No preview available" : "Nothing assigned"}</div>}
                     </div>
                   </div>
                 </Card>
@@ -80,7 +80,7 @@ export function ScreenDetail({ id }: { id: string }) {
                   ) : <div className="px-5 py-6 text-center text-xs text-slate-400">Nothing has been published to this screen yet.</div>}
                 </Card>
                 <Card>
-                  <CardHeader title="Recent Activity" action={<Link href="/activity" className="text-xs font-medium text-navy-600 hover:underline">View All</Link>} />
+                  <CardHeader title="Recent Activity" action={<Link href="/activity" className="text-xs font-medium text-blue-600 hover:underline">View All</Link>} />
                   <ul className="divide-y divide-slate-100">
                     {(activity.data?.data ?? []).map((a) => <li key={a.id} className="px-5 py-3"><div className="text-sm text-slate-800">{a.summary}</div><div className="text-[11px] text-slate-400">{formatDateTime(a.createdAt)}{a.actor ? ` · ${a.actor.name}` : ""}</div></li>)}
                     {activity.data && activity.data.data.length === 0 && <li className="px-5 py-6 text-center text-xs text-slate-400">No activity recorded for this screen.</li>}
@@ -90,16 +90,16 @@ export function ScreenDetail({ id }: { id: string }) {
 
               <div className="space-y-5">
                 <Card className="px-5 py-4">
-                  <SectionLabel>Health and status</SectionLabel>
+                  <SectionLabel>Health &amp; Status</SectionLabel>
                   <dl className="mt-3 space-y-4">
-                    <div><dt className="text-xs font-medium text-slate-500">Status</dt><dd className="mt-0.5 flex items-center gap-1.5 text-sm font-semibold text-slate-900"><span className={`h-2 w-2 rounded-full ${s.status === "ONLINE" ? "bg-green-500" : s.status === "OFFLINE" ? "bg-slate-400" : "bg-red-500"}`} />{screenStatusLabel(s.status)}</dd><div className="text-[11px] text-slate-400">Last seen {timeAgo(s.lastSeenAt)}</div></div>
-                    <div><dt className="text-xs font-medium text-slate-500">Orientation</dt><dd className="mt-0.5 text-sm font-semibold text-slate-900">{label(s.orientation)}</dd><div className="text-[11px] text-slate-400">{s.device?.resolution ?? "Resolution unknown"}</div></div>
-                    <div><dt className="text-xs font-medium text-slate-500">Sync</dt><dd className="mt-0.5 text-sm font-semibold text-slate-900">{label(s.syncState)}</dd><div className="text-[11px] text-slate-400">Manifest v{s.manifestVersion} · acknowledged v{s.ackVersion}</div></div>
-                    <div><dt className="text-xs font-medium text-slate-500">Groups</dt><dd className="mt-0.5 text-sm font-semibold text-slate-900">{(s.groups ?? []).map((g) => g.name).join(", ") || "None"}</dd></div>
+                    <div><dt className="text-[10px] uppercase tracking-wider text-slate-400">Status</dt><dd className="mt-0.5 flex items-center gap-1.5 text-sm font-semibold text-slate-900"><span className={`h-2 w-2 rounded-full ${s.status === "ONLINE" ? "bg-green-500" : s.status === "OFFLINE" ? "bg-slate-400" : "bg-red-500"}`} />{screenStatusLabel(s.status)}</dd><div className="text-[11px] text-slate-400">Last seen {timeAgo(s.lastSeenAt)}</div></div>
+                    <div><dt className="text-[10px] uppercase tracking-wider text-slate-400">Orientation</dt><dd className="mt-0.5 text-sm font-semibold text-slate-900">{label(s.orientation)}</dd><div className="text-[11px] text-slate-400">{s.device?.resolution ?? "Resolution unknown"}</div></div>
+                    <div><dt className="text-[10px] uppercase tracking-wider text-slate-400">Sync</dt><dd className="mt-0.5 text-sm font-semibold text-slate-900">{label(s.syncState)}</dd><div className="text-[11px] text-slate-400">Manifest v{s.manifestVersion} · acknowledged v{s.ackVersion}</div></div>
+                    <div><dt className="text-[10px] uppercase tracking-wider text-slate-400">Groups</dt><dd className="mt-0.5 text-sm font-semibold text-slate-900">{(s.groups ?? []).map((g) => g.name).join(", ") || "None"}</dd></div>
                   </dl>
                 </Card>
                 <Card className="px-5 py-4">
-                  <SectionLabel>Device information</SectionLabel>
+                  <SectionLabel>Device Information</SectionLabel>
                   <dl className="mt-3 space-y-2.5 text-xs">
                     {/* Device id and IP are masked on screen; the Super Admin (the only viewer of this page) can hover for the full value. */}
                     {([["Device ID", maskMiddle(s.device?.deviceId), true, s.device?.deviceId], ["Player Version", s.device?.playerVersion], ["App Version", s.device?.appVersion], ["Model", s.device?.model], ["Firmware", s.device?.firmware], ["IP Address", maskIp(s.device?.ip), true, s.device?.ip], ["Paired", formatDate(s.createdAt)]] as [string, string | null | undefined, boolean?, (string | null)?][]).map(([k, v, mono, full]) => (

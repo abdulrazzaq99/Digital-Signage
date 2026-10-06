@@ -114,7 +114,7 @@ function Detail({ company }: { company: Company }) {
       </div>
 
       <div className="flex gap-1 rounded-lg border border-slate-200 bg-white p-1 text-xs font-medium sm:w-fit">
-        {([["overview", "Overview"], ["users", "Users"], ["screens", "Screens"]] as const).map(([v, l]) => <button key={v} type="button" onClick={() => setTab(v)} className={`h-8 flex-1 rounded-md px-4 transition-colors sm:flex-none ${tab === v ? "bg-navy-600 text-white" : "text-slate-600 hover:bg-slate-50"}`}>{l}</button>)}
+        {([["overview", "Overview"], ["users", "Users"], ["screens", "Screens"]] as const).map(([v, l]) => <button key={v} type="button" onClick={() => setTab(v)} className={`h-8 flex-1 rounded-md px-4 transition-colors sm:flex-none ${tab === v ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-50"}`}>{l}</button>)}
       </div>
 
       {tab === "overview" && (
@@ -123,7 +123,7 @@ function Detail({ company }: { company: Company }) {
             <Card>
               <CardHeader title="Company Information" />
               <dl className="divide-y divide-slate-100 px-5">
-                {([["Company name", company.name], ["Code", company.code], ["Status", <DotStatus key="s" status={label(company.status)} />], ["Website", company.website ? (isHttpUrl(company.website) ? <a href={company.website} className="text-navy-600 hover:underline" target="_blank" rel="noopener noreferrer">{company.website}</a> : company.website) : "—"], ["Industry", company.industry || "—"], ["Phone", company.phone ? formatPhone(company.phone) : "—"], ["Timezone", company.timezone], ["Member since", formatDate(company.createdAt)]] as [string, React.ReactNode][]).map(([k, v]) => (
+                {([["Company name", company.name], ["Code", company.code], ["Status", <DotStatus key="s" status={label(company.status)} />], ["Website", company.website ? (isHttpUrl(company.website) ? <a href={company.website} className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">{company.website}</a> : company.website) : "—"], ["Industry", company.industry || "—"], ["Phone", company.phone ? formatPhone(company.phone) : "—"], ["Timezone", company.timezone], ["Member since", formatDate(company.createdAt)]] as [string, React.ReactNode][]).map(([k, v]) => (
                   <div key={k} className="flex items-center justify-between py-3 text-sm"><dt className="text-slate-400">{k}</dt><dd className="font-semibold text-slate-900">{v}</dd></div>
                 ))}
               </dl>
@@ -141,7 +141,7 @@ function Detail({ company }: { company: Company }) {
               </div>
             </Card>
             <Card>
-              <CardHeader title="Recent Activity" action={<Link href={`/activity?company=${company.id}`} className="text-xs font-medium text-navy-600 hover:underline">View all</Link>} />
+              <CardHeader title="Recent Activity" action={<Link href={`/activity?company=${company.id}`} className="text-xs font-medium text-blue-600 hover:underline">View all</Link>} />
               <QueryState query={activity} skeleton={<div className="p-4"><Skeleton className="h-24" /></div>} empty={<div className="px-5 py-6 text-center text-xs text-slate-400">No activity yet.</div>}>
                 {({ data }) => <ul className="divide-y divide-slate-100">{data.map((a) => <li key={a.id} className="flex items-center gap-3 px-5 py-3"><span className="flex h-7 w-7 items-center justify-center rounded-md bg-slate-100 text-slate-500"><Activity className="h-3.5 w-3.5" /></span><span className="flex-1 text-sm text-slate-800">{a.summary}</span><span className="text-[11px] text-slate-400" title={formatDateTime(a.createdAt)}>{timeAgo(a.createdAt)}</span></li>)}</ul>}
               </QueryState>
@@ -173,7 +173,7 @@ function Detail({ company }: { company: Company }) {
             {({ data }) => (
               <Table>
                 <THead><tr><TH>Screen</TH><TH>Status</TH><TH>Content</TH><TH>Last seen</TH></tr></THead>
-                <tbody>{data.map((s) => <TR key={s.id}><TD><Link href={`/screens/${s.id}`} className="text-sm font-semibold text-slate-900 hover:text-navy-600">{s.name}</Link><div className="text-[11px] text-slate-400">{s.location ?? "—"}</div></TD><TD><StatusBadge status={screenStatusLabel(s.status)} /></TD><TD className="text-xs">{s.assignment?.name ?? "—"}</TD><TD className="text-xs text-slate-400">{timeAgo(s.lastSeenAt)}</TD></TR>)}</tbody>
+                <tbody>{data.map((s) => <TR key={s.id}><TD><Link href={`/screens/${s.id}`} className="text-sm font-semibold text-slate-900 hover:text-blue-600">{s.name}</Link><div className="text-[11px] text-slate-400">{s.location ?? "—"}</div></TD><TD><StatusBadge status={screenStatusLabel(s.status)} /></TD><TD className="text-xs">{s.assignment?.name ?? "—"}</TD><TD className="text-xs text-slate-400">{timeAgo(s.lastSeenAt)}</TD></TR>)}</tbody>
               </Table>
             )}
           </QueryState>

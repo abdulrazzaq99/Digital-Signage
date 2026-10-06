@@ -7,12 +7,12 @@ const tones: Record<Tone, string> = {
   green: "bg-green-50 text-green-700 border-green-100",
   red: "bg-red-50 text-red-600 border-red-100",
   amber: "bg-amber-50 text-amber-600 border-amber-100",
-  blue: "bg-navy-50 text-navy-600 border-navy-100",
+  blue: "bg-blue-50 text-blue-600 border-blue-100",
   slate: "bg-slate-100 text-slate-500 border-slate-200",
   purple: "bg-violet-50 text-violet-600 border-violet-100",
 };
 const dots: Record<Tone, string> = {
-  green: "bg-green-500", red: "bg-red-500", amber: "bg-amber-500", blue: "bg-navy-500", slate: "bg-slate-400", purple: "bg-violet-500",
+  green: "bg-green-500", red: "bg-red-500", amber: "bg-amber-500", blue: "bg-blue-500", slate: "bg-slate-400", purple: "bg-violet-500",
 };
 
 export function Badge({ tone = "slate", dot, children, className }: { tone?: Tone; dot?: boolean; children: ReactNode; className?: string }) {
@@ -42,7 +42,7 @@ export function DotStatus({ status, className }: { status: string; className?: s
   const tone = statusTone(status);
   return (
     <span className={cn("inline-flex items-center gap-1.5 text-xs font-medium", {
-      green: "text-green-600", red: "text-red-600", amber: "text-amber-600", blue: "text-navy-600", slate: "text-slate-500", purple: "text-violet-600",
+      green: "text-green-600", red: "text-red-600", amber: "text-amber-600", blue: "text-blue-600", slate: "text-slate-500", purple: "text-violet-600",
     }[tone], className)}>
       <span className={cn("h-1.5 w-1.5 rounded-full", dots[tone])} />
       {status}
