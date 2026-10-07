@@ -326,6 +326,1076 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/broadcasts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Super Admin only. */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Broadcast"][];
+                            meta?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** @description Super Admin only. Pushes a file or a template to the chosen locations' screens. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["CreateBroadcastBody"];
+                };
+            };
+            responses: {
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Broadcast"];
+                            meta?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/broadcasts/upload-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Super Admin only. A presigned PUT for a picture or MP4 video to push. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["BroadcastUploadBody"];
+                };
+            };
+            responses: {
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["BroadcastUpload"];
+                            meta?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/broadcasts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** @description Super Admin only. Takes it off every screen and deletes it. */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Deleted */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /** @description Super Admin only. Changes the title, seconds, audience or dates, or pauses (active: false) and resumes it. */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["UpdateBroadcastBody"];
+                };
+            };
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Broadcast"];
+                            meta?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/playlists": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    pageSize?: number;
+                    search?: string;
+                    status?: "DRAFT" | "PUBLISHED";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Playlist"][];
+                            meta?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["CreatePlaylistBody"];
+                };
+            };
+            responses: {
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Playlist"];
+                            meta?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/playlists/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Playlist"];
+                            meta?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Deleted */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["UpdatePlaylistBody"];
+                };
+            };
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Playlist"];
+                            meta?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/playlists/{id}/duplicate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Playlist"];
+                            meta?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/playlists/{id}/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["AddPlaylistItemBody"];
+                };
+            };
+            responses: {
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Playlist"];
+                            meta?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/playlists/{id}/items/{itemId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    itemId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Playlist"];
+                            meta?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    itemId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["UpdatePlaylistItemBody"];
+                };
+            };
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Playlist"];
+                            meta?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/playlists/{id}/reorder": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["ReorderPlaylistBody"];
+                };
+            };
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Playlist"];
+                            meta?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/playlists/{id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    "idempotency-key": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["PublishPlaylistBody"];
+                };
+            };
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["PublishResult"];
+                            meta?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Template"][];
+                            meta?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["CreateTemplateBody"];
+                };
+            };
+            responses: {
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Template"];
+                            meta?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/templates/images/upload-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Super Admin only. A presigned PUT for a Head Office image to set on a template field (`default`). */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["TemplateImageUploadBody"];
+                };
+            };
+            responses: {
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["TemplateImageUpload"];
+                            meta?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/templates/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Deleted */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /** @description Super Admin only. Changes which locations can use the template. */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["UpdateTemplateBody"];
+                };
+            };
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Template"];
+                            meta?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/template-instances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["TemplateInstance"][];
+                            meta?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["CreateTemplateInstanceBody"];
+                };
+            };
+            responses: {
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["TemplateInstance"];
+                            meta?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/template-instances/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["TemplateInstance"];
+                            meta?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Deleted */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["UpdateTemplateInstanceBody"];
+                };
+            };
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["TemplateInstance"];
+                            meta?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/template-instances/{id}/render": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                202: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["TemplateInstance"];
+                            meta?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/template-instances/{id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    "idempotency-key": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["PublishPlaylistBody"];
+                };
+            };
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["PublishResult"];
+                            meta?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/categories": {
         parameters: {
             query?: never;
@@ -2206,456 +3276,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/playlists": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: {
-                    page?: number;
-                    pageSize?: number;
-                    search?: string;
-                    status?: "DRAFT" | "PUBLISHED";
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data: components["schemas"]["Playlist"][];
-                            meta?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    };
-                };
-            };
-        };
-        put?: never;
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "application/json": components["schemas"]["CreatePlaylistBody"];
-                };
-            };
-            responses: {
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data: components["schemas"]["Playlist"];
-                            meta?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/playlists/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data: components["schemas"]["Playlist"];
-                            meta?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    };
-                };
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorEnvelope"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Deleted */
-                204: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorEnvelope"];
-                    };
-                };
-            };
-        };
-        options?: never;
-        head?: never;
-        patch: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "application/json": components["schemas"]["UpdatePlaylistBody"];
-                };
-            };
-            responses: {
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data: components["schemas"]["Playlist"];
-                            meta?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    };
-                };
-            };
-        };
-        trace?: never;
-    };
-    "/playlists/{id}/duplicate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data: components["schemas"]["Playlist"];
-                            meta?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/playlists/{id}/items": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "application/json": components["schemas"]["AddPlaylistItemBody"];
-                };
-            };
-            responses: {
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data: components["schemas"]["Playlist"];
-                            meta?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/playlists/{id}/items/{itemId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                    itemId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data: components["schemas"]["Playlist"];
-                            meta?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    };
-                };
-            };
-        };
-        options?: never;
-        head?: never;
-        patch: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                    itemId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "application/json": components["schemas"]["UpdatePlaylistItemBody"];
-                };
-            };
-            responses: {
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data: components["schemas"]["Playlist"];
-                            meta?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    };
-                };
-            };
-        };
-        trace?: never;
-    };
-    "/playlists/{id}/reorder": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "application/json": components["schemas"]["ReorderPlaylistBody"];
-                };
-            };
-            responses: {
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data: components["schemas"]["Playlist"];
-                            meta?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    };
-                };
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorEnvelope"];
-                    };
-                };
-            };
-        };
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/playlists/{id}/publish": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: {
-            parameters: {
-                query?: never;
-                header: {
-                    "idempotency-key": string;
-                };
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "application/json": components["schemas"]["PublishPlaylistBody"];
-                };
-            };
-            responses: {
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data: components["schemas"]["PublishResult"];
-                            meta?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    };
-                };
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorEnvelope"];
-                    };
-                };
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorEnvelope"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/schedules": {
         parameters: {
             query?: never;
@@ -3178,440 +3798,6 @@ export interface paths {
                     };
                     content: {
                         "application/json": components["schemas"]["ErrorEnvelope"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/templates": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data: components["schemas"]["Template"][];
-                            meta?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    };
-                };
-            };
-        };
-        put?: never;
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "application/json": components["schemas"]["CreateTemplateBody"];
-                };
-            };
-            responses: {
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data: components["schemas"]["Template"];
-                            meta?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    };
-                };
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorEnvelope"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/templates/images/upload-url": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** @description Super Admin only. A presigned PUT for a Head Office image to set on a template field (`default`). */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "application/json": components["schemas"]["TemplateImageUploadBody"];
-                };
-            };
-            responses: {
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data: components["schemas"]["TemplateImageUpload"];
-                            meta?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/templates/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Deleted */
-                204: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        options?: never;
-        head?: never;
-        /** @description Super Admin only. Changes which locations can use the template. */
-        patch: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "application/json": components["schemas"]["UpdateTemplateBody"];
-                };
-            };
-            responses: {
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data: components["schemas"]["Template"];
-                            meta?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    };
-                };
-            };
-        };
-        trace?: never;
-    };
-    "/template-instances": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data: components["schemas"]["TemplateInstance"][];
-                            meta?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    };
-                };
-            };
-        };
-        put?: never;
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "application/json": components["schemas"]["CreateTemplateInstanceBody"];
-                };
-            };
-            responses: {
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data: components["schemas"]["TemplateInstance"];
-                            meta?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    };
-                };
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorEnvelope"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/template-instances/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data: components["schemas"]["TemplateInstance"];
-                            meta?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Deleted */
-                204: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        options?: never;
-        head?: never;
-        patch: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "application/json": components["schemas"]["UpdateTemplateInstanceBody"];
-                };
-            };
-            responses: {
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data: components["schemas"]["TemplateInstance"];
-                            meta?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    };
-                };
-            };
-        };
-        trace?: never;
-    };
-    "/template-instances/{id}/render": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                202: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data: components["schemas"]["TemplateInstance"];
-                            meta?: {
-                                [key: string]: unknown;
-                            };
-                        };
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/template-instances/{id}/publish": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: {
-            parameters: {
-                query?: never;
-                header: {
-                    "idempotency-key": string;
-                };
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "application/json": components["schemas"]["PublishPlaylistBody"];
-                };
-            };
-            responses: {
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data: components["schemas"]["PublishResult"];
-                            meta?: {
-                                [key: string]: unknown;
-                            };
-                        };
                     };
                 };
             };
@@ -5072,6 +5258,318 @@ export interface components {
             currentPassword: string;
             newPassword: string;
         };
+        Broadcast: {
+            id: string;
+            title: string;
+            /** @enum {string} */
+            source: "UPLOAD" | "TEMPLATE";
+            templateId: string | null;
+            /** @enum {string} */
+            type: "IMAGE" | "VIDEO";
+            mimeType: string;
+            previewUrl: string;
+            displaySec: number;
+            audience: components["schemas"]["TargetAudience"];
+            startsAt: string;
+            endsAt: string | null;
+            active: boolean;
+            /** @enum {string} */
+            status: "LIVE" | "SCHEDULED" | "ENDED" | "PAUSED";
+            screens: number;
+            createdAt: string;
+        };
+        TargetAudience: {
+            /** @enum {string} */
+            kind: "all";
+        } | {
+            /** @enum {string} */
+            kind: "categories";
+            categoryIds: string[];
+        } | {
+            /** @enum {string} */
+            kind: "companies";
+            companyIds: string[];
+        };
+        BroadcastUpload: {
+            key: string;
+            uploadUrl: string;
+            expiresInSec: number;
+        };
+        BroadcastUploadBody: {
+            fileName: string;
+            /** @enum {string} */
+            contentType: "image/png" | "image/jpeg" | "video/mp4";
+            sizeBytes: number;
+        };
+        CreateBroadcastBody: {
+            title: string;
+            fileKey?: string;
+            templateId?: string;
+            videoSec?: number;
+            width?: number;
+            height?: number;
+            /** @default 10 */
+            displaySec: number;
+            /**
+             * @default {
+             *       "kind": "all"
+             *     }
+             */
+            audience: {
+                /** @enum {string} */
+                kind: "all";
+            } | {
+                /** @enum {string} */
+                kind: "categories";
+                categoryIds: string[];
+            } | {
+                /** @enum {string} */
+                kind: "companies";
+                companyIds: string[];
+            };
+            /** Format: date-time */
+            startsAt?: string | null;
+            /** Format: date-time */
+            endsAt?: string | null;
+        };
+        UpdateBroadcastBody: {
+            title?: string;
+            displaySec?: number;
+            audience?: {
+                /** @enum {string} */
+                kind: "all";
+            } | {
+                /** @enum {string} */
+                kind: "categories";
+                categoryIds: string[];
+            } | {
+                /** @enum {string} */
+                kind: "companies";
+                companyIds: string[];
+            };
+            /** Format: date-time */
+            startsAt?: string | null;
+            /** Format: date-time */
+            endsAt?: string | null;
+            active?: boolean;
+        };
+        Playlist: {
+            id: string;
+            name: string;
+            status: string;
+            version: number;
+            itemCount: number;
+            totalDurationSec: number;
+            assignedTo: {
+                id: string;
+                name: string;
+            }[];
+            createdAt: string;
+            updatedAt: string;
+            items?: components["schemas"]["PlaylistItem"][];
+        };
+        PlaylistItem: {
+            id: string;
+            position: number;
+            durationSec: number;
+            page: number | null;
+            asset: {
+                id: string;
+                name: string;
+                type: string;
+                status: string;
+                thumbnailUrl: string | null;
+            };
+        };
+        CreatePlaylistBody: {
+            name: string;
+            /** @default [] */
+            items: {
+                assetId: string;
+                durationSec: number;
+                page?: number;
+            }[];
+        };
+        UpdatePlaylistBody: {
+            name?: string;
+            items?: {
+                assetId: string;
+                durationSec: number;
+                page?: number;
+            }[];
+        };
+        AddPlaylistItemBody: {
+            assetId: string;
+            durationSec?: number;
+            page?: number;
+            position?: number;
+        };
+        UpdatePlaylistItemBody: {
+            durationSec: number;
+        };
+        ReorderPlaylistBody: {
+            itemIds: string[];
+        };
+        PublishResult: {
+            version: number;
+            screens: {
+                id: string;
+                name: string;
+                status: string;
+                version: number;
+            }[];
+        };
+        PublishPlaylistBody: {
+            /** @default [] */
+            screenIds: string[];
+            /** @default [] */
+            groupIds: string[];
+        };
+        Template: {
+            id: string;
+            name: string;
+            category: string;
+            orientation: string;
+            fields: {
+                key: string;
+                label: string;
+                /** @enum {string} */
+                type: "text" | "image" | "color";
+                /** @default false */
+                required: boolean;
+                max?: number;
+                box?: {
+                    x: number;
+                    y: number;
+                    w: number;
+                    h: number;
+                };
+                fontSize?: number;
+                /** @enum {string} */
+                weight?: "regular" | "bold";
+                /** @enum {string} */
+                align?: "left" | "center" | "right";
+                color?: string;
+                /** @enum {string} */
+                fit?: "cover" | "contain";
+                /** @default false */
+                locked: boolean;
+                default?: string;
+            }[];
+            isGlobal: boolean;
+            usedIn: number;
+            createdAt: string;
+            audience?: components["schemas"]["TargetAudience"];
+            /** @description Field key → preview URL of Head Office's image for it */
+            images: {
+                [key: string]: string;
+            };
+        };
+        CreateTemplateBody: {
+            name: string;
+            category: string;
+            /**
+             * @default LANDSCAPE
+             * @enum {string}
+             */
+            orientation: "LANDSCAPE" | "PORTRAIT";
+            fields: {
+                key: string;
+                label: string;
+                /** @enum {string} */
+                type: "text" | "image" | "color";
+                /** @default false */
+                required: boolean;
+                max?: number;
+                box?: {
+                    x: number;
+                    y: number;
+                    w: number;
+                    h: number;
+                };
+                fontSize?: number;
+                /** @enum {string} */
+                weight?: "regular" | "bold";
+                /** @enum {string} */
+                align?: "left" | "center" | "right";
+                color?: string;
+                /** @enum {string} */
+                fit?: "cover" | "contain";
+                /** @default false */
+                locked: boolean;
+                default?: string;
+            }[];
+            /**
+             * @default {
+             *       "kind": "all"
+             *     }
+             */
+            audience: {
+                /** @enum {string} */
+                kind: "all";
+            } | {
+                /** @enum {string} */
+                kind: "categories";
+                categoryIds: string[];
+            } | {
+                /** @enum {string} */
+                kind: "companies";
+                companyIds: string[];
+            };
+        };
+        TemplateImageUpload: {
+            key: string;
+            uploadUrl: string;
+            previewUrl: string;
+            expiresInSec: number;
+        };
+        TemplateImageUploadBody: {
+            fileName: string;
+            /** @enum {string} */
+            contentType: "image/png" | "image/jpeg";
+            sizeBytes: number;
+        };
+        UpdateTemplateBody: {
+            audience: {
+                /** @enum {string} */
+                kind: "all";
+            } | {
+                /** @enum {string} */
+                kind: "categories";
+                categoryIds: string[];
+            } | {
+                /** @enum {string} */
+                kind: "companies";
+                companyIds: string[];
+            };
+        };
+        TemplateInstance: {
+            id: string;
+            templateId: string;
+            templateName: string;
+            name: string;
+            values: {
+                [key: string]: string;
+            };
+            outputUrl: string | null;
+            rendered: boolean;
+            rendering: boolean;
+            createdAt: string;
+            updatedAt: string;
+        };
+        CreateTemplateInstanceBody: {
+            templateId: string;
+            name: string;
+            values: {
+                [key: string]: string;
+            };
+        };
+        UpdateTemplateInstanceBody: {
+            name?: string;
+            values?: {
+                [key: string]: string;
+            };
+        };
         LocationCategory: {
             id: string;
             name: string;
@@ -5456,78 +5954,6 @@ export interface components {
         RejectMediaBody: {
             reason: string;
         };
-        Playlist: {
-            id: string;
-            name: string;
-            status: string;
-            version: number;
-            itemCount: number;
-            totalDurationSec: number;
-            assignedTo: {
-                id: string;
-                name: string;
-            }[];
-            createdAt: string;
-            updatedAt: string;
-            items?: components["schemas"]["PlaylistItem"][];
-        };
-        PlaylistItem: {
-            id: string;
-            position: number;
-            durationSec: number;
-            page: number | null;
-            asset: {
-                id: string;
-                name: string;
-                type: string;
-                status: string;
-                thumbnailUrl: string | null;
-            };
-        };
-        CreatePlaylistBody: {
-            name: string;
-            /** @default [] */
-            items: {
-                assetId: string;
-                durationSec: number;
-                page?: number;
-            }[];
-        };
-        UpdatePlaylistBody: {
-            name?: string;
-            items?: {
-                assetId: string;
-                durationSec: number;
-                page?: number;
-            }[];
-        };
-        AddPlaylistItemBody: {
-            assetId: string;
-            durationSec?: number;
-            page?: number;
-            position?: number;
-        };
-        UpdatePlaylistItemBody: {
-            durationSec: number;
-        };
-        ReorderPlaylistBody: {
-            itemIds: string[];
-        };
-        PublishResult: {
-            version: number;
-            screens: {
-                id: string;
-                name: string;
-                status: string;
-                version: number;
-            }[];
-        };
-        PublishPlaylistBody: {
-            /** @default [] */
-            screenIds: string[];
-            /** @default [] */
-            groupIds: string[];
-        };
         Schedule: {
             id: string;
             playlist: {
@@ -5626,163 +6052,6 @@ export interface components {
             /** @enum {string} */
             bindingKind: "MEDIA" | "PLAYLIST";
             refId: string;
-        };
-        Template: {
-            id: string;
-            name: string;
-            category: string;
-            orientation: string;
-            fields: {
-                key: string;
-                label: string;
-                /** @enum {string} */
-                type: "text" | "image" | "color";
-                /** @default false */
-                required: boolean;
-                max?: number;
-                box?: {
-                    x: number;
-                    y: number;
-                    w: number;
-                    h: number;
-                };
-                fontSize?: number;
-                /** @enum {string} */
-                weight?: "regular" | "bold";
-                /** @enum {string} */
-                align?: "left" | "center" | "right";
-                color?: string;
-                /** @enum {string} */
-                fit?: "cover" | "contain";
-                /** @default false */
-                locked: boolean;
-                default?: string;
-            }[];
-            isGlobal: boolean;
-            usedIn: number;
-            createdAt: string;
-            audience?: components["schemas"]["TargetAudience"];
-            /** @description Field key → preview URL of Head Office's image for it */
-            images: {
-                [key: string]: string;
-            };
-        };
-        TargetAudience: {
-            /** @enum {string} */
-            kind: "all";
-        } | {
-            /** @enum {string} */
-            kind: "categories";
-            categoryIds: string[];
-        } | {
-            /** @enum {string} */
-            kind: "companies";
-            companyIds: string[];
-        };
-        CreateTemplateBody: {
-            name: string;
-            category: string;
-            /**
-             * @default LANDSCAPE
-             * @enum {string}
-             */
-            orientation: "LANDSCAPE" | "PORTRAIT";
-            fields: {
-                key: string;
-                label: string;
-                /** @enum {string} */
-                type: "text" | "image" | "color";
-                /** @default false */
-                required: boolean;
-                max?: number;
-                box?: {
-                    x: number;
-                    y: number;
-                    w: number;
-                    h: number;
-                };
-                fontSize?: number;
-                /** @enum {string} */
-                weight?: "regular" | "bold";
-                /** @enum {string} */
-                align?: "left" | "center" | "right";
-                color?: string;
-                /** @enum {string} */
-                fit?: "cover" | "contain";
-                /** @default false */
-                locked: boolean;
-                default?: string;
-            }[];
-            /**
-             * @default {
-             *       "kind": "all"
-             *     }
-             */
-            audience: {
-                /** @enum {string} */
-                kind: "all";
-            } | {
-                /** @enum {string} */
-                kind: "categories";
-                categoryIds: string[];
-            } | {
-                /** @enum {string} */
-                kind: "companies";
-                companyIds: string[];
-            };
-        };
-        TemplateImageUpload: {
-            key: string;
-            uploadUrl: string;
-            previewUrl: string;
-            expiresInSec: number;
-        };
-        TemplateImageUploadBody: {
-            fileName: string;
-            /** @enum {string} */
-            contentType: "image/png" | "image/jpeg";
-            sizeBytes: number;
-        };
-        UpdateTemplateBody: {
-            audience: {
-                /** @enum {string} */
-                kind: "all";
-            } | {
-                /** @enum {string} */
-                kind: "categories";
-                categoryIds: string[];
-            } | {
-                /** @enum {string} */
-                kind: "companies";
-                companyIds: string[];
-            };
-        };
-        TemplateInstance: {
-            id: string;
-            templateId: string;
-            templateName: string;
-            name: string;
-            values: {
-                [key: string]: string;
-            };
-            outputUrl: string | null;
-            rendered: boolean;
-            rendering: boolean;
-            createdAt: string;
-            updatedAt: string;
-        };
-        CreateTemplateInstanceBody: {
-            templateId: string;
-            name: string;
-            values: {
-                [key: string]: string;
-            };
-        };
-        UpdateTemplateInstanceBody: {
-            name?: string;
-            values?: {
-                [key: string]: string;
-            };
         };
         Offer: {
             id: string;

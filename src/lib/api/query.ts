@@ -27,6 +27,7 @@ export const keys = {
   auth: ["auth"],
   companies: ["companies"],
   categories: ["categories"],
+  broadcasts: ["broadcasts"],
   licenses: ["licenses"],
   users: ["users"],
   screens: ["screens"],

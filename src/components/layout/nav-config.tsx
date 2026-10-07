@@ -1,5 +1,5 @@
 import {
-  Activity, Bell, Building2, FileBadge, Image as ImageIcon, LayoutDashboard, LayoutTemplate, ListVideo, Monitor, Settings, ShieldCheck, Tag, Ticket, User,
+  Activity, Bell, Building2, FileBadge, Image as ImageIcon, LayoutDashboard, LayoutTemplate, ListVideo, Monitor, Radio, Settings, ShieldCheck, Tag, Ticket, User,
 } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -25,6 +25,7 @@ export const adminShell: ShellConfig = {
     ] },
     { label: "Media", href: "/media", icon: <ImageIcon className="h-4 w-4" /> },
     { label: "Approvals", href: "/approvals", icon: <ShieldCheck className="h-4 w-4" /> },
+    { label: "Push to Screens", href: "/push", icon: <Radio className="h-4 w-4" /> },
     { label: "Playlists", href: "/playlists", icon: <ListVideo className="h-4 w-4" /> },
     { label: "Layouts / Templates", href: "/layouts", icon: <LayoutTemplate className="h-4 w-4" /> },
     { label: "Offers / Marketplace", href: "/offers", icon: <Tag className="h-4 w-4" /> },
@@ -40,6 +41,7 @@ export const adminShell: ShellConfig = {
     { match: (p) => p.startsWith("/screens/groups"), title: "Screen Group", subtitle: "Organize screens and publish content to groups." },
     { match: (p) => p.startsWith("/screens/canvas"), title: "Synchronized Canvas", subtitle: "Synchronize multiple screens into a single canvas display." },
     { match: (p) => p.startsWith("/screens"), title: "Screens", subtitle: "Monitor, manage and publish content to connected displays." },
+    { match: (p) => p.startsWith("/push"), title: "Push to Screens", subtitle: "Head Office content straight to locations' screens." },
     { match: (p) => p.startsWith("/approvals"), title: "Approvals", subtitle: "Review files companies upload before they reach screens." },
     { match: (p) => p.startsWith("/media"), title: "Media", subtitle: "Upload and organize media assets." },
     { match: (p) => p.startsWith("/playlists"), title: "Playlists", subtitle: "Sequence content for your displays." },

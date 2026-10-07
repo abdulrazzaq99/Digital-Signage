@@ -6,6 +6,7 @@ export type AuthTokens = Schemas["AuthTokens"];
 export type Company = Schemas["Company"];
 export type LocationCategory = Schemas["LocationCategory"];
 export type TargetAudience = Schemas["TargetAudience"];
+export type Broadcast = Schemas["Broadcast"];
 export type License = Schemas["License"];
 export type User = Schemas["User"];
 export type Screen = Schemas["Screen"];
