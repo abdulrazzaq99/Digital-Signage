@@ -31,12 +31,25 @@ const fieldSchema = z.object({
   type: z.enum(["text", "image", "color"]),
   required: z.boolean(),
   max: z.string(),
+  /** Set by Head Office: locations can't change it. */
+  locked: z.boolean(),
+  /** Head Office's value (fixed when locked, a suggestion otherwise); for an image, its uploaded key. */
+  value: z.string(),
+  /** Preview of an uploaded image; never sent. */
+  previewUrl: z.string(),
 }).superRefine((f, ctx) => {
+  const v = f.value.trim();
+  if (f.locked && !v) ctx.addIssue({ code: "custom", path: ["value"], message: f.type === "image" ? "Upload the image Head Office sets" : "Enter the value Head Office sets" });
+  if (v && f.type === "color" && !/^#[0-9a-fA-F]{6}$/.test(v)) ctx.addIssue({ code: "custom", path: ["value"], message: "Use a colour like #2563EB" });
   // Only text fields have a length limit; blank means none.
   if (f.type !== "text" || f.max.trim() === "") return;
   const r = intText(1, 2000, "Max length").safeParse(f.max);
   if (!r.success) ctx.addIssue({ code: "custom", path: ["max"], message: r.error.issues[0]?.message ?? "Invalid" });
+  else if (v.length > Number(f.max)) ctx.addIssue({ code: "custom", path: ["value"], message: `Must be at most ${f.max} characters` });
 });
+
+/** A new, empty field row. */
+export const emptyField = () => ({ key: "", label: "", type: "text" as const, required: false, max: "", locked: false, value: "", previewUrl: "" });
 
 export const templateSchema = templateBasicsSchema.extend({
   audience: audienceField(),
@@ -63,6 +76,10 @@ export function toTemplateBody(v: z.output<typeof templateSchema>): Schemas["Cre
     category: v.category,
     orientation: v.orientation,
     audience: v.audience,
-    fields: v.fields.map((f) => ({ key: f.key, label: f.label, type: f.type, required: f.required, ...(f.type === "text" && f.max.trim() !== "" ? { max: Number(f.max) } : {}) })),
+    fields: v.fields.map((f) => ({
+      key: f.key, label: f.label, type: f.type, required: f.required, locked: f.locked,
+      ...(f.type === "text" && f.max.trim() !== "" ? { max: Number(f.max) } : {}),
+      ...(f.value.trim() ? { default: f.value.trim() } : {}),
+    })),
   };
 }

@@ -33,11 +33,13 @@ const colourDefault = (f: TemplateField) => (f.color && isHex6(f.color) ? f.colo
 function instanceSchema(fields: TemplateField[]) {
   const shape: Record<string, z.ZodType<string, string>> = {};
   for (const f of fields) {
-    if (f.type === "color") shape[f.key] = f.required ? hexColour() : z.union([z.literal(""), hexColour()]);
-    else if (f.type === "image") shape[f.key] = f.required ? z.string().min(1, "Choose an image") : z.string();
+    // Head Office's suggested value fills a field the location leaves blank, so it is never missing.
+    const required = f.required && !f.default;
+    if (f.type === "color") shape[f.key] = required ? hexColour() : z.union([z.literal(""), hexColour()]);
+    else if (f.type === "image") shape[f.key] = required ? z.string().min(1, "Choose an image") : z.string();
     else {
       const max = Math.min(f.max && f.max > 0 ? f.max : 2000, 2000);
-      shape[f.key] = f.required ? text(max) : optionalText(max);
+      shape[f.key] = required ? text(max) : optionalText(max);
     }
   }
   return z.object({ name: text(120), values: z.object(shape) });
@@ -90,11 +92,16 @@ function Flow({ template, companyId, basePath }: { template: Template; companyId
   const update = useUpdateInstance(companyId);
   const render = useRenderInstance(companyId);
   const publish = usePublishInstance(companyId);
-  const fields = useMemo(() => template.fields ?? [], [template.fields]);
+  const all = useMemo(() => template.fields ?? [], [template.fields]);
+  // Head Office's fixed fields aren't in the form; the location fills only the rest.
+  const fields = useMemo(() => all.filter((f) => !f.locked), [all]);
+  const fixed = useMemo(() => all.filter((f) => f.locked), [all]);
   const schema = useMemo(() => instanceSchema(fields), [fields]);
-  const form = useZodForm(schema, { defaultValues: { name: (template.name ?? "").slice(0, 120), values: Object.fromEntries(fields.map((f) => [f.key, f.type === "color" ? colourDefault(f) : ""])) } }) as unknown as UseFormReturn<InstanceValues>;
+  const form = useZodForm(schema, { defaultValues: { name: (template.name ?? "").slice(0, 120), values: Object.fromEntries(fields.map((f) => [f.key, f.type === "color" ? (f.default && isHex6(f.default) ? f.default.toLowerCase() : colourDefault(f)) : ""])) } }) as unknown as UseFormReturn<InstanceValues>;
   const { formState } = form;
-  const values = (useWatch({ control: form.control, name: "values" }) ?? {}) as Record<string, string>;
+  const own = (useWatch({ control: form.control, name: "values" }) ?? {}) as Record<string, string>;
+  /** What the screen will show: Head Office's values, with the location's own on top of the open fields. */
+  const values: Record<string, string> = { ...Object.fromEntries(all.filter((f) => f.default).map((f) => [f.key, f.default!])), ...Object.fromEntries(Object.entries(own).filter(([k, v]) => v?.trim() && !fixed.some((f) => f.key === k))) };
   const [instance, setInstance] = useState<TemplateInstance | null>(null);
   const [phase, setPhase] = useState<"edit" | "output" | "publish">("edit");
   // Rendering is asynchronous (202); poll the instance until the worker has produced the output image.
@@ -137,14 +144,25 @@ function Flow({ template, companyId, basePath }: { template: Template; companyId
         <form onSubmit={generate} noValidate className="space-y-4">
           <FormError form={form} />
           <Field label="Name" required error={formState.errors.name?.message}><Input placeholder="e.g. Weekend Flash Sale" maxLength={120} {...maskedRegister(form, "name", maskName)} /></Field>
+          {fixed.length > 0 && (
+            <div className="rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-3">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700"><Lock className="h-3 w-3" /> Set by Head Office</div>
+              <dl className="mt-2 space-y-1.5 text-xs">{fixed.map((f) => (
+                <div key={f.key} className="flex items-center justify-between gap-3"><dt className="text-slate-500">{f.label}</dt><dd className="min-w-0 truncate font-medium text-slate-800">
+                  {f.type === "image" ? (template.images?.[f.key] ? <img src={template.images[f.key]} alt="" className="h-8 w-12 rounded border border-slate-200 object-cover" /> : "Image") : f.type === "color" ? <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded-sm border border-slate-300" style={{ background: f.default }} />{f.default}</span> : f.default}
+                </dd></div>
+              ))}</dl>
+            </div>
+          )}
+          {fields.length === 0 && <p className="text-xs text-slate-500">Head Office has set everything on this template. Give it a name and generate it.</p>}
           {fields.map((f) => {
             const name = `values.${f.key}` as const;
             const max = f.type === "text" ? Math.min(f.max && f.max > 0 ? f.max : 2000, 2000) : undefined;
             return (
-              <Field key={f.key} label={f.label} required={f.required} error={fieldError(form, name)} hint={f.type === "text" && f.max ? `${(values[f.key] ?? "").length}/${max}` : undefined}>
-                {f.type === "image" ? <ImagePicker value={values[f.key] ?? ""} onChange={(v) => form.setValue(name, v, { shouldValidate: formState.isSubmitted, shouldDirty: true })} companyId={companyId} />
+              <Field key={f.key} label={f.label} required={f.required && !f.default} error={fieldError(form, name)} hint={f.default && f.type !== "image" ? `Leave blank to use Head Office's: ${f.default}` : f.default ? "Leave as No image to use Head Office's image" : f.type === "text" && f.max ? `${(own[f.key] ?? "").length}/${max}` : undefined}>
+                {f.type === "image" ? <ImagePicker value={own[f.key] ?? ""} onChange={(v) => form.setValue(name, v, { shouldValidate: formState.isSubmitted, shouldDirty: true })} companyId={companyId} />
                   : f.type === "color" ? <ColourInput form={form} name={name} />
-                  : <Input placeholder={f.label} maxLength={max} {...form.register(name)} />}
+                  : <Input placeholder={f.default || f.label} maxLength={max} {...form.register(name)} />}
               </Field>
             );
           })}

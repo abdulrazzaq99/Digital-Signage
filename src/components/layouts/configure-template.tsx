@@ -9,15 +9,18 @@ import { applyApiError, Field as FormField, fieldError, FormError, maskedRegiste
 import { Checkbox, Input, Select } from "@/components/ui/input";
 import { Alert, BackLink, Stepper } from "@/components/ui/misc";
 import { useToast } from "@/components/ui/toast";
-import { useCreateTemplate } from "@/lib/api/hooks/templates";
+import { useCreateTemplate, useUploadTemplateImage } from "@/lib/api/hooks/templates";
 import { AUDIENCE_API_FIELDS, AudiencePicker, audienceError, EVERYONE } from "@/components/targeting/audience";
 import { label } from "@/lib/format";
 import { maskInteger, maskName } from "@/lib/validation/masks";
 import { ArrowLeft, ArrowRight, Lock, Plus, Save, Trash2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
+import type { z } from "zod";
 import { useFieldArray, useWatch } from "react-hook-form";
-import { KEY_MAX, keyFromLabel, MAX_FIELDS, maskTemplateKey, templateSchema, toTemplateBody } from "./template-schema";
+import { emptyField, KEY_MAX, keyFromLabel, MAX_FIELDS, maskTemplateKey, templateSchema, toTemplateBody } from "./template-schema";
+import { errorMessage } from "@/lib/format";
+import { ImagePlus } from "lucide-react";
 
 /** Steps 2–3 of defining a template: the editable fields, then review and create. */
 function DefineTemplate({ name, category, orientation }: { name: string; category: string; orientation: "LANDSCAPE" | "PORTRAIT" }) {
@@ -25,13 +28,13 @@ function DefineTemplate({ name, category, orientation }: { name: string; categor
   const toast = useToast();
   const create = useCreateTemplate();
   const [step, setStep] = useState<2 | 3>(2);
-  const form = useZodForm(templateSchema, { defaultValues: { name, category, orientation, audience: EVERYONE, fields: [{ key: "title", label: "Title", type: "text", required: true, max: "60" }] } });
+  const form = useZodForm(templateSchema, { defaultValues: { name, category, orientation, audience: EVERYONE, fields: [{ ...emptyField(), key: "title", label: "Title", required: true, max: "60" }] } });
   const { register, control, formState, setValue, getValues } = form;
   const fieldArray = useFieldArray({ control, name: "fields" });
   const fields = useWatch({ control, name: "fields" }) ?? [];
   const audience = useWatch({ control, name: "audience" }) ?? EVERYONE;
-  const previewFields = fields.map((f) => ({ key: f.key || "field", label: f.label, type: f.type as "text" | "image" | "color", required: f.required }));
-  const previewValues = Object.fromEntries(fields.map((f) => [f.key, f.label]));
+  const previewFields = fields.map((f) => ({ key: f.key || "field", label: f.label, type: f.type as "text" | "image" | "color", required: f.required, locked: !!f.locked }));
+  const previewValues = Object.fromEntries(fields.map((f) => [f.key, f.value?.trim() || f.label]));
   const fieldsError = (formState.errors.fields as { root?: { message?: string }; message?: string } | undefined);
   const basicsError = formState.errors.name?.message ?? formState.errors.category?.message;
 
@@ -82,13 +85,14 @@ function DefineTemplate({ name, category, orientation }: { name: string; categor
                         <FormField label="Type"><Select {...register(`fields.${i}.type`)}><option value="text">Text</option><option value="image">Image</option><option value="color">Color</option></Select></FormField>
                         <FormField label="Max length" error={fieldError(form, `fields.${i}.max`)} hint={f.type === "text" ? "1–2000 · blank = no limit" : "Text fields only"}><Input inputMode="numeric" placeholder="No limit" disabled={f.type !== "text"} {...maskedRegister(form, `fields.${i}.max`, (v) => maskInteger(v, 4))} /></FormField>
                       </div>
-                      <div className="mt-2 flex items-center justify-between"><label className="flex items-center gap-2 text-xs text-slate-600"><Checkbox checked={!!f.required} onChange={(v) => setValue(`fields.${i}.required`, v, { shouldDirty: true })} /> Required</label><button type="button" onClick={() => fieldArray.remove(i)} disabled={fields.length === 1} className="flex items-center gap-1 text-[11px] text-red-600 hover:underline disabled:opacity-40"><Trash2 className="h-3 w-3" /> Remove</button></div>
+                      <HeadOfficeValue form={form} i={i} field={f} />
+                      <div className="mt-2 flex items-center justify-between">{f.locked ? <span className="text-[11px] text-slate-400">Locations can&apos;t change this field</span> : <label className="flex items-center gap-2 text-xs text-slate-600"><Checkbox checked={!!f.required} onChange={(v) => setValue(`fields.${i}.required`, v, { shouldDirty: true })} /> Location must fill it in</label>}<button type="button" onClick={() => fieldArray.remove(i)} disabled={fields.length === 1} className="flex items-center gap-1 text-[11px] text-red-600 hover:underline disabled:opacity-40"><Trash2 className="h-3 w-3" /> Remove</button></div>
                     </li>
                   );
                 })}
               </ul>
               {(fieldsError?.root?.message ?? fieldsError?.message) && <p role="alert" className="mt-2 text-[11px] font-medium text-red-600">{fieldsError?.root?.message ?? fieldsError?.message}</p>}
-              <Button type="button" variant="secondary" size="sm" className="mt-3" onClick={() => fieldArray.append({ key: "", label: "", type: "text", required: false, max: "" })} disabled={fields.length >= MAX_FIELDS}><Plus className="h-3.5 w-3.5" /> Add Field</Button>
+              <Button type="button" variant="secondary" size="sm" className="mt-3" onClick={() => fieldArray.append(emptyField())} disabled={fields.length >= MAX_FIELDS}><Plus className="h-3.5 w-3.5" /> Add Field</Button>
               <div className="mt-5 flex justify-between"><Button type="button" variant="secondary" href="/layouts"><ArrowLeft className="h-3.5 w-3.5" /> Cancel</Button><Button type="submit">Review <ArrowRight className="h-3.5 w-3.5" /></Button></div>
             </form>
           </Card>
@@ -126,4 +130,45 @@ export function ConfigureTemplate() {
   const name = sp.get("name")?.trim();
   if (!name) return <div className="space-y-3"><Alert tone="amber">Start from the Templates page to define a new template.</Alert><Button href="/layouts" variant="secondary">Back to Templates</Button></div>;
   return <DefineTemplate name={name} category={sp.get("category") || "Corporate"} orientation={sp.get("o") === "PORTRAIT" ? "PORTRAIT" : "LANDSCAPE"} />;
+}
+
+type TemplateForm = ReturnType<typeof useZodForm<z.input<typeof templateSchema>, z.output<typeof templateSchema>>>;
+
+/** Head Office's value for one field: fixed (locked) or a suggestion the location can replace. */
+function HeadOfficeValue({ form, i, field }: { form: TemplateForm; i: number; field: Partial<z.input<typeof templateSchema>["fields"][number]> }) {
+  const upload = useUploadTemplateImage();
+  const [uploadError, setUploadError] = useState("");
+  const set = (name: "locked" | "value" | "previewUrl", v: boolean | string) => form.setValue(`fields.${i}.${name}`, v as never, { shouldDirty: true, shouldValidate: form.formState.isSubmitted });
+  const error = fieldError(form, `fields.${i}.value`) ?? (uploadError || undefined);
+  const label = field.locked ? "Head Office value" : "Suggested value (optional)";
+  const pick = (file?: File) => {
+    if (!file) return;
+    setUploadError("");
+    if (!["image/png", "image/jpeg"].includes(file.type)) { setUploadError("Choose a PNG or JPG image"); return; }
+    if (file.size > 20 * 1024 * 1024) { setUploadError("The image must be 20 MB or smaller"); return; }
+    upload.mutate(file, { onSuccess: ({ key, previewUrl }) => { set("value", key); set("previewUrl", previewUrl); }, onError: (e) => setUploadError(errorMessage(e)) });
+  };
+  return (
+    <div className="mt-2 rounded-md bg-slate-50 px-3 py-2.5">
+      <label className="flex items-center gap-2 text-xs font-medium text-slate-700"><Checkbox checked={!!field.locked} onChange={(v) => set("locked", v)} /> Set by Head Office</label>
+      <div className="mt-2">
+        {field.type === "image" ? (
+          <FormField label={label} error={error} hint={field.locked ? "Every location shows this image." : "Shown until the location picks its own image."}>
+            <div className="flex items-center gap-3">
+              {field.previewUrl ? <img src={field.previewUrl} alt="" className="h-12 w-16 rounded border border-slate-200 object-cover" /> : field.value ? <span className="text-[11px] text-slate-500">Image uploaded</span> : null}
+              <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50">
+                <ImagePlus className="h-3.5 w-3.5" /> {upload.isPending ? "Uploading…" : field.value ? "Replace image" : "Upload image"}
+                <input type="file" accept="image/png,image/jpeg" className="sr-only" disabled={upload.isPending} onChange={(e) => { pick(e.target.files?.[0]); e.target.value = ""; }} />
+              </label>
+              {field.value && !field.locked && <button type="button" className="text-[11px] text-slate-500 hover:underline" onClick={() => { set("value", ""); set("previewUrl", ""); }}>Remove</button>}
+            </div>
+          </FormField>
+        ) : field.type === "color" ? (
+          <FormField label={label} error={error}><div className="flex items-center gap-2"><input type="color" aria-label={`${label} colour`} className="h-9 w-12 rounded border border-slate-200" value={/^#[0-9a-fA-F]{6}$/.test(field.value ?? "") ? field.value : "#000000"} onChange={(e) => set("value", e.target.value)} /><Input className="font-mono" placeholder="#2563EB" maxLength={7} {...form.register(`fields.${i}.value`)} /></div></FormField>
+        ) : (
+          <FormField label={label} error={error}><Input placeholder={field.locked ? "e.g. Extra Gum" : "e.g. 10 kr"} maxLength={2000} {...form.register(`fields.${i}.value`)} /></FormField>
+        )}
+      </div>
+    </div>
+  );
 }

@@ -1,4 +1,5 @@
 "use client";
+import { putWithProgress } from "@/lib/upload";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, ApiError, companyHeader, idempotencyKey, request, requestData, requestPage } from "../client";
 import { keys } from "../query";
@@ -23,6 +24,17 @@ export function useUpdateTemplate() {
   return useMutation<Template, ApiError, { id: string } & Schemas["UpdateTemplateBody"]>({
     mutationFn: ({ id, ...body }) => requestData(() => api.PATCH("/templates/{id}", { params: { path: { id } }, body })),
     onSuccess: () => qc.invalidateQueries({ queryKey: keys.templates }),
+  });
+}
+
+/** Uploads Head Office's image for a template field; resolves to its storage key and a preview link. */
+export function useUploadTemplateImage() {
+  return useMutation<{ key: string; previewUrl: string }, ApiError, File>({
+    mutationFn: async (file) => {
+      const { key, uploadUrl, previewUrl } = await requestData(() => api.POST("/templates/images/upload-url", { body: { fileName: file.name, contentType: file.type as "image/png" | "image/jpeg", sizeBytes: file.size } }));
+      await putWithProgress(uploadUrl, file, () => undefined);
+      return { key, previewUrl };
+    },
   });
 }
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { keyFromLabel, maskTemplateKey, templateSchema, toTemplateBody } from "./template-schema";
 
-const field = { label: "Title", key: "title", type: "text" as const, required: true, max: "60" };
+const field = { label: "Title", key: "title", type: "text" as const, required: true, max: "60", locked: false, value: "", previewUrl: "" };
 const base = { audience: { kind: "all" as const }, name: "Summer Sale", category: "Retail", orientation: "LANDSCAPE" as const, fields: [field] };
 const issues = (v: object) => (templateSchema.safeParse({ ...base, ...v }).error?.issues ?? []).map((i) => `${i.path.join(".")}: ${i.message}`);
 
@@ -21,7 +21,16 @@ describe("template schema", () => {
 
   it("omits max when blank or not a text field", () => {
     const body = toTemplateBody(templateSchema.parse({ ...base, fields: [{ ...field, max: "" }, { ...field, key: "bg", type: "color", max: "10" }] }));
-    expect(body.fields).toEqual([{ key: "title", label: "Title", type: "text", required: true }, { key: "bg", label: "Title", type: "color", required: true }]);
+    expect(body.fields).toEqual([{ key: "title", label: "Title", type: "text", required: true, locked: false }, { key: "bg", label: "Title", type: "color", required: true, locked: false }]);
+  });
+
+  it("needs Head Office's value for a fixed field and checks it", () => {
+    expect(issues({ fields: [{ ...field, locked: true }] })).toEqual(["fields.0.value: Enter the value Head Office sets"]);
+    expect(issues({ fields: [{ ...field, type: "image", locked: true }] })).toEqual(["fields.0.value: Upload the image Head Office sets"]);
+    expect(issues({ fields: [{ ...field, type: "color", value: "red" }] })).toEqual(["fields.0.value: Use a colour like #2563EB"]);
+    expect(issues({ fields: [{ ...field, max: "3", value: "Extra Gum" }] })).toEqual(["fields.0.value: Must be at most 3 characters"]);
+    const body = toTemplateBody(templateSchema.parse({ ...base, fields: [{ ...field, locked: true, value: " Extra Gum ", previewUrl: "blob:x" }] }));
+    expect(body.fields[0]).toEqual({ key: "title", label: "Title", type: "text", required: true, locked: true, max: 60, default: "Extra Gum" });
   });
 
   it("derives keys from labels", () => {

@@ -3262,6 +3262,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/templates/images/upload-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Super Admin only. A presigned PUT for a Head Office image to set on a template field (`default`). */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["TemplateImageUploadBody"];
+                };
+            };
+            responses: {
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["TemplateImageUpload"];
+                            meta?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/templates/{id}": {
         parameters: {
             query?: never;
@@ -5610,11 +5654,18 @@ export interface components {
                 color?: string;
                 /** @enum {string} */
                 fit?: "cover" | "contain";
+                /** @default false */
+                locked: boolean;
+                default?: string;
             }[];
             isGlobal: boolean;
             usedIn: number;
             createdAt: string;
             audience?: components["schemas"]["TargetAudience"];
+            /** @description Field key → preview URL of Head Office's image for it */
+            images: {
+                [key: string]: string;
+            };
         };
         TargetAudience: {
             /** @enum {string} */
@@ -5658,6 +5709,9 @@ export interface components {
                 color?: string;
                 /** @enum {string} */
                 fit?: "cover" | "contain";
+                /** @default false */
+                locked: boolean;
+                default?: string;
             }[];
             /**
              * @default {
@@ -5676,6 +5730,18 @@ export interface components {
                 kind: "companies";
                 companyIds: string[];
             };
+        };
+        TemplateImageUpload: {
+            key: string;
+            uploadUrl: string;
+            previewUrl: string;
+            expiresInSec: number;
+        };
+        TemplateImageUploadBody: {
+            fileName: string;
+            /** @enum {string} */
+            contentType: "image/png" | "image/jpeg";
+            sizeBytes: number;
         };
         UpdateTemplateBody: {
             audience: {
