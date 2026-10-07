@@ -15,6 +15,8 @@ export function useMedia(filters: MediaFilters = {}, opts: ScopeOpts = {}) {
     queryKey: [...keys.media, opts.companyId ?? "own", query],
     queryFn: () => requestPage(() => api.GET("/media", { params: { query }, headers: companyHeader(opts.companyId) })),
     enabled: opts.enabled ?? true,
+    // A safety net for the live "ready" event: while files are converting, check again every few seconds.
+    refetchInterval: (q) => (q.state.data?.data.some((m) => m.status === "PROCESSING") ? 5000 : false),
   });
 }
 
@@ -82,12 +84,20 @@ export function useUpload(companyId?: string | null) {
   const [progress, setProgress] = useState<Record<string, number>>({});
   const [uploading, setUploading] = useState(false);
 
-  const upload = useCallback(async (file: File, tags: string[] = []): Promise<Media> => {
+  /**
+   * `resume.assetId`: a file whose earlier attempt created its asset but didn't finish; the retry
+   * reuses that asset (fresh upload URL) instead of adding a second copy to the library.
+   * `resume.onCreated` learns the asset ID as soon as it exists, so the caller can resume it later.
+   */
+  const upload = useCallback(async (file: File, tags: string[] = [], resume: { assetId?: string; onCreated?: (id: string) => void } = {}): Promise<Media> => {
     setUploading(true);
     setProgress((p) => ({ ...p, [file.name]: 0 }));
     try {
       const meta = await readMediaMetadata(file);
-      const { asset, uploadUrl } = await requestData(() => api.POST("/media/upload-url", { body: { fileName: file.name, contentType: file.type as Schemas["UploadUrlBody"]["contentType"], sizeBytes: file.size, tags }, headers: companyHeader(companyId) }));
+      const { asset, uploadUrl } = resume.assetId
+        ? await requestData(() => api.POST("/media/{id}/upload-url", { params: { path: { id: resume.assetId! } }, headers: companyHeader(companyId) }))
+        : await requestData(() => api.POST("/media/upload-url", { body: { fileName: file.name, contentType: file.type as Schemas["UploadUrlBody"]["contentType"], sizeBytes: file.size, tags }, headers: companyHeader(companyId) }));
+      resume.onCreated?.(asset.id);
       await putWithProgress(uploadUrl, file, (pct) => setProgress((p) => ({ ...p, [file.name]: pct })));
       const done = await requestData(() => api.POST("/media/{id}/finalize", { params: { path: { id: asset.id } }, body: meta, headers: companyHeader(companyId) }));
       await invalidate();

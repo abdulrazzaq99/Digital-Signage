@@ -1,36 +1,38 @@
 import type { Template } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
 
-/** Client-side preview of a template by category. The real render (a PNG in storage) is produced by the API. */
-export function PortalTemplateArt({ template, values, className }: { template: Pick<Template, "name" | "category" | "fields">; values?: Record<string, string>; className?: string }) {
-  const v = (k: string, fallback = "") => values?.[k] ?? fallback;
-  const cat = (template.category ?? "").toLowerCase();
+const isHex6 = (v?: string) => !!v && /^#[0-9a-fA-F]{6}$/.test(v);
+
+/**
+ * Client-side preview of a template, laid out the way the API renders it: the first text field as
+ * the headline, the other text fields under it, image fields in a panel beside them, and the first
+ * colour as the accent. It follows the fields in order, so every field's value shows as you type.
+ * The real render (a PNG in storage) is produced by the API.
+ */
+export function PortalTemplateArt({ template, values, className }: { template: Pick<Template, "name" | "category" | "fields"> & { images?: Record<string, string> }; values?: Record<string, string>; className?: string }) {
   const fields = template.fields ?? [];
-  const keys = fields.map((f) => f.key);
-  const first = (...names: string[]) => { const k = names.find((n) => keys.includes(n)) ?? keys[0]; return k ? v(k, fields.find((f) => f.key === k)?.label ?? "") : ""; };
-  if (cat.includes("retail")) return (
-    <div className={cn("relative flex aspect-video flex-col justify-center overflow-hidden rounded-lg bg-gradient-to-br from-slate-950 via-slate-900 to-red-950 p-[7%] text-white", className)}>
-      <div className="text-[0.55em] font-bold tracking-[0.2em] text-red-500">{first("headline", "kicker")}</div>
-      <div className="mt-[2%] text-[1.9em] font-black leading-none">{first("discount", "title")}</div>
-      <div className="mt-[3%] text-[0.5em] text-white/50 line-through">{v("was") && `Was ${v("was")}`}</div>
-      <div className="text-[0.85em] font-bold">{v("now") && `Now ${v("now")}`}</div>
-      <div className="absolute inset-x-0 bottom-0 h-[4%] bg-red-500" />
-    </div>
-  );
-  if (cat.includes("food") || cat.includes("restaurant")) return (
-    <div className={cn("relative flex aspect-video flex-col justify-center overflow-hidden rounded-lg bg-gradient-to-br from-slate-950 via-slate-900 to-amber-950 p-[7%] text-white", className)}>
-      <div className="text-[1.1em] font-black leading-none text-amber-400">{first("title", "headline")}</div>
-      <div className="mt-[3%] flex items-center gap-[4%]"><span className="text-[1.6em] font-black text-amber-400">{v("start")}</span>{v("start") && <span className="text-[0.9em] text-amber-400">→</span>}</div>
-      {v("start") && <div className="text-[0.4em] tracking-[0.2em] text-white/50">STARTS</div>}
-      <div className="mt-[1%] text-[1.6em] font-black leading-none">{v("end")}</div>
-      <div className="absolute inset-x-0 bottom-0 h-[4%] bg-amber-400" />
-    </div>
-  );
+  // Without values (a gallery card), each field shows its label.
+  const shown = (key: string, label: string) => (values ? values[key]?.trim() ?? "" : label);
+  const texts = fields.filter((f) => f.type === "text").map((f) => ({ key: f.key, text: shown(f.key, f.label) })).filter((t) => t.text);
+  const images = fields.filter((f) => f.type === "image");
+  const accentField = fields.find((f) => f.type === "color" && isHex6(values?.[f.key] ?? f.default));
+  const accent = accentField ? (values?.[accentField.key] ?? accentField.default)! : "#3b82f6";
+  const [headline, ...rest] = texts;
   return (
-    <div className={cn("relative flex aspect-video flex-col justify-center overflow-hidden rounded-lg bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 p-[7%] text-white", className)}>
-      <div className="text-[0.45em] font-semibold tracking-[0.25em] text-violet-400">{first("kicker", "headline")}</div>
-      <div className="mt-[2%] text-[1.15em] font-bold leading-tight">{first("title", "name")}</div>
-      <div className="mt-[4%] border-l-2 border-violet-500 pl-[3%] text-[0.5em] text-white/80"><div>{v("date")}</div><div>{v("time")}</div></div>
+    <div className={cn("relative flex aspect-video overflow-hidden rounded-lg bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white", className)}>
+      <div className={cn("flex min-w-0 flex-col justify-center p-[6%]", images.length ? "w-[58%]" : "w-full")}>
+        {headline ? <div className="line-clamp-3 break-words text-[1.5em] font-black leading-[1.1]" style={{ color: accent }}>{headline.text}</div> : <div className="text-[0.6em] text-white/40">{template.name}</div>}
+        {rest.map((t) => <div key={t.key} className="mt-[3%] line-clamp-2 break-words text-[0.75em] font-semibold leading-tight text-white/85">{t.text}</div>)}
+      </div>
+      {images.length > 0 && (
+        <div className="flex w-[42%] flex-col gap-[3%] py-[5%] pr-[5%]">
+          {images.map((f) => {
+            const url = template.images?.[f.key];
+            return url ? <img key={f.key} src={url} alt="" className="min-h-0 flex-1 rounded object-cover" /> : <div key={f.key} className="flex min-h-0 flex-1 items-center justify-center rounded border border-dashed border-white/25 text-[0.45em] text-white/50">{f.label}</div>;
+          })}
+        </div>
+      )}
+      <div className="absolute inset-x-0 bottom-0 h-[3%]" style={{ background: accent }} />
     </div>
   );
 }

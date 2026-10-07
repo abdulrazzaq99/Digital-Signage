@@ -15,7 +15,8 @@ import { Check, FileText, Film, ImageIcon, Upload, X } from "lucide-react";
 import { useRef, useState, type ReactNode } from "react";
 
 /** `invalid` rows failed the add-time checks (type, size, name) and are never sent. */
-type Row = { file: File; status: "queued" | "invalid" | "uploading" | "done" | "error"; error?: string };
+/** `assetId`: the library entry an earlier attempt created, so a retry finishes it instead of adding another. */
+type Row = { file: File; status: "queued" | "invalid" | "uploading" | "done" | "error"; error?: string; assetId?: string };
 
 function FileIcon({ type }: { type: string }) {
   const I = ALLOWED_MIME[type] === "VIDEO" ? Film : ALLOWED_MIME[type] === "PDF" ? FileText : ImageIcon;
@@ -56,8 +57,10 @@ export function PortalUploadModal({ open, onClose, companyId, extra }: { open: b
     for (let i = 0; i < rows.length; i++) {
       if (rows[i].status !== "queued" && rows[i].status !== "error") continue;
       setRow(i, { status: "uploading", error: undefined });
-      try { const m = await upload(rows[i].file, tagList); setRow(i, { status: "done" }); ok++; if (m.approval === "PENDING") held++; }
+      try { const m = await upload(rows[i].file, tagList, { assetId: rows[i].assetId, onCreated: (id) => setRow(i, { assetId: id }) }); setRow(i, { status: "done" }); ok++; if (m.approval === "PENDING") held++; }
       catch (e) {
+        // The earlier attempt did finish (only its reply was lost): nothing left to upload.
+        if (e instanceof ApiError && e.code === "NOT_UPLOADING") { setRow(i, { status: "done" }); ok++; continue; }
         failed++;
         // Tag problems reported by the API belong on the tags field, not on every file.
         if (e instanceof ApiError && Array.isArray(e.details) && (e.details as { path?: string }[]).some((d) => d.path?.startsWith("body.tags"))) { applyApiError(form, e); setRow(i, { status: "error", error: "Not uploaded: fix the tags and try again." }); break; }

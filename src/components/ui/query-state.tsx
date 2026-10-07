@@ -2,6 +2,7 @@
 import { RefreshCw } from "lucide-react";
 import type { ReactNode } from "react";
 import { errorMessage } from "@/lib/format";
+import { ApiError } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
 
@@ -19,6 +20,13 @@ export function QueryState<T>({ query, skeleton, empty, isEmpty, children }: { q
 }
 
 export function ErrorState({ error, onRetry, className }: { error: unknown; onRetry?: () => void; className?: string }) {
+  // Not found (deleted, or belonging to another company) isn't a failure to retry: say so plainly.
+  if (error instanceof ApiError && error.status === 404) return (
+    <div className={cn("rounded-xl border border-slate-200 bg-white p-6 text-center", className)}>
+      <p className="text-sm font-semibold text-slate-800">Not found</p>
+      <p className="mt-1 text-xs text-slate-500">This page doesn&apos;t exist or isn&apos;t part of your account. It may have been deleted.</p>
+    </div>
+  );
   return (
     <div className={cn("rounded-xl border border-red-200 bg-red-50 p-6 text-center", className)}>
       <p className="text-sm font-semibold text-red-700">Couldn&apos;t load this</p>

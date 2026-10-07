@@ -23,3 +23,14 @@ body {
 
 /* grid/flex children default to min-width:auto, which lets long unwrappable content push cards past the viewport */
 .grid > * { min-width: 0; }
+
+/* Phones and tablets zoom into a form box whose text is under 16px when it is tapped. Any touch
+   screen, whatever its width (a phone held sideways is wider than the sm breakpoint), gets 16px
+   text in form boxes so tapping never zooms the page. Pinch-zoom stays available. */
+@media (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}

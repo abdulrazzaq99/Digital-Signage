@@ -55,7 +55,7 @@ export function PairScreen({ companyId }: { companyId?: string | null } = {}) {
           <form onSubmit={submitCode} noValidate className="space-y-4 px-5 py-4">
             <p className="text-xs leading-5 text-slate-500">On your screen device, navigate to <span className="font-semibold text-slate-800">Settings → Pair Screen</span> to display a pairing code.</p>
             <Field label="Pairing Code" required hint="6 letters and numbers, e.g. 7F3K9Q" error={fieldError(codeForm, "code")}>
-              <Input placeholder="E.G. 7F3K9Q" autoComplete="off" autoCapitalize="characters" autoCorrect="off" spellCheck={false} maxLength={6} className="font-mono uppercase tracking-[0.2em]" autoFocus {...maskedRegister(codeForm, "code", maskPairingCode)} />
+              <Input placeholder="E.G. 7F3K9Q" autoComplete="off" autoCapitalize="characters" autoCorrect="off" spellCheck={false} className="font-mono uppercase tracking-[0.2em]" autoFocus {...maskedRegister(codeForm, "code", maskPairingCode)} />
             </Field>
             <div className="flex gap-2"><SubmitButton form={codeForm}>Continue</SubmitButton><Button type="button" variant="secondary" onClick={() => router.push(base)}>Cancel</Button></div>
             <p className="rounded-lg bg-slate-50 px-3 py-2.5 text-[10px] leading-4 text-slate-400">Codes are valid for 5 minutes. The code is checked against the device when you finish the next step.</p>

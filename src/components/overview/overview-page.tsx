@@ -75,7 +75,7 @@ export function OverviewPage() {
     { value: totals.screens, label: "Total Screens", sub: "Across all tenants", icon: <Monitor className="h-4 w-4" />, bg: "bg-blue-50 text-blue-600" },
     { value: totals.online, label: "Screens Online", sub: `${availability}% availability`, icon: <Wifi className="h-4 w-4" />, bg: "bg-green-50 text-green-600" },
     { value: totals.offline, label: "Screens Offline", sub: "No recent heartbeat", icon: <MonitorOff className="h-4 w-4" />, bg: "bg-red-50 text-red-600" },
-    { value: totals.companies, label: "Companies", sub: `${licenses.isError ? "—" : licenses.data?.data?.filter((l) => l.state === "ACTIVE").length ?? "…"} active licences`, icon: <Building2 className="h-4 w-4" />, bg: "bg-blue-50 text-blue-600" },
+    { value: totals.companies, label: "Companies", sub: `${licenses.isError ? "—" : licenses.data?.data?.filter((l) => l.state === "ACTIVE").length ?? "…"} active licence${licenses.data?.data?.filter((l) => l.state === "ACTIVE").length === 1 ? "" : "s"}`, icon: <Building2 className="h-4 w-4" />, bg: "bg-blue-50 text-blue-600" },
   ];
 
   return (

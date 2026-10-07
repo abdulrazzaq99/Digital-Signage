@@ -5364,6 +5364,8 @@ export interface components {
                 id: string;
                 name: string;
             }[];
+            /** @description Current or upcoming schedules */
+            scheduled: number;
             createdAt: string;
             updatedAt: string;
             items?: components["schemas"]["PlaylistItem"][];
