@@ -4,7 +4,7 @@ import { campaignSchema, campaignWindow, formatOdds, prizeSchema, winOdds } from
 
 const addDays = (n: number) => { const d = new Date(); d.setDate(d.getDate() + n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
 const prize = { name: "Gift card", value: "$50", quantity: "10", weight: "5" };
-const base = { title: "Summer draw", description: "", start: addDays(1), end: addDays(10), maxAttempts: "3", requireOffersVisit: false, loseWeight: "50", activate: false, prizes: [prize] };
+const base = { audience: { kind: "all" as const }, title: "Summer draw", description: "", start: addDays(1), end: addDays(10), maxAttempts: "3", requireOffersVisit: false, loseWeight: "50", activate: false, prizes: [prize] };
 const issues = (r: { success: boolean; error?: { issues: { path: PropertyKey[]; message: string }[] } }) => (r.error?.issues ?? []).map((i) => `${i.path.join(".")}: ${i.message}`);
 
 describe("campaign schema", () => {

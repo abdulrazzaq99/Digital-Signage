@@ -1,4 +1,5 @@
 "use client";
+import { AudienceBadge } from "@/components/targeting/audience";
 import { OfferBody } from "@/components/portal/offer-detail";
 import { OfferCover } from "@/components/portal/offers-page";
 import { Button } from "@/components/ui/button";
@@ -34,7 +35,7 @@ function Detail({ offer }: { offer: Offer }) {
         <div>
           <OfferCover offer={offer} className="aspect-[3/1] rounded-xl" />
           <h1 className="mt-5 text-xl font-bold tracking-tight text-slate-900">{offer.title}</h1>
-          <Badge tone={offerTone(offer.status)} dot className="mt-2">{label(offer.status)}</Badge>
+          <Badge tone={offerTone(offer.status)} dot className="mt-2">{label(offer.status)}</Badge>{offer.audience && <AudienceBadge audience={offer.audience} className="ml-1.5 mt-2" />}
           <p className="mt-4 text-sm font-medium text-slate-700">{offer.summary}</p>
           <p className="mt-2 whitespace-pre-line text-sm leading-6 text-slate-600">{offer.description}</p>
           <SectionLabel className="mt-6">Contact Information</SectionLabel>

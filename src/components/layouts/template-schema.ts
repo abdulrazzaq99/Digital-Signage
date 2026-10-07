@@ -7,6 +7,7 @@ import { z } from "zod";
 import { intText, text } from "@/lib/validation/fields";
 import { maskKey } from "@/lib/validation/masks";
 import type { Schemas } from "@/lib/api/types";
+import { audienceField } from "@/components/targeting/audience";
 
 export const MAX_FIELDS = 20;
 export const KEY_MAX = 40;
@@ -38,6 +39,7 @@ const fieldSchema = z.object({
 });
 
 export const templateSchema = templateBasicsSchema.extend({
+  audience: audienceField(),
   fields: z
     .array(fieldSchema)
     .min(1, "Add at least one field")
@@ -60,6 +62,7 @@ export function toTemplateBody(v: z.output<typeof templateSchema>): Schemas["Cre
     name: v.name,
     category: v.category,
     orientation: v.orientation,
+    audience: v.audience,
     fields: v.fields.map((f) => ({ key: f.key, label: f.label, type: f.type, required: f.required, ...(f.type === "text" && f.max.trim() !== "" ? { max: Number(f.max) } : {}) })),
   };
 }

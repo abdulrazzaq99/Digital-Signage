@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { keyFromLabel, maskTemplateKey, templateSchema, toTemplateBody } from "./template-schema";
 
 const field = { label: "Title", key: "title", type: "text" as const, required: true, max: "60" };
-const base = { name: "Summer Sale", category: "Retail", orientation: "LANDSCAPE" as const, fields: [field] };
+const base = { audience: { kind: "all" as const }, name: "Summer Sale", category: "Retail", orientation: "LANDSCAPE" as const, fields: [field] };
 const issues = (v: object) => (templateSchema.safeParse({ ...base, ...v }).error?.issues ?? []).map((i) => `${i.path.join(".")}: ${i.message}`);
 
 describe("template schema", () => {

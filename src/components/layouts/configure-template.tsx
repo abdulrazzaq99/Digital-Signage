@@ -10,6 +10,7 @@ import { Checkbox, Input, Select } from "@/components/ui/input";
 import { Alert, BackLink, Stepper } from "@/components/ui/misc";
 import { useToast } from "@/components/ui/toast";
 import { useCreateTemplate } from "@/lib/api/hooks/templates";
+import { AUDIENCE_API_FIELDS, AudiencePicker, audienceError, EVERYONE } from "@/components/targeting/audience";
 import { label } from "@/lib/format";
 import { maskInteger, maskName } from "@/lib/validation/masks";
 import { ArrowLeft, ArrowRight, Lock, Plus, Save, Trash2 } from "lucide-react";
@@ -24,10 +25,11 @@ function DefineTemplate({ name, category, orientation }: { name: string; categor
   const toast = useToast();
   const create = useCreateTemplate();
   const [step, setStep] = useState<2 | 3>(2);
-  const form = useZodForm(templateSchema, { defaultValues: { name, category, orientation, fields: [{ key: "title", label: "Title", type: "text", required: true, max: "60" }] } });
+  const form = useZodForm(templateSchema, { defaultValues: { name, category, orientation, audience: EVERYONE, fields: [{ key: "title", label: "Title", type: "text", required: true, max: "60" }] } });
   const { register, control, formState, setValue, getValues } = form;
   const fieldArray = useFieldArray({ control, name: "fields" });
   const fields = useWatch({ control, name: "fields" }) ?? [];
+  const audience = useWatch({ control, name: "audience" }) ?? EVERYONE;
   const previewFields = fields.map((f) => ({ key: f.key || "field", label: f.label, type: f.type as "text" | "image" | "color", required: f.required }));
   const previewValues = Object.fromEntries(fields.map((f) => [f.key, f.label]));
   const fieldsError = (formState.errors.fields as { root?: { message?: string }; message?: string } | undefined);
@@ -40,7 +42,7 @@ function DefineTemplate({ name, category, orientation }: { name: string; categor
       toast.success("Template created", t.name);
       router.replace(`/layouts/${t.id}`);
     } catch (e) {
-      applyApiError(form, e);
+      applyApiError(form, e, AUDIENCE_API_FIELDS);
       if (Object.keys(form.formState.errors).includes("fields")) setStep(2);
     }
   });
@@ -95,8 +97,10 @@ function DefineTemplate({ name, category, orientation }: { name: string; categor
             <form onSubmit={submit} noValidate>
               <h2 className="text-base font-bold text-slate-900">Review</h2>
               <dl className="mt-3 divide-y divide-slate-100 text-xs">
-                {[["Name", name], ["Category", category], ["Orientation", label(orientation)], ["Fields", `${fields.length}`], ["Scope", "Global — available to every company"]].map(([k, v]) => <div key={k} className="flex justify-between py-2"><dt className="text-slate-400">{k}</dt><dd className="font-semibold text-slate-800">{v}</dd></div>)}
+                {[["Name", name], ["Category", category], ["Orientation", label(orientation)], ["Fields", `${fields.length}`]].map(([k, v]) => <div key={k} className="flex justify-between py-2"><dt className="text-slate-400">{k}</dt><dd className="font-semibold text-slate-800">{v}</dd></div>)}
               </dl>
+              <SectionLabel className="mt-4">Who can use it</SectionLabel>
+              <AudiencePicker className="mt-2" value={audience} onChange={(a) => setValue("audience", a, { shouldDirty: true, shouldValidate: formState.isSubmitted })} error={audienceError(formState.errors.audience)} />
               {basicsError && <Alert tone="red" className="mt-3">{formState.errors.name ? `Name: ${formState.errors.name.message}` : `Category: ${formState.errors.category?.message}`}. Start again from the Templates page.</Alert>}
               <SectionLabel className="mt-4">Fields</SectionLabel>
               <ul className="mt-2 space-y-1.5">{fields.map((f, i) => <li key={`${f.key}-${i}`} className="flex items-center justify-between rounded-lg border border-slate-100 bg-slate-50/60 px-3 py-2 text-xs"><span className="font-semibold text-slate-800">{f.label} <span className="font-mono font-normal text-slate-400">{f.key}</span></span><span className="flex items-center gap-1.5 text-[10px] text-slate-400">{f.type}{f.required && <Badge tone="red">Required</Badge>}{f.type === "text" && (f.max ? <span>max {f.max}</span> : <span>no limit</span>)}</span></li>)}</ul>

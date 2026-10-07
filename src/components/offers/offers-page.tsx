@@ -1,4 +1,5 @@
 "use client";
+import { AudienceBadge } from "@/components/targeting/audience";
 import { OffersPage as CustomerOffers } from "@/components/portal/offers-page";
 import { OfferCover } from "@/components/portal/offers-page";
 import { Badge } from "@/components/ui/badge";
@@ -62,7 +63,7 @@ export function OffersPage({ tab }: { tab: "manage" | "marketplace" }) {
                   <Link href={`/offers/${o.id}`} className="shrink-0"><OfferCover offer={o} className="h-[60px] w-[80px] rounded-lg sm:h-[74px] sm:w-[104px]" /></Link>
                   <div className="min-w-0 flex-1">
                     <Link href={`/offers/${o.id}`} className="block truncate text-sm font-semibold text-slate-900 hover:text-blue-600">{o.title}</Link>
-                    <Badge tone={offerTone(o.status)} dot className="mt-1">{label(o.status)}</Badge>
+                    <Badge tone={offerTone(o.status)} dot className="mt-1">{label(o.status)}</Badge><AudienceBadge audience={o.audience} className="ml-1.5 mt-1" />
                     <div className="mt-1 text-[11px] text-slate-400">{o.category}</div>
                     <div className="mt-1.5 flex flex-wrap items-center gap-3 text-[10px] text-slate-400"><span className="flex items-center gap-1"><Eye className="h-3 w-3" />{o.stats?.totalViews ?? 0} views</span><span className="flex items-center gap-1"><Users className="h-3 w-3" />{o.stats?.uniqueViewers ?? 0} unique</span><span className="flex items-center gap-1">{o.publishedAt ? <><Calendar className="h-3 w-3" />{formatDate(o.publishedAt)} published</> : <><FileEdit className="h-3 w-3" />Not published</>}</span></div>
                   </div>

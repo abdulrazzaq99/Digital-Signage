@@ -26,6 +26,7 @@ export function getQueryClient() {
 export const keys = {
   auth: ["auth"],
   companies: ["companies"],
+  categories: ["categories"],
   licenses: ["licenses"],
   users: ["users"],
   screens: ["screens"],

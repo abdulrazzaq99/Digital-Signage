@@ -14,10 +14,11 @@ import { maskInteger, maskName } from "@/lib/validation/masks";
 import { Info } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { CategoriesTab } from "./categories-tab";
 import { applyPasswordError, generalSchema, PASSWORD_HINT, passwordChangeDefaults, passwordChangeSchema, profileBody, profileDefaults, profileSchema } from "./account-schemas";
 
-type Tab = "general" | "profile" | "security";
-const TABS: Tab[] = ["general", "profile", "security"];
+type Tab = "general" | "categories" | "profile" | "security";
+const TABS: Tab[] = ["general", "categories", "profile", "security"];
 const isTab = (v: string | null): v is Tab => !!v && (TABS as string[]).includes(v);
 
 function Section({ title, sub, children }: { title: string; sub?: string; children: React.ReactNode }) {
@@ -171,6 +172,7 @@ export function SettingsPage() {
 
       <div className="max-w-[760px] space-y-4">
         {tab === "general" && <GeneralTab />}
+        {tab === "categories" && <CategoriesTab />}
         {tab === "profile" && <ProfileTab />}
         {tab === "security" && <SecurityTab />}
       </div>

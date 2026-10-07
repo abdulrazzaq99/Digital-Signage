@@ -1,4 +1,5 @@
 "use client";
+import { AudienceBadge } from "@/components/targeting/audience";
 import { useCompanyScope } from "@/components/admin/company-scope";
 import { NavyZoneDiagram } from "@/components/portal/layouts-page";
 import { PortalTemplateArt } from "@/components/portal/template-art";
@@ -57,7 +58,7 @@ export function TemplatesPage({ initialTab = "fixed" }: { initialTab?: "fixed" |
                     <Link href={`/layouts/${t.id}`} className="block bg-slate-900"><PortalTemplateArt template={t} className="rounded-none text-[10px]" /></Link>
                     <div className="px-3.5 py-3">
                       <div className="flex items-start justify-between gap-2"><Link href={`/layouts/${t.id}`} className="text-sm font-semibold text-slate-900 hover:text-blue-600">{t.name}</Link><DropdownMenu items={[{ label: "View Details", icon: <Eye className="h-3.5 w-3.5" />, href: `/layouts/${t.id}` }, { label: "Use for a company", icon: <LayoutTemplate className="h-3.5 w-3.5" />, href: scope.withCompany(`/layouts/new/configure?t=${t.id}`) }, { label: "Delete", icon: <Trash2 className="h-3.5 w-3.5" />, tone: "danger", onSelect: () => setDel(t) }]} /></div>
-                      <div className="mt-1.5 flex items-center gap-1.5 text-[10px] text-slate-400"><Badge tone={catTone(t.category)}>{t.category}</Badge><span>{label(t.orientation)}</span><span>·</span><span>{(t.fields ?? []).length} fields</span></div>
+                      <div className="mt-1.5 flex items-center gap-1.5 text-[10px] text-slate-400"><Badge tone={catTone(t.category)}>{t.category}</Badge>{t.audience && <AudienceBadge audience={t.audience} />}<span>{label(t.orientation)}</span><span>·</span><span>{(t.fields ?? []).length} fields</span></div>
                       <div className="mt-2 text-[11px] text-slate-400">Used in <span className="font-semibold text-slate-700">{t.usedIn}</span> instance{t.usedIn === 1 ? "" : "s"} · {formatDate(t.createdAt)}</div>
                     </div>
                   </div>

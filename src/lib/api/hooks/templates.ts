@@ -18,6 +18,14 @@ export function useCreateTemplate() {
   });
 }
 
+export function useUpdateTemplate() {
+  const qc = useQueryClient();
+  return useMutation<Template, ApiError, { id: string } & Schemas["UpdateTemplateBody"]>({
+    mutationFn: ({ id, ...body }) => requestData(() => api.PATCH("/templates/{id}", { params: { path: { id } }, body })),
+    onSuccess: () => qc.invalidateQueries({ queryKey: keys.templates }),
+  });
+}
+
 export function useDeleteTemplate() {
   const qc = useQueryClient();
   return useMutation<void, ApiError, string>({

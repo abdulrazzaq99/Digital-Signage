@@ -8,6 +8,7 @@ import { Alert, CompanyLogo } from "@/components/ui/misc";
 import { useToast } from "@/components/ui/toast";
 import { counts, useCreateCompany, useDeleteCompany, useUpdateCompany } from "@/lib/api/hooks/companies";
 import { LICENSE_STATES, useUpdateLicense } from "@/lib/api/hooks/licenses";
+import { useCategories } from "@/lib/api/hooks/categories";
 import type { Company } from "@/lib/api/types";
 import { label } from "@/lib/format";
 import { TIME_ZONES } from "@/lib/validation/fields";
@@ -27,6 +28,7 @@ function CompanyForm({ company, onClose, onSaved }: { company?: Company | null; 
   const limitText = form.watch("screenLimit");
   const zone = form.watch("timezone");
   const approval = form.watch("mediaApproval");
+  const categories = useCategories();
   // Keep a stored zone the browser doesn't list selectable, so opening the form never silently changes it.
   const zones = zone && !TIME_ZONES.includes(zone) ? [zone, ...TIME_ZONES] : TIME_ZONES;
 
@@ -57,6 +59,7 @@ function CompanyForm({ company, onClose, onSaved }: { company?: Company | null; 
           <SectionLabel>Company Information</SectionLabel>
           <Field label="Company Name" required error={e.name?.message}><Input placeholder="e.g. Acme Retail" autoComplete="organization" maxLength={120} {...maskedRegister(form, "name", maskName)} /></Field>
           <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Location Category" hint="Decides which Head Office offers, templates and campaigns it sees." error={e.categoryId?.message}><Select {...register("categoryId")}><option value="">No category</option>{(categories.data ?? []).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</Select></Field>
             <Field label="Company Status" error={e.status?.message}><Select {...register("status")}>{COMPANY_STATUSES.map((s) => <option key={s} value={s}>{label(s)}</option>)}</Select></Field>
             <Field label="Plan" error={e.plan?.message}><Input placeholder="e.g. Platform Pro" autoComplete="off" maxLength={60} {...register("plan")} /></Field>
             <Field label="Website" error={e.website?.message}><Input type="url" inputMode="url" placeholder="https://" autoComplete="url" autoCapitalize="off" maxLength={2048} {...register("website")} /></Field>

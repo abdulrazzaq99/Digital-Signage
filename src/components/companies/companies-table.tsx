@@ -2,7 +2,8 @@
 import { Button } from "@/components/ui/button";
 import { Badge, DotStatus, StatusBadge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { PillTabs, SearchInput } from "@/components/ui/input";
+import { FilterSelect, PillTabs, SearchInput } from "@/components/ui/input";
+import { useCategories } from "@/lib/api/hooks/categories";
 import { CompanyLogo, DropdownMenu, PageHeader, Pagination, Progress } from "@/components/ui/misc";
 import { EmptyState, QueryState, TableSkeleton } from "@/components/ui/query-state";
 import { TD, TH, THead, TR, Table } from "@/components/ui/table";
@@ -20,12 +21,14 @@ const STATUSES: ("All" | Company["status"])[] = ["All", "ACTIVE", "SUSPENDED", "
 export function CompaniesTable() {
   const [status, setStatus] = useState<"All" | Company["status"]>("All");
   const [q, setQ] = useState("");
+  const [category, setCategory] = useState("");
   const [page, setPage] = useState(1);
+  const categories = useCategories();
   const [create, setCreate] = useState(false);
   const [edit, setEdit] = useState<Company | null>(null);
   const [del, setDel] = useState<Company | null>(null);
   const search = useDebouncedValue(q.trim(), 300);
-  const companies = useCompanies({ search: search || undefined, status: status === "All" ? undefined : status, page });
+  const companies = useCompanies({ search: search || undefined, status: status === "All" ? undefined : status, categoryId: category || undefined, page });
 
   return (
     <div className="space-y-5">
@@ -35,11 +38,12 @@ export function CompaniesTable() {
         <div className="flex flex-wrap items-center gap-3">
           <SearchInput placeholder="Search companies..." aria-label="Search companies" maxLength={100} className="w-60" value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} />
           <PillTabs options={STATUSES.map((s) => ({ value: s, label: s === "All" ? "All" : label(s) }))} value={status} onChange={(v) => { setStatus(v); setPage(1); }} />
+          <FilterSelect label="All Categories" options={[...(categories.data ?? []).map((c) => ({ value: c.id, label: c.name })), { value: "none", label: "No category" }]} value={category} onChange={(v) => { setCategory(v); setPage(1); }} />
         </div>
         <span className="text-xs text-slate-400">{companies.data?.meta?.total ?? 0} companies</span>
       </div>
 
-      <QueryState query={companies} skeleton={<TableSkeleton rows={8} />} empty={<EmptyState icon={<Building2 className="h-5 w-5" />} title={q || status !== "All" ? "No companies match" : "No companies yet"} body="Onboard a customer company to start pairing screens." action={<Button onClick={() => setCreate(true)}><Plus className="h-4 w-4" /> Add Company</Button>} />}>
+      <QueryState query={companies} skeleton={<TableSkeleton rows={8} />} empty={<EmptyState icon={<Building2 className="h-5 w-5" />} title={q || status !== "All" || category ? "No companies match" : "No companies yet"} body="Onboard a customer company to start pairing screens." action={<Button onClick={() => setCreate(true)}><Plus className="h-4 w-4" /> Add Company</Button>} />}>
         {({ data, meta }) => (
           <Card>
             <Table>
@@ -55,7 +59,7 @@ export function CompaniesTable() {
                       <TD>
                         <Link href={`/companies/${c.id}`} className="flex items-center gap-3">
                           <CompanyLogo seed={c.code} name={c.name} size="sm" />
-                          <span><span className="block whitespace-nowrap text-sm font-semibold text-slate-900">{c.name}</span><span className="block text-[11px] text-slate-400">{c.code}</span></span>
+                          <span><span className="block whitespace-nowrap text-sm font-semibold text-slate-900">{c.name}</span><span className="block whitespace-nowrap text-[11px] text-slate-400">{c.code}{c.category ? ` · ${c.category.name}` : ""}</span></span>
                         </Link>
                       </TD>
                       <TD><DotStatus status={label(c.status)} /></TD>

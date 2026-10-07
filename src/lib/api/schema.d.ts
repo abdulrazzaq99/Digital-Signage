@@ -326,6 +326,164 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Location categories (Kiosk, Restaurant, ...) with how many locations are in each. */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["LocationCategory"][];
+                            meta?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** @description Super Admin only. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["CategoryBody"];
+                };
+            };
+            responses: {
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["LocationCategory"];
+                            meta?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/categories/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** @description Super Admin only. Refused while locations or content use it. */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Deleted */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /** @description Super Admin only. Renames a category. */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["CategoryBody"];
+                };
+            };
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["LocationCategory"];
+                            meta?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
     "/companies": {
         parameters: {
             query?: never;
@@ -340,6 +498,7 @@ export interface paths {
                     pageSize?: number;
                     search?: string;
                     status?: "ACTIVE" | "INACTIVE" | "SUSPENDED";
+                    categoryId?: string | "none";
                 };
                 header?: never;
                 path?: never;
@@ -3135,7 +3294,37 @@ export interface paths {
         };
         options?: never;
         head?: never;
-        patch?: never;
+        /** @description Super Admin only. Changes which locations can use the template. */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["UpdateTemplateBody"];
+                };
+            };
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Template"];
+                            meta?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+        };
         trace?: never;
     };
     "/template-instances": {
@@ -4839,6 +5028,15 @@ export interface components {
             currentPassword: string;
             newPassword: string;
         };
+        LocationCategory: {
+            id: string;
+            name: string;
+            companies: number;
+            createdAt: string;
+        };
+        CategoryBody: {
+            name: string;
+        };
         Company: {
             id: string;
             code: string;
@@ -4851,6 +5049,10 @@ export interface components {
             timezone: string;
             plan: string | null;
             mediaApproval: boolean;
+            category: {
+                id: string;
+                name: string;
+            } | null;
             overLimit: boolean;
             createdAt: string;
             license: {
@@ -4881,6 +5083,7 @@ export interface components {
             plan?: string;
             /** @default true */
             mediaApproval: boolean;
+            categoryId?: string | null;
             screenLimit: number;
             /**
              * @default ACTIVE
@@ -4898,6 +5101,7 @@ export interface components {
             timezone?: string;
             plan?: string | null;
             mediaApproval?: boolean;
+            categoryId?: string | null;
         };
         License: {
             companyId: string;
@@ -5410,6 +5614,19 @@ export interface components {
             isGlobal: boolean;
             usedIn: number;
             createdAt: string;
+            audience?: components["schemas"]["TargetAudience"];
+        };
+        TargetAudience: {
+            /** @enum {string} */
+            kind: "all";
+        } | {
+            /** @enum {string} */
+            kind: "categories";
+            categoryIds: string[];
+        } | {
+            /** @enum {string} */
+            kind: "companies";
+            companyIds: string[];
         };
         CreateTemplateBody: {
             name: string;
@@ -5442,6 +5659,37 @@ export interface components {
                 /** @enum {string} */
                 fit?: "cover" | "contain";
             }[];
+            /**
+             * @default {
+             *       "kind": "all"
+             *     }
+             */
+            audience: {
+                /** @enum {string} */
+                kind: "all";
+            } | {
+                /** @enum {string} */
+                kind: "categories";
+                categoryIds: string[];
+            } | {
+                /** @enum {string} */
+                kind: "companies";
+                companyIds: string[];
+            };
+        };
+        UpdateTemplateBody: {
+            audience: {
+                /** @enum {string} */
+                kind: "all";
+            } | {
+                /** @enum {string} */
+                kind: "categories";
+                categoryIds: string[];
+            } | {
+                /** @enum {string} */
+                kind: "companies";
+                companyIds: string[];
+            };
         };
         TemplateInstance: {
             id: string;
@@ -5490,6 +5738,7 @@ export interface components {
             included: string[];
             steps: string[];
             imageUrl: string | null;
+            audience?: components["schemas"]["TargetAudience"];
             startsAt: string | null;
             endsAt: string | null;
             publishedAt: string | null;
@@ -5524,6 +5773,23 @@ export interface components {
             startsAt?: string | null;
             /** Format: date-time */
             endsAt?: string | null;
+            /**
+             * @default {
+             *       "kind": "all"
+             *     }
+             */
+            audience: {
+                /** @enum {string} */
+                kind: "all";
+            } | {
+                /** @enum {string} */
+                kind: "categories";
+                categoryIds: string[];
+            } | {
+                /** @enum {string} */
+                kind: "companies";
+                companyIds: string[];
+            };
         };
         UpdateOfferBody: {
             title?: string;
@@ -5546,6 +5812,18 @@ export interface components {
             startsAt?: string | null;
             /** Format: date-time */
             endsAt?: string | null;
+            audience?: {
+                /** @enum {string} */
+                kind: "all";
+            } | {
+                /** @enum {string} */
+                kind: "categories";
+                categoryIds: string[];
+            } | {
+                /** @enum {string} */
+                kind: "companies";
+                companyIds: string[];
+            };
         };
         Campaign: {
             id: string;
@@ -5558,6 +5836,7 @@ export interface components {
             maxAttempts: number;
             requireOffersVisit: boolean;
             artworkUrl: string | null;
+            audience?: components["schemas"]["TargetAudience"];
             prizes: components["schemas"]["Prize"][];
             attempts?: number;
             winners?: number;
@@ -5595,6 +5874,23 @@ export interface components {
                 /** @default 1 */
                 weight: number;
             }[];
+            /**
+             * @default {
+             *       "kind": "all"
+             *     }
+             */
+            audience: {
+                /** @enum {string} */
+                kind: "all";
+            } | {
+                /** @enum {string} */
+                kind: "categories";
+                categoryIds: string[];
+            } | {
+                /** @enum {string} */
+                kind: "companies";
+                companyIds: string[];
+            };
         };
         UpdateCampaignBody: {
             title?: string;
@@ -5607,6 +5903,18 @@ export interface components {
             requireOffersVisit?: boolean;
             loseWeight?: number;
             artworkKey?: string | null;
+            audience?: {
+                /** @enum {string} */
+                kind: "all";
+            } | {
+                /** @enum {string} */
+                kind: "categories";
+                categoryIds: string[];
+            } | {
+                /** @enum {string} */
+                kind: "companies";
+                companyIds: string[];
+            };
         };
         AddPrizeBody: {
             name: string;
@@ -5682,6 +5990,10 @@ export interface components {
                 kind: "all";
             } | {
                 /** @enum {string} */
+                kind: "categories";
+                categoryIds: string[];
+            } | {
+                /** @enum {string} */
                 kind: "companies";
                 companyIds: string[];
             } | {
@@ -5714,6 +6026,10 @@ export interface components {
             audience: {
                 /** @enum {string} */
                 kind: "all";
+            } | {
+                /** @enum {string} */
+                kind: "categories";
+                categoryIds: string[];
             } | {
                 /** @enum {string} */
                 kind: "companies";

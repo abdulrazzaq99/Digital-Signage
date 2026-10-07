@@ -8,6 +8,7 @@ import { z } from "zod";
 import { dateInput, endAfterStart, optionalEmail, optionalPhone, optionalText, phoneDigits, text } from "@/lib/validation/fields";
 import { fromDateInput } from "@/lib/format";
 import type { Schemas } from "@/lib/api/types";
+import { AUDIENCE_API_FIELDS, audienceField } from "@/components/targeting/audience";
 
 /** The API accepts exactly these categories. */
 export const OFFER_CATEGORIES = ["Hardware", "Software", "Services", "Support", "Retail & Shopping", "Food & Beverage", "Travel & Hospitality", "Technology", "Health & Wellness"] as const satisfies readonly Schemas["CreateOfferBody"]["category"][];
@@ -43,6 +44,7 @@ export const offerSchema = z
     contactHours: optionalText(120),
     start: dateInput(false),
     end: dateInput(false),
+    audience: audienceField(),
   })
   // Checked as soon as both dates parse, even while other fields are still invalid.
   .superRefine(endAfterStart("start", "end"), { when: (p) => !p.issues.some((i) => DATES.includes(String(i.path?.[0]))) });
@@ -52,6 +54,7 @@ export type OfferParsed = z.output<typeof offerSchema>;
 
 /** API field names → form names, so server errors land on the right input. */
 export const OFFER_API_FIELDS: Record<string, string> = {
+  ...AUDIENCE_API_FIELDS,
   startsAt: "start", endsAt: "end",
   "contact.name": "contactName", "contact.role": "contactRole", "contact.email": "contactEmail", "contact.phone": "contactPhone", "contact.hours": "contactHours",
 };
@@ -68,7 +71,7 @@ export function toOfferBody(v: OfferParsed, editing: boolean): Schemas["CreateOf
   if (v.contactHours) contact.hours = v.contactHours;
   const body: Schemas["CreateOfferBody"] = {
     title: v.title, category: v.category, summary: v.summary, description: v.description, instructions: v.instructions,
-    included: toLines(v.included), steps: toLines(v.steps), contact,
+    included: toLines(v.included), steps: toLines(v.steps), contact, audience: v.audience,
   };
   if (v.start || editing) body.startsAt = fromDateInput(v.start);
   if (v.end || editing) body.endsAt = fromDateInput(v.end);

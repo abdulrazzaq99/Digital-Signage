@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { offerSchema, toOfferBody } from "./offer-schema";
 
-const base = { title: "Summer sale", category: "Hardware", summary: "Up to 40% off displays", description: "A long enough description.", instructions: "Quote code SUMMER", included: "", steps: "", contactName: "Jane Doe", contactRole: "", contactEmail: "", contactPhone: "", contactHours: "", start: "", end: "" };
+const base = { audience: { kind: "all" as const }, title: "Summer sale", category: "Hardware", summary: "Up to 40% off displays", description: "A long enough description.", instructions: "Quote code SUMMER", included: "", steps: "", contactName: "Jane Doe", contactRole: "", contactEmail: "", contactPhone: "", contactHours: "", start: "", end: "" };
 const issues = (v: object) => (offerSchema.safeParse({ ...base, ...v }).error?.issues ?? []).map((i) => `${i.path.join(".")}: ${i.message}`);
 
 describe("offer schema", () => {

@@ -1,6 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Card, SectionLabel } from "@/components/ui/card";
+import { AudiencePicker, audienceError, EVERYONE, AUDIENCE_API_FIELDS } from "@/components/targeting/audience";
 import { applyApiError, Field, fieldError, FormError, maskedRegister, SubmitButton, useZodForm } from "@/components/ui/form";
 import { Input, Textarea, Toggle } from "@/components/ui/input";
 import { Modal, ModalHeader } from "@/components/ui/modal";
@@ -24,7 +25,7 @@ import { ScratchShell } from "./scratch-shell";
 const STEPS = ["Basic Info", "Eligibility", "Prize Setup", "Review"];
 const STEP_FIELDS: FieldPath<CampaignValues>[][] = [["title", "description", "start", "end"], ["maxAttempts", "loseWeight"], ["prizes"]];
 /** API field names → form field names, for server validation errors. */
-const API_FIELDS = { startsAt: "start", endsAt: "end" };
+const API_FIELDS = { ...AUDIENCE_API_FIELDS, startsAt: "start", endsAt: "end" };
 const stepOf = (name: string) => Math.max(0, STEP_FIELDS.findIndex((fs) => fs.some((f) => name === f || name.startsWith(`${f}.`)))) + 1;
 
 /**
@@ -58,12 +59,14 @@ function Form({ campaign }: { campaign?: WithWeights }) {
       end: initialEnd,
       maxAttempts: String(campaign?.maxAttempts ?? 1),
       requireOffersVisit: campaign?.requireOffersVisit ?? false,
+      audience: campaign?.audience ?? EVERYONE,
       loseWeight: campaign ? (campaign.loseWeight !== undefined ? String(campaign.loseWeight) : "") : "50",
       activate: false,
       prizes: toRows(campaign?.prizes ?? []),
     },
   });
   const { register, control, setValue, formState } = form;
+  const audience = useWatch({ control, name: "audience" });
   const prizesArray = useFieldArray({ control, name: "prizes" });
   const [title = "", description = "", start = "", end = "", maxAttempts = "", requireOffers = false, loseWeight = "", activateOnSave = false] = useWatch({ control, name: ["title", "description", "start", "end", "maxAttempts", "requireOffersVisit", "loseWeight", "activate"] });
   const prizes = useWatch({ control, name: "prizes" }) ?? [];
@@ -103,7 +106,7 @@ function Form({ campaign }: { campaign?: WithWeights }) {
       let saved: Campaign;
       if (campaign) {
         // Only the dates the admin changed are sent, so an unchanged start keeps its time of day.
-        const body: Schemas["UpdateCampaignBody"] = { title: v.title, description: v.description || null, maxAttempts: Number(v.maxAttempts), requireOffersVisit: v.requireOffersVisit };
+        const body: Schemas["UpdateCampaignBody"] = { title: v.title, description: v.description || null, maxAttempts: Number(v.maxAttempts), requireOffersVisit: v.requireOffersVisit, audience: v.audience };
         if (v.start !== initialStart) body.startsAt = startsAt;
         if (v.end !== initialEnd) body.endsAt = endsAt;
         if (v.loseWeight !== "") body.loseWeight = Number(v.loseWeight);
@@ -116,6 +119,7 @@ function Form({ campaign }: { campaign?: WithWeights }) {
           startsAt, endsAt,
           maxAttempts: Number(v.maxAttempts),
           requireOffersVisit: v.requireOffersVisit,
+          audience: v.audience,
           loseWeight: Number(v.loseWeight),
           activate: activateNow,
           prizes: v.prizes.map((p) => ({ name: p.name.trim(), ...(p.value.trim() ? { value: p.value.trim() } : {}), quantity: Number(p.quantity), weight: Number(p.weight) })),
@@ -162,6 +166,7 @@ function Form({ campaign }: { campaign?: WithWeights }) {
             <Field label="Maximum Attempts Per User" required error={formState.errors.maxAttempts?.message} hint="1–100. The API rejects any attempt beyond this limit.">
               <Input className="w-24" inputMode="numeric" autoFocus {...maskedRegister(form, "maxAttempts", (v) => maskInteger(v, 3))} />
             </Field>
+            <Card className="px-4 py-4"><div className="text-sm font-semibold text-slate-900">Who can play</div><p className="mt-0.5 text-[11px] text-slate-500">Only these locations see the campaign and can scratch.</p><AudiencePicker className="mt-3" value={audience ?? EVERYONE} onChange={(a) => setValue("audience", a, { shouldDirty: true, shouldValidate: formState.isSubmitted })} error={audienceError(formState.errors.audience)} /></Card>
             <Card className="px-4 py-4"><div className="flex items-start justify-between gap-4"><div><div className="text-sm font-semibold text-slate-900">Require Offers Visit Before Scratching</div><p className="mt-1 text-[11px] leading-4 text-slate-400">Users must have viewed a Marketplace offer in the last 30 minutes before they can scratch. Validated on each attempt.</p></div><Toggle checked={requireOffers} onChange={(v) => setValue("requireOffersVisit", v, { shouldDirty: true })} /></div></Card>
             <Field label="Lose weight" error={formState.errors.loseWeight?.message} hint={editing ? "Leave blank to keep the current value (the server doesn't reveal it). 0–1,000,000; 0 means every attempt wins while stock lasts." : "0–1,000,000. Relative weight of a losing draw against the prize weights; 0 means every attempt wins while stock lasts."}>
               <Input className="w-32" inputMode="numeric" placeholder={editing ? "Unchanged" : undefined} {...maskedRegister(form, "loseWeight", (v) => maskInteger(v, 7))} />

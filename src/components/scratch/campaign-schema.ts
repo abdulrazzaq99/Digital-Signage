@@ -4,6 +4,8 @@
  * value ≤40, quantity 1–1,000,000 and draw weight 1–1,000,000; at most 50 prizes.
  */
 import { z } from "zod";
+import { audienceField } from "@/components/targeting/audience";
+
 import { dateInput, intText, optionalText, text } from "@/lib/validation/fields";
 import { todayInput } from "@/lib/format";
 
@@ -36,6 +38,7 @@ export function campaignSchema(editing: boolean, initialStart = "") {
       end: dateInput(),
       maxAttempts: intText(1, 100, "Attempts"),
       requireOffersVisit: z.boolean(),
+      audience: audienceField(),
       loseWeight: editing ? z.union([z.literal(""), intText(0, 1_000_000, "Lose weight")]) : intText(0, 1_000_000, "Lose weight"),
       activate: z.boolean(),
       prizes: z.array(prizeRow).min(1, "Add at least one prize").max(MAX_PRIZES, `At most ${MAX_PRIZES} prizes`),

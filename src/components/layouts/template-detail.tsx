@@ -8,7 +8,8 @@ import { Modal, ModalFooter, ModalHeader } from "@/components/ui/modal";
 import { Alert, BackLink } from "@/components/ui/misc";
 import { QueryState, Skeleton } from "@/components/ui/query-state";
 import { useToast } from "@/components/ui/toast";
-import { useDeleteTemplate, useTemplates } from "@/lib/api/hooks/templates";
+import { useDeleteTemplate, useTemplates, useUpdateTemplate } from "@/lib/api/hooks/templates";
+import { AudienceCard, EVERYONE } from "@/components/targeting/audience";
 import type { Template } from "@/lib/api/types";
 import { formatDate, label } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -22,6 +23,7 @@ function Detail({ t }: { t: Template }) {
   const router = useRouter();
   const toast = useToast();
   const scope = useCompanyScope();
+  const updateTemplate = useUpdateTemplate();
   const remove = useDeleteTemplate();
   const [del, setDel] = useState(false);
   const portrait = t.orientation === "PORTRAIT";
@@ -51,6 +53,7 @@ function Detail({ t }: { t: Template }) {
             <ul className="mt-2 space-y-1.5">{FIXED.map((f) => <li key={f} className="flex items-center justify-between rounded-lg border border-slate-100 bg-slate-50/60 px-3 py-2 text-xs"><span className="flex items-center gap-2 text-slate-600"><Lock className="h-3 w-3 text-slate-400" />{f}</span><span className="text-[10px] text-slate-400">Locked</span></li>)}</ul>
           </div>
           <Alert tone="blue" icon={<Shield className="h-3.5 w-3.5 shrink-0" />}><span className="font-semibold">Fixed-Layout Template</span><br />Customers may only edit the fields listed above. Layout structure, fonts, element positions, and overall design are locked by the template.</Alert>
+          <AudienceCard title="Who can use it" value={t.audience ?? EVERYONE} onSave={(audience) => updateTemplate.mutateAsync({ id: t.id, audience }).then(() => toast.success("Saved", "Who can use the template was updated."))} />
           <Button href={scope.withCompany(`/layouts/new/configure?t=${t.id}`)} size="lg" className="w-full"><LayoutTemplate className="h-4 w-4" /> Use Template for {scope.companyName || "a company"}</Button>
           <Button variant="danger-outline" className="w-full" onClick={() => setDel(true)}><Trash2 className="h-3.5 w-3.5" /> Delete Template</Button>
         </div>

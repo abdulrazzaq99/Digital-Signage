@@ -22,7 +22,7 @@ describe("company form", () => {
   });
   it("update clears blanks with null", () => {
     const body = updateCompanyBody(companySchema.parse({ ...base, website: "https://qa.example.com" }));
-    expect(body).toEqual({ name: "QA Retail", status: "ACTIVE", timezone: "UTC", plan: null, website: "https://qa.example.com", industry: null, phone: null, mediaApproval: true });
+    expect(body).toEqual({ name: "QA Retail", status: "ACTIVE", timezone: "UTC", plan: null, website: "https://qa.example.com", industry: null, phone: null, mediaApproval: true, categoryId: null });
   });
   it("delete requires the exact company name", () => {
     const s = deleteCompanySchema("Acme Retail");

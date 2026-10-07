@@ -17,6 +17,7 @@ import { AlertTriangle, ArrowLeft, Check, Eye, Info, Save, Send } from "lucide-r
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useWatch } from "react-hook-form";
+import { AudiencePicker, audienceError, EVERYONE } from "@/components/targeting/audience";
 import { MAX_LINE, MAX_LINES, OFFER_API_FIELDS, OFFER_CATEGORIES, offerSchema, toLines, toOfferBody, type OfferFormValues, type OfferParsed } from "./offer-schema";
 import { OffersShell } from "./offers-shell";
 
@@ -29,6 +30,7 @@ const fromOffer = (o?: Offer): OfferFormValues => ({
   included: (o?.included ?? []).join("\n"), steps: (o?.steps ?? []).join("\n"),
   contactName: o?.contact?.name ?? "", contactRole: o?.contact?.role ?? "", contactEmail: o?.contact?.email ?? "", contactPhone: o?.contact?.phone ?? "", contactHours: o?.contact?.hours ?? "",
   start: toDateInput(o?.startsAt), end: toDateInput(o?.endsAt),
+  audience: o?.audience ?? EVERYONE,
 });
 
 function Form({ offer, mode }: { offer?: Offer; mode: "create" | "edit" | "preview" }) {
@@ -124,6 +126,7 @@ function Form({ offer, mode }: { offer?: Offer; mode: "create" | "edit" | "previ
         </div>
         <div className="space-y-4">
           <Field label="Category" error={errors.category?.message}><Select {...register("category")}>{[...new Set([values.category ?? "", ...OFFER_CATEGORIES])].filter(Boolean).map((c) => <option key={c}>{c}</option>)}</Select></Field>
+          <Card className="px-4 py-4"><div className="text-xs font-semibold text-slate-800">Who sees it</div><p className="mt-0.5 text-[11px] text-slate-400">Only these locations see the offer in their Marketplace.</p><AudiencePicker className="mt-3" value={values.audience ?? EVERYONE} onChange={(a) => form.setValue("audience", a, { shouldDirty: true, shouldValidate: formState.isSubmitted })} error={audienceError(errors.audience)} /></Card>
           <Card className="px-4 py-4"><div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800">📅 Availability Dates <span className="text-[10px] font-normal text-slate-400">(optional)</span></div><div className="mt-3 space-y-3"><Field label="Start Date" error={errors.start?.message}><Input type="date" {...register("start", { onChange: () => formState.touchedFields.end && void form.trigger("end") })} /></Field><Field label="End Date" error={errors.end?.message}><Input type="date" min={values.start || undefined} {...register("end")} /></Field></div><p className="mt-3 text-[10px] leading-4 text-slate-400">Past the end date the offer shows as expired for customers.</p></Card>
           <Alert tone="blue" icon={<Info className="h-3.5 w-3.5 shrink-0" />}><span className="font-semibold">Images</span><br />Cover images are set through the API (storage key). Offers without an image show a category-coloured cover.</Alert>
           <FormError form={form} />
