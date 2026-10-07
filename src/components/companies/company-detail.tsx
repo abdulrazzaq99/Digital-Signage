@@ -99,7 +99,7 @@ function Detail({ company }: { company: Company }) {
           <CompanyLogo seed={company.code} name={company.name} size="lg" />
           <div>
             <div className="flex items-center gap-2.5"><h1 className="text-xl font-bold tracking-tight text-slate-900">{company.name}</h1><Badge tone={company.status === "ACTIVE" ? "green" : company.status === "SUSPENDED" ? "amber" : "slate"} dot>{label(company.status)}</Badge></div>
-            <p className="mt-0.5 text-xs text-slate-400">{company.code} · Customer since {formatDate(company.createdAt)}{company.plan ? ` · ${company.plan}` : ""}</p>
+            <p className="mt-0.5 text-xs text-slate-400">{company.code} · Customer since {formatDate(company.createdAt)}{company.license ? ` · ${company.license.screenLimit} screen${company.license.screenLimit === 1 ? "" : "s"} allowed` : ""}</p>
           </div>
         </div>
         <Button variant="secondary" onClick={() => setEditCompany(true)}><Pencil className="h-3.5 w-3.5" /> Edit Company</Button>

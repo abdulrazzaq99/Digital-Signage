@@ -61,7 +61,6 @@ function CompanyForm({ company, onClose, onSaved }: { company?: Company | null; 
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Location Category" hint="Decides which Head Office offers, templates and campaigns it sees." error={e.categoryId?.message}><Select {...register("categoryId")}><option value="">No category</option>{(categories.data ?? []).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</Select></Field>
             <Field label="Company Status" error={e.status?.message}><Select {...register("status")}>{COMPANY_STATUSES.map((s) => <option key={s} value={s}>{label(s)}</option>)}</Select></Field>
-            <Field label="Plan" error={e.plan?.message}><Input placeholder="e.g. Platform Pro" autoComplete="off" maxLength={60} {...register("plan")} /></Field>
             <Field label="Website" error={e.website?.message}><Input type="url" inputMode="url" placeholder="https://" autoComplete="url" autoCapitalize="off" maxLength={2048} {...register("website")} /></Field>
             <Field label="Industry" error={e.industry?.message}><Input placeholder="Retail" autoComplete="off" maxLength={80} {...register("industry")} /></Field>
             <Field label="Phone" error={e.phone?.message}><FormPhone form={form} name="phone" autoComplete="off" /></Field>
@@ -71,7 +70,7 @@ function CompanyForm({ company, onClose, onSaved }: { company?: Company | null; 
         <div className="space-y-4">
           <SectionLabel>License Configuration</SectionLabel>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Maximum Screens" required hint="Whole number, 1–10,000." error={e.screenLimit?.message}><Input inputMode="numeric" autoComplete="off" maxLength={5} {...maskedRegister(form, "screenLimit", (v) => maskInteger(v, 5))} /></Field>
+            <Field label="Maximum Screens" required hint="How many screens this company may pair (1–10,000). Only you can change it." error={e.screenLimit?.message}><Input inputMode="numeric" autoComplete="off" maxLength={5} {...maskedRegister(form, "screenLimit", (v) => maskInteger(v, 5))} /></Field>
             <Field label="License Status" error={e.licenseState?.message}><Select {...register("licenseState")}>{LICENSE_STATES.map((s) => <option key={s} value={s}>{label(s)}</option>)}</Select></Field>
           </div>
           <label className="flex cursor-pointer items-start gap-2.5 rounded-lg border border-slate-200 px-3.5 py-3">

@@ -15,7 +15,6 @@ export const screenLimit = () => intText(1, SCREEN_LIMIT_MAX, "Screen limit");
 export const companySchema = z.object({
   name: text(120, 2),
   status: z.enum(COMPANY_STATUSES, { error: "Choose a status" }),
-  plan: optionalText(60),
   website: optionalUrl(),
   industry: optionalText(80),
   phone: optionalPhone(),
@@ -33,7 +32,6 @@ type Parsed = z.output<typeof companySchema>;
 export const companyDefaults = (c?: Company | null): CompanyFormValues => ({
   name: c?.name ?? "",
   status: c?.status ?? "ACTIVE",
-  plan: c?.plan ?? "",
   website: c?.website ?? "",
   industry: c?.industry ?? "",
   phone: c?.phone ?? "",
@@ -54,7 +52,6 @@ export function createCompanyBody(v: Parsed): Schemas["CreateCompanyBody"] {
     licenseState: v.licenseState,
     mediaApproval: v.mediaApproval,
     ...(v.categoryId ? { categoryId: v.categoryId } : {}),
-    ...(v.plan ? { plan: v.plan } : {}),
     ...(v.website ? { website: v.website } : {}),
     ...(v.industry ? { industry: v.industry } : {}),
     ...(v.phone ? { phone: phoneDigits(v.phone) } : {}),
@@ -67,7 +64,6 @@ export function updateCompanyBody(v: Parsed): Schemas["UpdateCompanyBody"] {
     name: v.name,
     status: v.status,
     timezone: v.timezone,
-    plan: v.plan || null,
     website: v.website || null,
     industry: v.industry || null,
     phone: v.phone ? phoneDigits(v.phone) : null,

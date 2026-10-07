@@ -14,7 +14,7 @@ describe("company form", () => {
     expect(e.screenLimit).toMatch(/at least 1/);
     expect(issues(companySchema.safeParse({ ...base, screenLimit: "10001" })).screenLimit).toMatch(/at most 10000/);
     expect(issues(companySchema.safeParse({ ...base, screenLimit: "2.5" })).screenLimit).toMatch(/whole number/);
-    expect(issues(companySchema.safeParse({ ...base, industry: "x".repeat(81), plan: "x".repeat(61) }))).toMatchObject({ industry: expect.stringMatching(/80/), plan: expect.stringMatching(/60/) });
+    expect(issues(companySchema.safeParse({ ...base, industry: "x".repeat(81) }))).toMatchObject({ industry: expect.stringMatching(/80/) });
   });
   it("create omits blank optionals and sends numbers/digits", () => {
     const body = createCompanyBody(companySchema.parse({ ...base, phone: "+44 20 7946 0000", screenLimit: "25" }));
@@ -22,7 +22,7 @@ describe("company form", () => {
   });
   it("update clears blanks with null", () => {
     const body = updateCompanyBody(companySchema.parse({ ...base, website: "https://qa.example.com" }));
-    expect(body).toEqual({ name: "QA Retail", status: "ACTIVE", timezone: "UTC", plan: null, website: "https://qa.example.com", industry: null, phone: null, mediaApproval: true, categoryId: null });
+    expect(body).toEqual({ name: "QA Retail", status: "ACTIVE", timezone: "UTC", website: "https://qa.example.com", industry: null, phone: null, mediaApproval: true, categoryId: null });
   });
   it("delete requires the exact company name", () => {
     const s = deleteCompanySchema("Acme Retail");
