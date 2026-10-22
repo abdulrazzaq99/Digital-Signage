@@ -6352,6 +6352,7 @@ export interface components {
             body: string;
             type: components["schemas"]["NotificationType"];
             targetId: string | null;
+            deepLink: string | null;
             sentAt: string;
             createdAt: string;
         };

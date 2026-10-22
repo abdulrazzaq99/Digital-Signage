@@ -1,5 +1,6 @@
 "use client";
 import { Bell } from "lucide-react";
+import Link from "next/link";
 import { useRef, useState } from "react";
 import { useAuth } from "@/components/auth/auth-provider";
 import { Floating, useDismiss } from "@/components/ui/floating";
@@ -69,14 +70,21 @@ export function NotificationBell() {
           <ul className="max-h-96 divide-y divide-slate-100 overflow-y-auto">
             {items.map((n) => {
               const isNew = Date.parse(n.sentAt) > seenAtOpen;
-              return (
-                <li key={n.id} className="flex gap-3 px-4 py-3">
+              // Only portal pages open from here; other links are meant for the mobile app.
+              const href = n.deepLink?.startsWith("/portal") ? n.deepLink : null;
+              const content = (
+                <>
                   <span className={cn("mt-1.5 h-2 w-2 shrink-0 rounded-full", isNew ? "bg-blue-600" : "bg-transparent")} aria-hidden />
                   <div className="min-w-0 flex-1">
                     <div className="text-xs font-semibold text-slate-900">{n.title}</div>
                     <p className="mt-0.5 whitespace-pre-line break-words text-xs text-slate-600">{n.body}</p>
                     <div className="mt-1 text-[10px] text-slate-400">{timeAgo(n.sentAt)}</div>
                   </div>
+                </>
+              );
+              return (
+                <li key={n.id}>
+                  {href ? <Link href={href} onClick={() => setOpen(false)} className="flex gap-3 px-4 py-3 hover:bg-slate-50">{content}</Link> : <div className="flex gap-3 px-4 py-3">{content}</div>}
                 </li>
               );
             })}
