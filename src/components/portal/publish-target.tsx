@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { SuccessIcon } from "@/components/ui/misc";
 import { ErrorState, TableSkeleton } from "@/components/ui/query-state";
+import { useCompany } from "@/lib/api/hooks/companies";
 import { useGroups } from "@/lib/api/hooks/groups";
 import { useScreens } from "@/lib/api/hooks/screens";
 import type { PublishResult, Screen } from "@/lib/api/types";
@@ -40,6 +41,8 @@ export function PublishOutcome({ screens }: { screens: PublishResult["screens"] 
 export function PublishTarget({ subject, companyId, onBack, onDone, onPublish }: { subject: string; companyId?: string | null; onBack: () => void; onDone: () => void; onPublish: (sel: PublishTargetSelection) => Promise<PublishResult> }) {
   const screens = useScreens({ pageSize: 100 }, { companyId });
   const groups = useGroups({ companyId });
+  // The Super Admin publishes on behalf of one company, so name it when it has no screens.
+  const company = useCompany(companyId ?? "", { enabled: !!companyId });
   const [target, setTarget] = useState<Target | null>(null);
   const [phase, setPhase] = useState<"select" | "confirm" | "done">("select");
   const [result, setResult] = useState<PublishResult | null>(null);
@@ -95,7 +98,7 @@ export function PublishTarget({ subject, companyId, onBack, onDone, onPublish }:
             <div className="text-[9px] font-semibold uppercase tracking-wider text-slate-400">Screens</div>
             {screens.isError ? <ErrorState error={screens.error} onRetry={() => screens.refetch()} className="mt-2 p-4" /> : screens.isPending ? <div className="mt-2"><TableSkeleton rows={3} /></div> : <>
             <ul className="mt-2 space-y-1.5">{all.map((s) => { const on = target?.kind === "screen" && target.id === s.id; return <li key={s.id}><button type="button" onClick={() => setTarget({ kind: "screen", id: s.id })} className={cn("flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left", on ? "border-blue-300 bg-blue-50/40" : "border-slate-200 hover:bg-slate-50")}><span className={cn("h-2 w-2 rounded-full", s.status === "ONLINE" ? "bg-green-500" : s.status === "OFFLINE" ? "bg-slate-300" : "bg-red-500")} /><span className="flex-1"><span className="block text-xs font-semibold text-slate-900">{s.name}</span><span className="block text-[10px] text-slate-400">{s.location ?? "—"}</span></span><Radio on={on} /></button></li>; })}</ul>
-            {all.length === 0 && <p className="mt-2 text-xs text-slate-400">No screens paired yet.</p>}
+            {all.length === 0 && <p className="mt-2 text-xs text-slate-400">{companyId ? <>{company.data?.name ?? "This company"} has no screens yet. Only this company&apos;s screens are listed; pair a screen to it first.</> : "No screens paired yet."}</p>}
             </>}
             <div className="mt-4 text-[9px] font-semibold uppercase tracking-wider text-slate-400">Groups</div>
             {groups.isError ? <ErrorState error={groups.error} onRetry={() => groups.refetch()} className="mt-2 p-4" /> : groups.isPending ? <div className="mt-2"><TableSkeleton rows={2} /></div> : <>
