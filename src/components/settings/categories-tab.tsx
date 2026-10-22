@@ -4,13 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { applyApiError, Field, fieldError, FormError, maskedRegister, SubmitButton, useZodForm } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Modal } from "@/components/ui/modal";
+import { Alert } from "@/components/ui/misc";
 import { useToast } from "@/components/ui/toast";
 import { useCategories, useCreateCategory, useDeleteCategory, useRenameCategory } from "@/lib/api/hooks/categories";
 import type { LocationCategory } from "@/lib/api/types";
 import { errorMessage } from "@/lib/format";
 import { text } from "@/lib/validation/fields";
 import { maskName } from "@/lib/validation/masks";
-import { Check, Pencil, Trash2, X } from "lucide-react";
+import { AlertCircle, Check, Pencil, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import { z } from "zod";
 
@@ -32,18 +34,35 @@ function AddCategory() {
   );
 }
 
-function Row({ c }: { c: LocationCategory }) {
-  const rename = useRenameCategory();
+/** Asks first; the API still refuses while a location or any content uses the category, and the reason shows here. */
+function DeleteCategoryModal({ c, onClose }: { c: LocationCategory; onClose: () => void }) {
   const remove = useDeleteCategory();
   const toast = useToast();
-  const [editing, setEditing] = useState(false);
   const [error, setError] = useState("");
+  const del = () => { setError(""); remove.mutate(c.id, { onSuccess: () => { toast.success("Category deleted", c.name); onClose(); }, onError: (e) => setError(errorMessage(e)) }); };
+  return (
+    <Modal open onClose={() => !remove.isPending && onClose()} width="max-w-[440px]">
+      <div className="p-6">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-red-600"><Trash2 className="h-4 w-4" /></div>
+        <h2 className="mt-4 text-base font-semibold text-slate-900">Delete &quot;{c.name}&quot;?</h2>
+        <p className="mt-1.5 text-xs leading-5 text-slate-500">A category can only be deleted when no location is in it and no offer, template, campaign, push or scheduled notification is aimed at it.</p>
+        {error && <Alert tone="red" className="mt-4" icon={<AlertCircle className="h-3.5 w-3.5 shrink-0" />}><span role="alert">{error}</span></Alert>}
+        <div className="mt-6 flex justify-end gap-2"><Button variant="secondary" onClick={onClose} disabled={remove.isPending}>Cancel</Button><Button variant="danger" onClick={del} disabled={remove.isPending}><Trash2 className="h-3.5 w-3.5" /> {remove.isPending ? "Deleting…" : "Delete Category"}</Button></div>
+      </div>
+    </Modal>
+  );
+}
+
+function Row({ c }: { c: LocationCategory }) {
+  const rename = useRenameCategory();
+  const toast = useToast();
+  const [editing, setEditing] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const form = useZodForm(nameSchema, { defaultValues: { name: c.name } });
   const save = form.handleSubmit(async (v) => {
     if (v.name === c.name) { setEditing(false); return; }
     try { await rename.mutateAsync({ id: c.id, name: v.name }); setEditing(false); toast.success("Category renamed", v.name); } catch (e) { applyApiError(form, e); }
   });
-  const del = () => { setError(""); remove.mutate(c.id, { onSuccess: () => toast.success("Category deleted", c.name), onError: (e) => setError(errorMessage(e)) }); };
   return (
     <li className="border-t border-slate-100 py-3 first:border-t-0">
       {editing ? (
@@ -56,10 +75,10 @@ function Row({ c }: { c: LocationCategory }) {
         <div className="flex items-center gap-3">
           <div className="min-w-0 flex-1"><div className="truncate text-sm font-medium text-slate-900">{c.name}</div><div className="text-[11px] text-slate-400">{c.companies} location{c.companies === 1 ? "" : "s"}</div></div>
           <Button size="sm" variant="secondary" onClick={() => setEditing(true)}><Pencil className="h-3.5 w-3.5" /> Rename</Button>
-          <Button size="sm" variant="danger-outline" onClick={del} disabled={remove.isPending}><Trash2 className="h-3.5 w-3.5" /> Delete</Button>
+          <Button size="sm" variant="danger-outline" onClick={() => setDeleting(true)}><Trash2 className="h-3.5 w-3.5" /> Delete</Button>
         </div>
       )}
-      {error && <p role="alert" className="mt-1.5 text-[11px] text-red-600">{error}</p>}
+      {deleting && <DeleteCategoryModal c={c} onClose={() => setDeleting(false)} />}
     </li>
   );
 }
