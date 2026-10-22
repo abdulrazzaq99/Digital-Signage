@@ -128,7 +128,8 @@ export function Textarea({ className, ...rest }: TextareaHTMLAttributes<HTMLText
 export function Toggle({ checked, onChange, className }: { checked: boolean; onChange: (v: boolean) => void; className?: string }) {
   return (
     <button type="button" role="switch" aria-checked={checked} onClick={() => onChange(!checked)} className={cn("relative h-5 w-9 shrink-0 rounded-full transition-colors after:absolute after:-inset-2.5 after:content-[''] sm:after:inset-0", checked ? "bg-blue-600" : "bg-slate-200", className)}>
-      <span className={cn("absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform", checked ? "translate-x-4" : "translate-x-0.5")} />
+      {/* Pinned to the left: an absolute child of a <button> otherwise starts from the centre and slides off the track. */}
+      <span className={cn("absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform", checked ? "translate-x-4" : "translate-x-0")} />
     </button>
   );
 }
