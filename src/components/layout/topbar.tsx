@@ -5,6 +5,7 @@ import { Avatar } from "@/components/ui/misc";
 import { useAuth } from "@/components/auth/auth-provider";
 
 import type { ShellConfig } from "./nav-config";
+import { NotificationBell } from "./notification-bell";
 
 export function Topbar({ config, onToggle, collapsed }: { config: ShellConfig; onToggle: () => void; collapsed: boolean }) {
   const pathname = usePathname();
@@ -19,6 +20,7 @@ export function Topbar({ config, onToggle, collapsed }: { config: ShellConfig; o
         <h2 className="truncate text-sm font-bold text-slate-900">{t.title}</h2>
         <p className="truncate text-[11px] text-slate-400">{t.subtitle}</p>
       </div>
+      {config.basePath === "/portal" && <NotificationBell />}
       <div className="hidden items-center gap-2 md:flex">
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />

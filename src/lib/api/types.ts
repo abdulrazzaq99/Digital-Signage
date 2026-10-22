@@ -27,6 +27,7 @@ export type Winner = Schemas["Winner"];
 export type Eligibility = Schemas["Eligibility"];
 export type AttemptResult = Schemas["AttemptResult"];
 export type Notification = Schemas["Notification"];
+export type InboxNotification = Schemas["InboxNotification"];
 export type ActivityEntry = Schemas["ActivityEntry"];
 export type CanvasSet = Schemas["CanvasSet"];
 export type PublishResult = Schemas["PublishResult"];
