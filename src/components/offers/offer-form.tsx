@@ -13,16 +13,17 @@ import { useCreateOffer, useOffer, usePublishOffer, useUpdateOffer } from "@/lib
 import type { Offer, Schemas } from "@/lib/api/types";
 import { toDateInput } from "@/lib/format";
 import { maskName } from "@/lib/validation/masks";
-import { AlertTriangle, ArrowLeft, Check, Eye, Info, Save, Send } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Check, Eye, Save, Send } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useWatch } from "react-hook-form";
 import { AudiencePicker, audienceError, EVERYONE } from "@/components/targeting/audience";
 import { MAX_LINE, MAX_LINES, OFFER_API_FIELDS, OFFER_CATEGORIES, offerSchema, toLines, toOfferBody, type OfferFormValues, type OfferParsed } from "./offer-schema";
+import { OfferImageField } from "./offer-image";
 import { OffersShell } from "./offers-shell";
 
 /** Local preview object shaped like the API's Offer so the customer body can render unsaved edits. */
-const previewOffer = (b: Schemas["CreateOfferBody"], base?: Offer): Offer => ({ id: base?.id ?? "preview", status: base?.status ?? "DRAFT", imageUrl: base?.imageUrl ?? null, publishedAt: base?.publishedAt ?? null, createdAt: base?.createdAt ?? new Date().toISOString(), updatedAt: new Date().toISOString(), ...b, startsAt: b.startsAt ?? null, endsAt: b.endsAt ?? null });
+const previewOffer = (b: Schemas["CreateOfferBody"], base: Offer | undefined, imageUrl: string | null): Offer => ({ id: base?.id ?? "preview", status: base?.status ?? "DRAFT", imageUrl, publishedAt: base?.publishedAt ?? null, createdAt: base?.createdAt ?? new Date().toISOString(), updatedAt: new Date().toISOString(), ...b, startsAt: b.startsAt ?? null, endsAt: b.endsAt ?? null });
 
 const fromOffer = (o?: Offer): OfferFormValues => ({
   title: o?.title ?? "", // A stored category outside the allowed list shows "Choose a category" rather than failing on save.
@@ -43,6 +44,8 @@ function Form({ offer, mode }: { offer?: Offer; mode: "create" | "edit" | "previ
   const { register, formState, control } = form;
   const errors = formState.errors;
   const [preview, setPreview] = useState(mode === "preview");
+  /** What the cover looks like now: the saved one, or the one just uploaded. */
+  const [imageUrl, setImageUrl] = useState(offer?.imageUrl ?? null);
   const [confirm, setConfirm] = useState<"none" | "ask" | "done">("none");
   const isLive = offer?.status === "PUBLISHED";
   const backHref = offer ? `/offers/${offer.id}` : "/offers";
@@ -55,7 +58,9 @@ function Form({ offer, mode }: { offer?: Offer; mode: "create" | "edit" | "previ
   const shownBody = previewBody ?? toOfferBody(offerSchema.safeParse(fromOffer(offer)).data ?? (fromOffer(offer) as OfferParsed), !!offer);
 
   /** Saves (create or update) and returns the saved offer. */
-  const save = (v: OfferParsed) => (offer ? update.mutateAsync({ id: offer.id, ...toOfferBody(v, true) }) : create.mutateAsync(toOfferBody(v, false)));
+  const save = (v: OfferParsed) => (offer
+    ? update.mutateAsync({ id: offer.id, ...toOfferBody(v, true), ...(v.imageKey !== undefined ? { imageKey: v.imageKey } : {}) })
+    : create.mutateAsync({ ...toOfferBody(v, false), ...(v.imageKey ? { imageKey: v.imageKey } : {}) }));
   const onError = (e: unknown) => {
     applyApiError(form, e, OFFER_API_FIELDS);
     // A field the server rejected is only visible on the edit screen.
@@ -70,7 +75,7 @@ function Form({ offer, mode }: { offer?: Offer; mode: "create" | "edit" | "previ
       <OffersShell tab="manage" hideCreate>
         <BackLink href={backHref} label="Back to Edit" current="Customer Preview" />
         <div className="flex items-center gap-3"><Badge tone="blue" className="uppercase"><Eye className="h-2.5 w-2.5" /> Customer View Preview</Badge><span className="text-xs text-slate-400">This is what customers will see in the Marketplace.</span></div>
-        <Card className="mx-auto max-w-[800px] space-y-4 p-6"><OfferBody offer={previewOffer(shownBody, offer)} /></Card>
+        <Card className="mx-auto max-w-[800px] space-y-4 p-6"><OfferBody offer={previewOffer(shownBody, offer, imageUrl)} /></Card>
         <FormError form={form} />
         <div className="flex flex-wrap items-center justify-between gap-2"><Button variant="secondary" onClick={() => setPreview(false)} disabled={busy}><ArrowLeft className="h-3.5 w-3.5" /> Back to Edit</Button><div className="flex gap-2"><Button variant="secondary" onClick={() => void saveDraft()} disabled={busy}><Save className="h-3.5 w-3.5" /> {busy && confirm === "none" ? "Saving…" : offer ? "Save Changes" : "Save Draft"}</Button><Button variant="success" onClick={() => setConfirm("ask")} disabled={busy}><Send className="h-3.5 w-3.5" /> {isLive ? "Save & Update Live Offer" : "Save & Publish"}</Button></div></div>
 
@@ -128,7 +133,7 @@ function Form({ offer, mode }: { offer?: Offer; mode: "create" | "edit" | "previ
           <Field label="Category" error={errors.category?.message}><Select {...register("category")}>{[...new Set([values.category ?? "", ...OFFER_CATEGORIES])].filter(Boolean).map((c) => <option key={c}>{c}</option>)}</Select></Field>
           <Card className="px-4 py-4"><div className="text-xs font-semibold text-slate-800">Who sees it</div><p className="mt-0.5 text-[11px] text-slate-400">Only these locations see the offer in their Marketplace.</p><AudiencePicker className="mt-3" value={values.audience ?? EVERYONE} onChange={(a) => form.setValue("audience", a, { shouldDirty: true, shouldValidate: formState.isSubmitted })} error={audienceError(errors.audience)} /></Card>
           <Card className="px-4 py-4"><div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800">📅 Availability Dates <span className="text-[10px] font-normal text-slate-400">(optional)</span></div><div className="mt-3 space-y-3"><Field label="Start Date" error={errors.start?.message}><Input type="date" {...register("start", { onChange: () => formState.touchedFields.end && void form.trigger("end") })} /></Field><Field label="End Date" error={errors.end?.message}><Input type="date" min={values.start || undefined} {...register("end")} /></Field></div><p className="mt-3 text-[10px] leading-4 text-slate-400">Past the end date the offer shows as expired for customers.</p></Card>
-          <Alert tone="blue" icon={<Info className="h-3.5 w-3.5 shrink-0" />}><span className="font-semibold">Images</span><br />Cover images are set through the API (storage key). Offers without an image show a category-coloured cover.</Alert>
+          <OfferImageField previewUrl={imageUrl} error={errors.imageKey?.message} onChange={(key, url) => { form.setValue("imageKey", key, { shouldDirty: true }); form.clearErrors("imageKey"); setImageUrl(url); }} />
           <FormError form={form} />
         </div>
       </div>

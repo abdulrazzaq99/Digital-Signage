@@ -2,6 +2,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, ApiError, request, requestData, requestPage } from "../client";
 import { clean, keys } from "../query";
+import { putWithProgress } from "@/lib/upload";
 import type { Offer, Page, Schemas } from "../types";
 
 export interface OfferFilters { search?: string; status?: Offer["status"]; category?: Schemas["CreateOfferBody"]["category"]; page?: number; pageSize?: number }
@@ -42,6 +43,17 @@ function useInvalidateOffers() {
 export function useCreateOffer() {
   const invalidate = useInvalidateOffers();
   return useMutation<Offer, ApiError, Schemas["CreateOfferBody"]>({ mutationFn: (body) => requestData(() => api.POST("/offers", { body })), onSuccess: () => invalidate() });
+}
+
+/** Uploads a cover for the offer form; the returned key is saved as the offer's `imageKey`. */
+export function useUploadOfferImage() {
+  return useMutation<{ key: string; previewUrl: string }, ApiError, File>({
+    mutationFn: async (file) => {
+      const { key, uploadUrl, previewUrl } = await requestData(() => api.POST("/offers/images/upload-url", { body: { fileName: file.name, contentType: file.type as Schemas["OfferImageUploadBody"]["contentType"], sizeBytes: file.size } }));
+      await putWithProgress(uploadUrl, file, () => undefined);
+      return { key, previewUrl };
+    },
+  });
 }
 
 export function useUpdateOffer() {

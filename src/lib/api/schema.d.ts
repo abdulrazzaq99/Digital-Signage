@@ -3888,6 +3888,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/offers/images/upload-url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Super Admin only. A presigned PUT for an offer's cover image; send the returned `key` as the offer's `imageKey`. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["OfferImageUploadBody"];
+                };
+            };
+            responses: {
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["OfferImageUpload"];
+                            meta?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                    };
+                };
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorEnvelope"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/offers/{id}": {
         parameters: {
             query?: never;
@@ -6128,6 +6180,18 @@ export interface components {
                 companyIds: string[];
             };
         };
+        OfferImageUpload: {
+            key: string;
+            uploadUrl: string;
+            previewUrl: string;
+            expiresInSec: number;
+        };
+        OfferImageUploadBody: {
+            fileName: string;
+            /** @enum {string} */
+            contentType: "image/png" | "image/jpeg" | "image/webp";
+            sizeBytes: number;
+        };
         UpdateOfferBody: {
             title?: string;
             /** @enum {string} */
@@ -6144,7 +6208,7 @@ export interface components {
             };
             included?: string[];
             steps?: string[];
-            imageKey?: string;
+            imageKey?: string | null;
             /** Format: date-time */
             startsAt?: string | null;
             /** Format: date-time */

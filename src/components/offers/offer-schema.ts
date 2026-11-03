@@ -45,6 +45,8 @@ export const offerSchema = z
     start: dateInput(false),
     end: dateInput(false),
     audience: audienceField(),
+    /** Left out = unchanged; null removes the cover. Set by the upload, never typed. */
+    imageKey: z.string().nullable().optional(),
   })
   // Checked as soon as both dates parse, even while other fields are still invalid.
   .superRefine(endAfterStart("start", "end"), { when: (p) => !p.issues.some((i) => DATES.includes(String(i.path?.[0]))) });
